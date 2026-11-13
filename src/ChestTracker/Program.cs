@@ -29,7 +29,7 @@ if (GetOption("--dump") is { } strDumpFile)
     // Also how the program reads every replay: one short-lived copy of itself per file
     try
     {
-        var objRecord = ReplayParser.ParseFile(strDumpFile);
+        var objRecord = ParseProcess.ParseWithLargeStack(strDumpFile);
 
         // Raw UTF-8 bytes, so player names survive whatever code page the console uses
         using var objOutput = Console.OpenStandardOutput();
@@ -39,7 +39,7 @@ if (GetOption("--dump") is { } strDumpFile)
     catch (Exception objError)
     {
         Console.Error.WriteLine(objError.Message.ReplaceLineEndings(" "));
-        return 2;
+        return ParseProcess.EXIT_UNREADABLE;
     }
 }
 
@@ -104,7 +104,10 @@ objApp.MapGet("/api/state", () =>
             DemosPath = objSettings.DemosPath,
             DefaultDemosPath = Store.DefaultDemosPath,
             EpicId = objSettings.EpicId,
-            DataFolder = objStore.DataFolder
+            DataFolder = objStore.DataFolder,
+            LogPath = objSettings.LogPath,
+            DefaultLogPath = GameLogTail.GetLogPath(objSettings.DemosPath),
+            IgnoredFiles = objSettings.IgnoredFiles.OrderByDescending(strFile => strFile).ToList()
         },
         Categories = Summarizer.Categories,
         Classes = Summarizer.ListClasses(lstRecords, objSettings),
@@ -139,6 +142,10 @@ objApp.MapPut("/api/settings", (SettingsRequest objRequest, ReplayWatcher objWat
         if (objRequest.EpicId != null)
         {
             objSettings.EpicId = objRequest.EpicId.Trim().ToUpperInvariant();
+        }
+        if (objRequest.LogPath != null)
+        {
+            objSettings.LogPath = Environment.ExpandEnvironmentVariables(objRequest.LogPath.Trim().Trim('"'));
         }
         if (objRequest.ClassOverrides != null)
         {
@@ -189,6 +196,51 @@ objApp.MapPost("/api/reset", (string? scope, ReplayWatcher objWatcher) =>
 
 objApp.MapPost("/api/update/check", () => { objUpdater.RequestCheck(); return Results.Ok(); });
 objApp.MapPost("/api/update/apply", () => objUpdater.StartApply() ? Results.Ok() : Results.Conflict());
+
+// Failed replays: stop trying them, try them again, or delete the files
+objApp.MapPost("/api/replays/ignore", (ReplayFilesRequest objRequest, ReplayWatcher objWatcher) =>
+{
+    objStore.UpdateSettings(objSettings => objRequest.Files.ForEach(strFile => objSettings.IgnoredFiles.Add(strFile)));
+    objWatcher.PublishErrors();
+    return Results.Ok();
+});
+
+objApp.MapPost("/api/replays/unignore", (ReplayFilesRequest objRequest, ReplayWatcher objWatcher) =>
+{
+    objStore.UpdateSettings(objSettings => objRequest.Files.ForEach(strFile => objSettings.IgnoredFiles.Remove(strFile)));
+    objWatcher.RequestScan(bRetryFailed: true);
+    return Results.Ok();
+});
+
+objApp.MapPost("/api/replays/delete", (ReplayFilesRequest objRequest, ReplayWatcher objWatcher) =>
+{
+    // Only plain .replay file names inside the replay folder; never a path
+    var strFolder = Path.GetFullPath(objStore.Settings.DemosPath);
+    var lstProblems = new List<string>();
+    foreach (var strFile in objRequest.Files)
+    {
+        var strPath = Path.GetFullPath(Path.Combine(strFolder, strFile));
+        if (Path.GetFileName(strFile) != strFile || !strFile.EndsWith(".replay", StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(Path.GetDirectoryName(strPath), strFolder.TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
+        {
+            lstProblems.Add(strFile);
+            continue;
+        }
+        try
+        {
+            if (File.Exists(strPath)) File.Delete(strPath);
+            objWatcher.ForgetFailure(strFile);
+            objStore.Log($"Replay deleted by the user: {strFile}");
+        }
+        catch (Exception objError) when (objError is IOException or UnauthorizedAccessException)
+        {
+            lstProblems.Add($"{strFile}: {objError.Message}");
+        }
+    }
+    objStore.UpdateSettings(objSettings => objRequest.Files.ForEach(strFile => objSettings.IgnoredFiles.Remove(strFile)));
+    objWatcher.RequestScan();
+    return lstProblems.Count == 0 ? Results.Ok() : Results.Problem(string.Join("; ", lstProblems), statusCode: 409);
+});
 
 objApp.MapPost("/api/matches/exclude", (ExcludeRequest objRequest) =>
 {

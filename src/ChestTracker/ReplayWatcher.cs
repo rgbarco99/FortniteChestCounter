@@ -21,7 +21,7 @@ public sealed class ReplayWatcher : BackgroundService
     private readonly GameLogTail _objGameLog;
     private readonly SemaphoreSlim _objWakeUp = new(0, 1);
     private readonly object _objFailuresLock = new();
-    private readonly Dictionary<string, (string Fingerprint, string Message)> _dicFailures = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, (string Fingerprint, string Message, int Attempts, long Size, DateTime ModifiedUtc)> _dicFailures = new(StringComparer.OrdinalIgnoreCase);
     private volatile bool _bForceAll;
     private volatile bool _bRetryFailed;
 
@@ -107,7 +107,11 @@ public sealed class ReplayWatcher : BackgroundService
         {
             if (bForceAll || bRetryFailed)
             {
-                _dicFailures.Clear();
+                // Forget the fingerprints so every failed file is read again, but keep counting attempts
+                foreach (var strName in _dicFailures.Keys.ToList())
+                {
+                    _dicFailures[strName] = _dicFailures[strName] with { Fingerprint = "" };
+                }
             }
             foreach (var strGone in _dicFailures.Keys.Where(strName => !setNames.Contains(strName)).ToList())
             {
@@ -118,8 +122,15 @@ public sealed class ReplayWatcher : BackgroundService
         string? strLiveFile = null;
         var lstToRead = new List<(FileInfo File, string Fingerprint)>();
 
+        var setIgnored = _objStore.Settings.IgnoredFiles;
         foreach (var objFile in lstFiles)
         {
+            // The user chose not to try this one again
+            if (setIgnored.Contains(objFile.Name))
+            {
+                continue;
+            }
+
             var tsAge = DateTime.UtcNow - objFile.LastWriteTimeUtc;
 
             // Files come newest first, so only the first one can be the match being played
@@ -161,7 +172,7 @@ public sealed class ReplayWatcher : BackgroundService
         ReadLive(strLiveFile == null ? null : lstFiles.First(objFile => objFile.Name == strLiveFile));
 
         // The game's log says what the replay cannot yet: end-of-match screen, searching for a match
-        if (_objGameLog.Poll(strDemosPath))
+        if (_objGameLog.Poll(strDemosPath, _objStore.Settings.LogPath))
         {
             _objStore.Game = _objGameLog.Status;
             _objStore.Touch();
@@ -204,7 +215,7 @@ public sealed class ReplayWatcher : BackgroundService
                 // A long backlog must not freeze what the page knows about the match being played
                 lock (_objGameLog)
                 {
-                    if (_objGameLog.Poll(strDemosPath))
+                    if (_objGameLog.Poll(strDemosPath, _objStore.Settings.LogPath))
                     {
                         _objStore.Game = _objGameLog.Status;
                     }
@@ -230,6 +241,16 @@ public sealed class ReplayWatcher : BackgroundService
     /// </summary>
     private bool IsBeingWritten(FileInfo objFile, TimeSpan tsAge)
     {
+        // Windows may report an old time and size for a file another program keeps open: when the
+        // game's log says it is recording since before this file appeared, believe the log
+        var objGame = _objStore.Game;
+        if (IsGameRunning() && objGame.LogFound && objGame.RecordingSinceUtc is { } dtRecording
+            && (objGame.MatchFinishedUtc == null || objGame.MatchFinishedUtc < dtRecording)
+            && objFile.CreationTimeUtc >= dtRecording.AddMinutes(-2))
+        {
+            return true;
+        }
+
         if (tsAge >= tsLiveWindow)
         {
             return false;
@@ -240,6 +261,19 @@ public sealed class ReplayWatcher : BackgroundService
         }
         // Header closed: final if we watched it close, otherwise wait a full write cycle
         return !_bLiveSawRecording && tsAge < tsClosedWindow;
+    }
+
+    /// <summary>Whether Fortnite is open on this PC (only Windows can tell; elsewhere the answer is no).</summary>
+    private static bool IsGameRunning()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return Environment.GetEnvironmentVariable("FCC_ASSUME_GAME_RUNNING") == "1";
+        }
+        var arrProcesses = System.Diagnostics.Process.GetProcessesByName("FortniteClient-Win64-Shipping");
+        var bRunning = arrProcesses.Length > 0;
+        foreach (var objProcess in arrProcesses) objProcess.Dispose();
+        return bRunning;
     }
 
     /// <summary>Keeps the "match in progress" view up to date. It never touches the saved matches.</summary>
@@ -335,17 +369,32 @@ public sealed class ReplayWatcher : BackgroundService
         }
         catch (Exception objError)
         {
-            lock (_objFailuresLock) { _dicFailures[objFile.Name] = (strFingerprint, objError.Message); }
+            lock (_objFailuresLock)
+            {
+                var intAttempts = _dicFailures.TryGetValue(objFile.Name, out var objBefore) ? objBefore.Attempts + 1 : 1;
+                _dicFailures[objFile.Name] = (strFingerprint, objError.Message, intAttempts, objFile.Length, objFile.LastWriteTimeUtc);
+            }
             _objStore.Log($"No se pudo leer {objFile.Name}: {objError.Message}");
         }
     }
 
-    private void PublishErrors()
+    /// <summary>Forgets a failure, so the file is read again on the next pass (or gone for good).</summary>
+    public void ForgetFailure(string strFile)
+    {
+        lock (_objFailuresLock)
+        {
+            _dicFailures.Remove(strFile);
+        }
+        PublishErrors();
+    }
+
+    public void PublishErrors()
     {
         lock (_objFailuresLock)
         {
             _objStore.Status.Errors = _dicFailures
-                .Select(objPair => new ScanError { File = objPair.Key, Message = objPair.Value.Message })
+                .Where(objPair => !_objStore.Settings.IgnoredFiles.Contains(objPair.Key))
+                .Select(objPair => new ScanError { File = objPair.Key, Message = objPair.Value.Message, Attempts = objPair.Value.Attempts, Size = objPair.Value.Size, ModifiedUtc = objPair.Value.ModifiedUtc })
                 .OrderByDescending(objError => objError.File)
                 .ToList();
         }

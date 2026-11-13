@@ -55,7 +55,21 @@ button, input, select { font: inherit; color: inherit; }
 .brand .brand-name { font-weight: 700; color: var(--ink); }
 .segmented.lang button { min-width: 38px; font-size: 13px; }
 .update-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 0 24px 14px; padding: 10px 16px; border-radius: var(--radius); background: var(--card); border-left: 4px solid var(--gold); }
-.update-bar[hidden] { display: none; }
+.update-bar[hidden], .fail-bar[hidden] { display: none; }
+.fail-bar { margin: 0 24px 14px; padding: 12px 16px; border-radius: var(--radius); background: var(--card); border-left: 4px solid var(--danger); }
+.fail-bar .head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+.fail-bar .head .icon { width: 24px; height: 24px; border-radius: 50%; background: var(--danger); color: #1e1938; font-weight: 800; display: grid; place-items: center; flex: none; }
+.fail-bar .head b { font-size: 15px; }
+.fail-bar .head .why { color: var(--ink-2); font-size: 13.5px; flex-basis: 100%; padding-left: 36px; }
+.fail-bar .grow { flex: 1; }
+.fail-bar .x { background: none; border: 0; color: var(--ink-3); font-size: 18px; cursor: pointer; padding: 0 4px; }
+.fail-bar ul { list-style: none; margin: 12px 0 0 36px; padding: 0; display: grid; gap: 10px; }
+.fail-bar li { background: var(--card-raised); border-radius: 8px; padding: 10px 12px; display: grid; gap: 6px; }
+.fail-bar li .file { font-weight: 600; word-break: break-all; }
+.fail-bar li .meta { color: var(--ink-3); font-size: 12.5px; }
+.fail-bar li .msg { color: var(--ink-2); font-size: 13px; word-break: break-word; }
+.fail-bar .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.status button.linkish { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-decoration: underline dotted; }
 .update-bar b { color: var(--gold); }
 .update-bar .grow { flex: 1; }
 .update-bar a { color: var(--ink-2); }
@@ -409,6 +423,7 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
     <button class="btn" id="elSettingsOpen">Ajustes</button>
 </header>
 <div class="update-bar" id="elUpdateBar" hidden></div>
+<div class="fail-bar" id="elFailBar" role="region" aria-label="Repeticiones con error" hidden></div>
 <div class="status" id="elStatus"></div>
 
 <div class="tray" id="elTray"></div>
@@ -918,7 +933,7 @@ const ARR_I18N = [
     ["Todo borrado; leyendo la carpeta", "Everything deleted; reading the folder", "Tout supprimé ; lecture du dossier"],
     ["Todo borrado", "Everything deleted", "Tout supprimé"],
     ["Leyendo la carpeta desde cero.", "Reading the folder from scratch.", "Lecture du dossier depuis zéro."],
-    ["Lo anterior y, además, tu ID de Epic, la clasificación de cofres que hayas cambiado, las partidas marcadas «No contar», la disposición del panel y todo lo de la pestaña Tesoros (casillas tachadas, nombres y fotos). Solo se conserva la carpeta de repeticiones.", "All of the above plus your Epic ID, any chest classification you changed, matches marked “Don't count”, the board layout and everything in the Treasures tab (crossed-out squares, names and pictures). Only the replay folder is kept.", "Tout ce qui précède, plus ton ID Epic, le classement des coffres que tu as modifié, les parties marquées « Ne pas compter », la disposition du tableau et tout l'onglet Trésors (cases cochées, noms et images). Seul le dossier des rediffusions est conservé."],
+    ["Lo anterior y, además, tu ID de Epic, la clasificación de cofres que hayas cambiado, las partidas marcadas «No contar», la disposición del panel y todo lo de la pestaña Tesoros (casillas tachadas, nombres y fotos). Solo se conservan la carpeta de repeticiones y el archivo del registro.", "All of the above plus your Epic ID, any chest classification you changed, matches marked “Don't count”, the board layout and everything in the Treasures tab (crossed-out squares, names and pictures). Only the replay folder and the log file are kept.", "Tout ce qui précède, plus ton ID Epic, le classement des coffres que tu as modifié, les parties marquées « Ne pas compter », la disposition du tableau et tout l'onglet Trésors (cases cochées, noms et images). Seuls le dossier des rediffusions et le fichier journal sont conservés."],
     ["Dónde se guardan los datos", "Where data is saved", "Où sont enregistrées les données"],
     ["Versión {0}", "Version {0}", "Version {0}"],
 
@@ -961,6 +976,57 @@ const ARR_I18N = [
     ["Esta copia no se actualiza sola (versión de desarrollo).", "This copy does not update itself (development build).", "Cette copie ne se met pas à jour seule (version de développement)."],
     ["Comprobado {0}", "Checked {0}", "Vérifié {0}"],
     ["Ver en GitHub", "View on GitHub", "Voir sur GitHub"],
+
+    // Failed replays and the game's log
+    ["Repeticiones con error", "Replays with errors", "Rediffusions en erreur"],
+    ["{0} repeticiones no se pudieron leer", "{0} replays could not be read", "{0} rediffusions n'ont pas pu être lues"],
+    ["Reintentar", "Retry", "Réessayer"],
+    ["No volver a intentarlo", "Stop trying", "Ne plus essayer"],
+    ["El archivo se queda en la carpeta, pero el programa deja de leerlo", "The file stays in the folder, but the program stops reading it", "Le fichier reste dans le dossier, mais le programme arrête de le lire"],
+    ["Borrar el archivo", "Delete the file", "Supprimer le fichier"],
+    ["Borrar los archivos", "Delete the files", "Supprimer les fichiers"],
+    ["Sí, borrar el archivo", "Yes, delete the file", "Oui, supprimer le fichier"],
+    ["Sí, borrar {0} archivos", "Yes, delete {0} files", "Oui, supprimer {0} fichiers"],
+    ["Archivo borrado", "File deleted", "Fichier supprimé"],
+    ["Archivos borrados", "Files deleted", "Fichiers supprimés"],
+    ["No se volverá a intentar", "It will not be tried again", "Elle ne sera plus essayée"],
+    ["No se volverán a intentar", "They will not be tried again", "Elles ne seront plus essayées"],
+    ["Se volverán a intentar", "They will be tried again", "Elles seront réessayées"],
+    ["No se pudo hacer", "That did not work", "Impossible de le faire"],
+    ["Ver detalles", "Show details", "Voir les détails"],
+    ["Ocultar detalles", "Hide details", "Masquer les détails"],
+    ["Ocultar este aviso hasta que haya un error nuevo", "Hide this notice until there is a new error", "Masquer cet avis jusqu'à une nouvelle erreur"],
+    ["La más reciente: {0}.", "The most recent: {0}.", "La plus récente : {0}."],
+    ["{0}: {1}", "{0}: {1}", "{0} : {1}"],
+    [" Ya han fallado más de una vez: lo más probable es que sigan fallando.", " They have failed more than once already: they will most likely keep failing.", " Elles ont déjà échoué plusieurs fois : elles continueront sans doute d'échouer."],
+    [" Alguna ya ha fallado más de una vez.", " Some have failed more than once already.", " Certaines ont déjà échoué plusieurs fois."],
+    ["1 intento", "1 attempt", "1 essai"],
+    ["{0} intentos", "{0} attempts", "{0} essais"],
+    ["Copiar detalles", "Copy details", "Copier les détails"],
+    ["Detalles copiados", "Details copied", "Détails copiés"],
+    ["Pégalos donde quieras para reportar el problema.", "Paste them wherever you like to report the problem.", "Colle-les où tu veux pour signaler le problème."],
+    ["No se pudo copiar", "Could not copy", "Copie impossible"],
+    ["El detalle también queda en chestcounter.log, en la carpeta de datos.", "The details are also in chestcounter.log, in the data folder.", "Le détail est aussi dans chestcounter.log, dans le dossier de données."],
+    ["Si vuelven a fallar, aparecerán aquí otra vez.", "If they fail again they will show up here again.", "Si elles échouent encore, elles réapparaîtront ici."],
+    ["Se reintentan si el archivo cambia o con «Reintentar las que fallaron». También puedes dejar de intentarlo o borrar el archivo. El mismo detalle queda en chestcounter.log.", "They are retried if the file changes or with “Retry failed ones”. You can also stop trying or delete the file. The same details are in chestcounter.log.", "Elles sont réessayées si le fichier change ou avec « Réessayer celles en erreur ». Tu peux aussi arrêter d'essayer ou supprimer le fichier. Le même détail est dans chestcounter.log."],
+    ["Repeticiones que ya no se intentan", "Replays no longer tried", "Rediffusions abandonnées"],
+    ["Fallaron y elegiste no volver a intentarlo. Siguen en la carpeta de Fortnite.", "They failed and you chose to stop trying. They are still in Fortnite's folder.", "Elles ont échoué et tu as choisi d'arrêter. Elles sont toujours dans le dossier de Fortnite."],
+    ["Volver a intentarlas", "Try them again", "Les réessayer"],
+    ["Leyendo el registro de Fortnite", "Reading Fortnite's log", "Lecture du journal de Fortnite"],
+    ["Registro de Fortnite no encontrado", "Fortnite's log not found", "Journal de Fortnite introuvable"],
+    ["Registro de Fortnite", "Fortnite's log", "Journal de Fortnite"],
+    ["Fortnite escribe un registro (FortniteGame.log) mientras juegas. El programa solo lo lee, para saber al momento cuándo termina tu partida y cuándo buscas otra con «Volver a jugar». Los cofres no salen de aquí.", "Fortnite writes a log (FortniteGame.log) while you play. The program only reads it, to know straight away when your match ends and when you search for another with “Play again”. Chests do not come from here.", "Fortnite écrit un journal (FortniteGame.log) pendant que tu joues. Le programme le lit seulement, pour savoir tout de suite quand ta partie se termine et quand tu en cherches une autre avec « Rejouer ». Les coffres ne viennent pas d'ici."],
+    ["Se está leyendo", "Being read", "En cours de lecture"],
+    ["No se encuentra", "Not found", "Introuvable"],
+    ["Última línea nueva", "Last new line", "Dernière ligne nouvelle"],
+    ["Archivo: ", "File: ", "Fichier : "],
+    ["Guardar archivo", "Save file", "Enregistrer le fichier"],
+    ["Archivo del registro guardado", "Log file saved", "Fichier journal enregistré"],
+    ["Archivo del registro de Fortnite", "Fortnite's log file", "Fichier journal de Fortnite"],
+    ["Usar el de por defecto", "Use the default one", "Utiliser celui par défaut"],
+    ["Por defecto: %LOCALAPPDATA%\\FortniteGame\\Saved\\Logs\\FortniteGame.log. Sin él todo funciona, pero la pestaña En vivo no sabe cuándo terminas ni cuándo buscas partida.", "Default: %LOCALAPPDATA%\\FortniteGame\\Saved\\Logs\\FortniteGame.log. Everything works without it, but the Live tab will not know when you finish or search for a match.", "Par défaut : %LOCALAPPDATA%\\FortniteGame\\Saved\\Logs\\FortniteGame.log. Tout fonctionne sans lui, mais l'onglet En direct ne saura pas quand tu termines ou cherches une partie."],
+    ["Leyendo", "Reading", "Lecture"],
+    ["El lector terminó con el código {0}. Segundo intento: {1}", "The reader ended with code {0}. Second try: {1}", "Le lecteur s'est terminé avec le code {0}. Deuxième essai : {1}"],
 
     // Messages from the program
     ["Fortnite no llegó a cerrar esta repetición (el juego se cerró a mitad de partida) y quedó cifrada sin clave: no se puede leer.", "Fortnite never closed this replay (the game was closed mid-match), so it stayed encrypted without a key and cannot be read.", "Fortnite n'a jamais fermé cette rediffusion (le jeu a été fermé en pleine partie) : elle est restée chiffrée sans clé et ne peut pas être lue."],
@@ -1038,8 +1104,8 @@ const objTranslator = (() => {
             if (strRest !== arrCount[3]) return strLead + arrCount[1] + arrCount[2] + strRest + strTrail;
         }
         // Lists put together in code: "Escuadrones, Cero construcción"
-        if (/, |; /.test(strCore)) {
-            const arrParts = strCore.split(/(, |; )/);
+        if (/, |; | · /.test(strCore)) {
+            const arrParts = strCore.split(/(, |; | · )/);
             const arrOut = arrParts.map((strPart, intIndex) => intIndex % 2 ? strPart : translate(strPart, intDepth + 1));
             if (arrOut.some((strPart, intIndex) => strPart !== arrParts[intIndex])) return strLead + arrOut.join("") + strTrail;
         }
@@ -2884,12 +2950,18 @@ const renderChrome = () => {
         elStatus.append(el("span", { text: `${objApp.objState.matches.length} ${objApp.objState.matches.length === 1 ? "partida guardada" : "partidas guardadas"}, ${objStatus.replayFilesFound} ${objStatus.replayFilesFound === 1 ? "repetición" : "repeticiones"} en la carpeta` }));
         if (objStatus.pendingCount > 0) elStatus.append(el("span", { class: "live" }, [el("i", { class: "spin-dot" }), `Leyendo repeticiones: ${objStatus.pendingCount === 1 ? "queda 1" : `quedan ${objStatus.pendingCount}`}`]));
         if (objStatus.liveFile) elStatus.append(el("span", { class: "live", text: "Partida en curso: síguela en la pestaña En vivo" }));
+        const objGame = objApp.objState.game ?? {};
+        const openLogSettings = () => { objApp.objDrawerOpen.registro = true; renderDrawer(); elDrawer.classList.add("open"); elDrawer.querySelector("#elSection-registro")?.scrollIntoView(); };
+        elStatus.append(el("span", { title: objGame.logPath ?? "" }, [
+            el("i", { class: `dot${objGame.logFound ? "" : " off"}` }),
+            el("button", { class: "linkish", text: objGame.logFound ? "Leyendo el registro de Fortnite" : "Registro de Fortnite no encontrado", onclick: openLogSettings })
+        ]));
         const intOutdated = objApp.objState.matches.filter((objMatch) => objMatch.outdated).length;
         if (intOutdated && !objStatus.pendingCount) elStatus.append(el("span", { text: `${intOutdated} ${intOutdated === 1 ? "partida conserva" : "partidas conservan"} el recuento antiguo (marcadas con *): su repetición ya no está` }));
         if (objStatus.errors.length) elStatus.append(el("button", {
             class: "btn small ghost warn", style: { padding: "0 6px" },
             text: `${objStatus.errors.length} ${objStatus.errors.length === 1 ? "repetición no se pudo leer" : "repeticiones no se pudieron leer"}. Ver por qué`,
-            onclick: () => { objApp.objDrawerOpen.errores = true; renderDrawer(); elDrawer.classList.add("open"); elDrawer.querySelector("#elErrors")?.scrollIntoView(); }
+            onclick: () => { try { sessionStorage.removeItem("fcc-failures-hidden"); } catch (objError) { /* storage unavailable */ } objApp.bFailDetails = true; renderFailures(); window.scrollTo({ top: 0, behavior: "smooth" }); }
         }));
     }
 
@@ -2942,6 +3014,7 @@ const renderDrawer = () => {
     const intOrphans = objState.matches.filter((objMatch) => !objMatch.fileStillExists).length;
     const elPath = el("input", { type: "text", value: objSettings.demosPath, "aria-label": "Carpeta de repeticiones", spellcheck: "false" });
     const elEpicId = el("input", { type: "text", value: objSettings.epicId, "aria-label": "ID de Epic", spellcheck: "false" });
+    const elLogPath = el("input", { type: "text", value: objSettings.logPath || "", placeholder: objSettings.defaultLogPath, "aria-label": "Archivo del registro de Fortnite", spellcheck: "false" });
     const elNote = el("span", { class: "saved-note", role: "status", text: objApp.strDrawerNote ?? "" });
     objApp.strDrawerNote = null;
 
@@ -2959,7 +3032,7 @@ const renderDrawer = () => {
 
     // Every section folds; what is open is remembered between visits
     const section = (strId, strClass, strTitle, strIntro, arrChildren, strSummary = null) => el("details", {
-        class: `section ${strClass}`, open: objApp.objDrawerOpen[strId] ?? OBJ_DRAWER_OPEN_DEFAULT[strId] ?? false,
+        id: `elSection-${strId}`, class: `section ${strClass}`, open: objApp.objDrawerOpen[strId] ?? OBJ_DRAWER_OPEN_DEFAULT[strId] ?? false,
         ontoggle: (objEvent) => { objApp.objDrawerOpen[strId] = objEvent.target.open; try { localStorage.setItem("contador-cofres-ajustes", JSON.stringify(objApp.objDrawerOpen)); } catch (objError) { /* storage unavailable */ } }
     }, [
         el("summary", {}, [el("h3", {}, [el("i"), strTitle]), strSummary ? el("span", { class: "sum", text: strSummary }) : null]),
@@ -3019,8 +3092,22 @@ const renderDrawer = () => {
             )
         ]),
 
-        intFailed ? section("errores", "danger", "Repeticiones que no se pudieron leer", "Se reintentan si el archivo cambia o con «Reintentar las que fallaron». El mismo detalle queda en chestcounter.log.", objStatus.errors.map((objError) =>
-            el("p", { style: { wordBreak: "break-word" } }, [el("b", { text: objError.file }), el("br"), objError.message.slice(0, 300)])), String(intFailed)) : null,
+        intFailed ? section("errores", "danger", "Repeticiones que no se pudieron leer", "Se reintentan si el archivo cambia o con «Reintentar las que fallaron». También puedes dejar de intentarlo o borrar el archivo. El mismo detalle queda en chestcounter.log.", objStatus.errors.map((objError) =>
+            el("div", { class: "action", style: { display: "block" } }, [
+                el("p", { style: { wordBreak: "break-word", margin: "0 0 6px" } }, [el("b", { text: objError.file }), el("br"), objError.message.slice(0, 300)]),
+                el("div", { class: "row" }, [
+                    el("button", { class: "btn small", text: "No volver a intentarlo", onclick: () => replayAction("/api/replays/ignore", [objError.file], "No se volverá a intentar") }),
+                    deleteButton([objError.file], "Borrar el archivo")
+                ])
+            ])), String(intFailed)) : null,
+
+        objSettings.ignoredFiles?.length ? section("ignoradas", "", "Repeticiones que ya no se intentan", "Fallaron y elegiste no volver a intentarlo. Siguen en la carpeta de Fortnite.", [
+            ...objSettings.ignoredFiles.slice(0, 20).map((strFile) => el("p", { style: { wordBreak: "break-all", margin: "4px 0" }, text: strFile })),
+            el("div", { class: "row", style: { marginTop: "8px" } }, [
+                el("button", { class: "btn small", text: "Volver a intentarlas", onclick: () => replayAction("/api/replays/unignore", objSettings.ignoredFiles, "Se volverán a intentar") }),
+                deleteButton(objSettings.ignoredFiles, objSettings.ignoredFiles.length === 1 ? "Borrar el archivo" : "Borrar los archivos")
+            ])
+        ], String(objSettings.ignoredFiles.length)) : null,
 
         section("carpeta", "folder", "Carpeta de repeticiones", "Donde Fortnite guarda los .replay. Admite rutas con %LOCALAPPDATA%.", [
             el("div", { class: "row" }, [
@@ -3031,6 +3118,22 @@ const renderDrawer = () => {
                 el("button", { class: "btn small", text: "Usar la carpeta por defecto", onclick: () => saveSettings({ demosPath: objSettings.defaultDemosPath }, "Carpeta guardada") })
             ])
         ], objStatus.demosFolderExists ? "Encontrada" : "No encontrada"),
+
+        section("registro", "reading", "Registro de Fortnite", "Fortnite escribe un registro (FortniteGame.log) mientras juegas. El programa solo lo lee, para saber al momento cuándo termina tu partida y cuándo buscas otra con «Volver a jugar». Los cofres no salen de aquí.", [
+            el("div", { class: "facts", style: { gridTemplateColumns: "1fr 1fr" } }, [
+                el("div", {}, [el("b", { text: objState.game?.logFound ? "Sí" : "No" }), el("span", { text: objState.game?.logFound ? "Se está leyendo" : "No se encuentra" })]),
+                el("div", {}, [el("b", { text: objState.game?.lastReadUtc ? new Date(objState.game.lastReadUtc).toLocaleTimeString(STR_LOCALE) : "–" }), el("span", { text: "Última línea nueva" })])
+            ]),
+            el("p", { style: { wordBreak: "break-all" } }, ["Archivo: ", el("b", { text: objState.game?.logPath ?? objSettings.defaultLogPath })]),
+            el("div", { class: "row" }, [
+                elLogPath,
+                el("button", { class: "btn primary", text: "Guardar archivo", onclick: () => saveSettings({ logPath: elLogPath.value }, "Archivo del registro guardado") })
+            ]),
+            el("div", { class: "row", style: { marginTop: "8px" } }, [
+                el("button", { class: "btn small", text: "Usar el de por defecto", disabled: !objSettings.logPath, onclick: () => saveSettings({ logPath: "" }, "Archivo del registro guardado") })
+            ]),
+            el("p", { text: "Por defecto: %LOCALAPPDATA%\\FortniteGame\\Saved\\Logs\\FortniteGame.log. Sin él todo funciona, pero la pestaña En vivo no sabe cuándo terminas ni cuándo buscas partida." })
+        ], objState.game?.logFound ? "Leyendo" : "No encontrado"),
 
         section("epic", "identity", "Tu ID de Epic", "Se detecta solo. Sirve para saber qué cofres y kills son tuyos cuando una repetición no lo indica.", [
             el("div", { class: "row" }, [
@@ -3092,7 +3195,7 @@ const renderDrawer = () => {
                     await refresh(true);
                     renderDrawer();
                 }),
-                "Lo anterior y, además, tu ID de Epic, la clasificación de cofres que hayas cambiado, las partidas marcadas «No contar», la disposición del panel y todo lo de la pestaña Tesoros (casillas tachadas, nombres y fotos). Solo se conserva la carpeta de repeticiones."
+                "Lo anterior y, además, tu ID de Epic, la clasificación de cofres que hayas cambiado, las partidas marcadas «No contar», la disposición del panel y todo lo de la pestaña Tesoros (casillas tachadas, nombres y fotos). Solo se conservan la carpeta de repeticiones y el archivo del registro."
             )
         ]),
 
@@ -3164,6 +3267,89 @@ const updateBusy = () => {
             el("span", { text: objStatus?.parsingFile ?? (bExpecting ? "En unos segundos empieza" : "") }),
             intTotal > 1 ? el("div", { class: "meter" }, el("i", { style: { width: `${dblShare * 100}%` } })) : null
         ])
+    );
+};
+
+// Replays that could not be read: a banner that does not hide the page, with what to do about them
+const getFailKey = (arrErrors) => arrErrors.map((objError) => `${objError.file}|${objError.attempts}`).join(";");
+const replayAction = async (strUrl, arrFiles, strDone) => {
+    try {
+        await api("POST", strUrl, { files: arrFiles });
+        showToast(strDone, null, "good");
+    } catch (objError) {
+        showToast("No se pudo hacer", objError.message, "warn", 9000);
+    }
+    await refresh(true);
+    if (elDrawer.classList.contains("open")) renderDrawer();
+};
+const retryReplays = async () => {
+    objApp.dblExpectWorkUntil = Date.now() + 6000;
+    updateBusy();
+    await api("POST", "/api/rescan?mode=failed");
+    showToast("Reintentando las que fallaron", "Si vuelven a fallar, aparecerán aquí otra vez.", "info");
+    await refresh(true);
+};
+const fmtMegabytes = (lngBytes) => `${new Intl.NumberFormat(STR_LOCALE, { maximumFractionDigits: 1 }).format(lngBytes / 1048576)} MB`;
+const describeFailure = (objError) => `${objError.file} · ${fmtMegabytes(objError.size)} · ${fmtDate(objError.modifiedUtc)} · ${objError.attempts === 1 ? "1 intento" : `${objError.attempts} intentos`}\n${objError.message}`;
+
+// Delete asks once more, in place, saying how many files go
+const deleteButton = (arrFiles, strLabel) => {
+    const elHolder = el("span", { class: "row" });
+    const showButton = () => elHolder.replaceChildren(el("button", { class: "btn small danger", text: strLabel, onclick: showConfirm }));
+    const showConfirm = () => elHolder.replaceChildren(
+        el("button", { class: "btn small danger solid", text: arrFiles.length === 1 ? "Sí, borrar el archivo" : `Sí, borrar ${arrFiles.length} archivos`, onclick: () => replayAction("/api/replays/delete", arrFiles, arrFiles.length === 1 ? "Archivo borrado" : "Archivos borrados") }),
+        el("button", { class: "btn small", text: "Cancelar", onclick: showButton })
+    );
+    showButton();
+    return elHolder;
+};
+
+const renderFailures = () => {
+    const elBar = document.getElementById("elFailBar");
+    const arrErrors = objApp.objState?.status?.errors ?? [];
+    let strHidden = null;
+    try { strHidden = sessionStorage.getItem("fcc-failures-hidden"); } catch (objError) { /* storage unavailable */ }
+    if (!arrErrors.length || strHidden === getFailKey(arrErrors)) { elBar.hidden = true; return; }
+    // Do not redraw under the user's fingers while a confirmation is open
+    if (!elBar.hidden && elBar.querySelector(".btn.danger.solid")) return;
+    elBar.hidden = false;
+
+    const arrFiles = arrErrors.map((objError) => objError.file);
+    const intRepeated = arrErrors.filter((objError) => objError.attempts > 1).length;
+    const objFirst = arrErrors[0];
+    elBar.replaceChildren(
+        el("div", { class: "head" }, [
+            el("span", { class: "icon", text: "!" }),
+            el("b", { text: arrErrors.length === 1 ? "Una repetición no se pudo leer" : `${arrErrors.length} repeticiones no se pudieron leer` }),
+            el("span", { class: "grow" }),
+            el("button", { class: "btn small", text: "Reintentar", onclick: (objEvent) => { objEvent.target.classList.add("working"); retryReplays(); } }),
+            el("button", { class: "btn small", text: "No volver a intentarlo", title: "El archivo se queda en la carpeta, pero el programa deja de leerlo", onclick: () => replayAction("/api/replays/ignore", arrFiles, "No se volverán a intentar") }),
+            deleteButton(arrFiles, arrErrors.length === 1 ? "Borrar el archivo" : "Borrar los archivos"),
+            el("button", { class: "btn small ghost", text: objApp.bFailDetails ? "Ocultar detalles" : "Ver detalles", onclick: () => { objApp.bFailDetails = !objApp.bFailDetails; renderFailures(); } }),
+            el("button", { class: "x", text: "×", title: "Ocultar este aviso hasta que haya un error nuevo", "aria-label": "Ocultar este aviso hasta que haya un error nuevo", onclick: () => { try { sessionStorage.setItem("fcc-failures-hidden", getFailKey(arrErrors)); } catch (objError) { /* storage unavailable */ } renderFailures(); } }),
+            el("span", { class: "why" }, [
+                arrErrors.length === 1 ? `${objFirst.file}: ${objFirst.message.slice(0, 180)}` : `La más reciente: ${objFirst.file}.`,
+                intRepeated ? ` ${intRepeated === arrErrors.length ? "Ya han fallado más de una vez: lo más probable es que sigan fallando." : "Alguna ya ha fallado más de una vez."}` : null
+            ])
+        ]),
+        objApp.bFailDetails ? el("ul", {}, [
+            ...arrErrors.map((objError) => el("li", {}, [
+                el("span", { class: "file", text: objError.file }),
+                el("span", { class: "meta", text: `${fmtMegabytes(objError.size)} · ${fmtDate(objError.modifiedUtc)} · ${objError.attempts === 1 ? "1 intento" : `${objError.attempts} intentos`}` }),
+                el("span", { class: "msg", text: objError.message }),
+                el("div", { class: "row" }, [
+                    el("button", { class: "btn small", text: "No volver a intentarlo", onclick: () => replayAction("/api/replays/ignore", [objError.file], "No se volverá a intentar") }),
+                    deleteButton([objError.file], "Borrar el archivo")
+                ])
+            ])),
+            el("li", {}, el("div", { class: "row" }, [
+                el("button", { class: "btn small", text: "Copiar detalles", onclick: async () => {
+                    try { await navigator.clipboard.writeText(arrErrors.map(describeFailure).join("\n\n")); showToast("Detalles copiados", "Pégalos donde quieras para reportar el problema.", "good"); }
+                    catch (objError) { showToast("No se pudo copiar", null, "warn"); }
+                } }),
+                el("span", { class: "meta", style: { alignSelf: "center" }, text: "El detalle también queda en chestcounter.log, en la carpeta de datos." })
+            ]))
+        ]) : null
     );
 };
 
@@ -3252,6 +3438,7 @@ const refresh = async (bForce = false) => {
         objApp.bRestarting = false;
         updateBusy();
         renderUpdate();
+        renderFailures();
 
         if (!objApp.objLayout) {
             let objSaved = objApp.objState.layout;

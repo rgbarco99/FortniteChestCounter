@@ -14,19 +14,53 @@ public static class ParseProcess
 {
     private static readonly JsonSerializerOptions objJsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    /// <summary>Time limit per replay. FCC_TIMEOUT (seconds) overrides the default of 90.</summary>
-    public static TimeSpan Timeout { get; } =
-        double.TryParse(Environment.GetEnvironmentVariable("FCC_TIMEOUT"), System.Globalization.CultureInfo.InvariantCulture, out var dblSeconds) && dblSeconds > 0
-            ? TimeSpan.FromSeconds(dblSeconds)
-            : TimeSpan.FromSeconds(90);
+    /// <summary>
+    /// Time limit per replay: 60 seconds plus 10 per MB, as a long match on a busy PC (the game is
+    /// running, the reader has low priority) can be slow. FCC_TIMEOUT (seconds) overrides it.
+    /// </summary>
+    public static TimeSpan GetTimeout(string strReplayPath)
+    {
+        if (double.TryParse(Environment.GetEnvironmentVariable("FCC_TIMEOUT"), System.Globalization.CultureInfo.InvariantCulture, out var dblSeconds) && dblSeconds > 0)
+        {
+            return TimeSpan.FromSeconds(dblSeconds);
+        }
+        var dblMegabytes = new FileInfo(strReplayPath).Length / 1048576.0;
+        return TimeSpan.FromSeconds(Math.Min(600, 60 + 10 * dblMegabytes));
+    }
+
+    /// <summary>Exit code of --dump when the replay itself cannot be read (as opposed to the reader crashing).</summary>
+    public const int EXIT_UNREADABLE = 2;
+
+    /// <summary>
+    /// Reads a replay on a thread with a large stack. The replay library reads some structures
+    /// recursively, and a Windows program's main thread only has 1 MB.
+    /// </summary>
+    public static MatchRecord ParseWithLargeStack(string strReplayPath)
+    {
+        MatchRecord? objRecord = null;
+        Exception? objFailure = null;
+        var objThread = new Thread(() =>
+        {
+            try { objRecord = ReplayParser.ParseFile(strReplayPath); }
+            catch (Exception objError) { objFailure = objError; }
+        }, 256 * 1024 * 1024);
+        objThread.Start();
+        objThread.Join();
+        if (objFailure != null)
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(objFailure).Throw();
+        }
+        return objRecord!;
+    }
 
     public static MatchRecord Parse(string strReplayPath)
     {
         var objStart = BuildStartInfo(strReplayPath);
         if (objStart == null)
         {
-            return ReplayParser.ParseFile(strReplayPath);
+            return ParseWithLargeStack(strReplayPath);
         }
+        var tsTimeout = GetTimeout(strReplayPath);
 
         Process objProcess;
         try
@@ -36,7 +70,7 @@ public static class ParseProcess
         catch (Exception)
         {
             // Could not launch a copy of ourselves: read it here instead
-            return ReplayParser.ParseFile(strReplayPath);
+            return ParseWithLargeStack(strReplayPath);
         }
 
         using (objProcess)
@@ -47,17 +81,30 @@ public static class ParseProcess
             var tskOutput = objProcess.StandardOutput.ReadToEndAsync();
             var tskErrors = objProcess.StandardError.ReadToEndAsync();
 
-            if (!objProcess.WaitForExit((int)Timeout.TotalMilliseconds))
+            if (!objProcess.WaitForExit((int)tsTimeout.TotalMilliseconds))
             {
                 try { objProcess.Kill(entireProcessTree: true); } catch { }
-                throw new TimeoutException($"La lectura tardó más de {Timeout.TotalSeconds:0} segundos y se canceló.");
+                throw new TimeoutException($"La lectura tardó más de {tsTimeout.TotalSeconds:0} segundos y se canceló.");
             }
             objProcess.WaitForExit();
 
-            if (objProcess.ExitCode != 0)
+            if (objProcess.ExitCode == EXIT_UNREADABLE)
             {
                 var strError = tskErrors.Result.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).LastOrDefault();
                 throw new InvalidOperationException(strError ?? $"El lector terminó con el código {objProcess.ExitCode}.");
+            }
+            if (objProcess.ExitCode != 0)
+            {
+                // The reader copy crashed (not a bad replay): one more try inside this program, so
+                // the cause shows up as a real error message instead of an exit code
+                try
+                {
+                    return ParseWithLargeStack(strReplayPath);
+                }
+                catch (Exception objError)
+                {
+                    throw new InvalidOperationException($"El lector terminó con el código {objProcess.ExitCode}. Segundo intento: {objError.Message}", objError);
+                }
             }
 
             return JsonSerializer.Deserialize<MatchRecord>(tskOutput.Result, objJsonOptions)

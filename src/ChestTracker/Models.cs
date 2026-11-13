@@ -103,6 +103,12 @@ public sealed class TrackerSettings
     /// <summary>Replay files the user removed from the statistics.</summary>
     public HashSet<string> ExcludedFiles { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Replay files that failed and the user chose not to try again.</summary>
+    public HashSet<string> IgnoredFiles { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Fortnite's log file chosen by the user; empty means next to the replay folder.</summary>
+    public string LogPath { get; set; } = "";
+
     /// <summary>Dashboard layout as saved by the interface; the server never looks inside.</summary>
     public JsonElement? Layout { get; set; }
 }
@@ -151,6 +157,12 @@ public sealed class SettingsView
     public string DefaultDemosPath { get; set; } = "";
     public string EpicId { get; set; } = "";
     public string DataFolder { get; set; } = "";
+
+    /// <summary>Log file chosen by the user (empty: automatic) and the one that would be used automatically.</summary>
+    public string LogPath { get; set; } = "";
+    public string DefaultLogPath { get; set; } = "";
+
+    public List<string> IgnoredFiles { get; set; } = new();
 }
 
 public sealed class ScanStatus
@@ -175,6 +187,16 @@ public sealed class ScanError
 {
     public string File { get; set; } = "";
     public string Message { get; set; } = "";
+
+    /// <summary>How many times reading it has failed since the program started.</summary>
+    public int Attempts { get; set; }
+    public long Size { get; set; }
+    public DateTime ModifiedUtc { get; set; }
+}
+
+public sealed class ReplayFilesRequest
+{
+    public List<string> Files { get; set; } = new();
 }
 
 public sealed class CategoryInfo
@@ -283,6 +305,7 @@ public sealed class SettingsRequest
 {
     public string? DemosPath { get; set; }
     public string? EpicId { get; set; }
+    public string? LogPath { get; set; }
     public Dictionary<string, string>? ClassOverrides { get; set; }
 }
 

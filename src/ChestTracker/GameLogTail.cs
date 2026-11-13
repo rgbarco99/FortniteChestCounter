@@ -23,7 +23,7 @@ public sealed class GameLogTail
     // The replay viewer also stops a "demo", but that line carries the replay's name
     private const string MARK_RECORDING_STOPPED = "StopDemo: Demo  stopped";
 
-    private readonly string? _strPathOverride;
+    private readonly string? _strCommandLinePath;
     private string? _strPath;
     private long _lngPosition;
     private Encoding _objEncoding = Encoding.UTF8;
@@ -31,9 +31,9 @@ public sealed class GameLogTail
 
     public GameStatus Status { get; private set; } = new();
 
-    public GameLogTail(string? strPathOverride)
+    public GameLogTail(string? strCommandLinePath)
     {
-        _strPathOverride = strPathOverride;
+        _strCommandLinePath = strCommandLinePath;
     }
 
     /// <summary>The log lives next to the replay folder: ...\FortniteGame\Saved\Logs\FortniteGame.log</summary>
@@ -43,24 +43,27 @@ public sealed class GameLogTail
         return Path.Combine(strSaved, "Logs", LOG_FILE_NAME);
     }
 
-    /// <summary>Reads whatever the game has written since the last call. Returns true when the status changed.</summary>
-    public bool Poll(string strDemosPath)
+    /// <summary>
+    /// Reads whatever the game has written since the last call. Returns true when the status changed.
+    /// The file is, in order: the one chosen in the settings, the one given on the command line, the default.
+    /// </summary>
+    public bool Poll(string strDemosPath, string? strChosenPath = null)
     {
-        var strPath = _strPathOverride ?? GetLogPath(strDemosPath);
+        var strPath = !string.IsNullOrWhiteSpace(strChosenPath) ? strChosenPath : _strCommandLinePath ?? GetLogPath(strDemosPath);
+        var objBefore = Status;
         if (strPath != _strPath)
         {
             _strPath = strPath;
             Reset();
         }
 
-        var objBefore = Status;
         try
         {
             var objFileInfo = new FileInfo(strPath);
             if (!objFileInfo.Exists)
             {
-                Status = new GameStatus();
-                return objBefore.LogFound;
+                Status = new GameStatus { LogPath = strPath };
+                return objBefore.LogFound || objBefore.LogPath != strPath;
             }
 
             // A shorter file is a new game session: the game starts its log again
@@ -69,7 +72,8 @@ public sealed class GameLogTail
                 Reset();
             }
 
-            var objStatus = Status with { LogFound = true };
+            var objStatus = Status with { LogFound = true, LogPath = strPath };
+            var lngBefore = _lngPosition;
             using (var objFile = new FileStream(strPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
             {
                 if (_lngPosition == 0)
@@ -103,6 +107,10 @@ public sealed class GameLogTail
                 }
             }
 
+            if (_lngPosition != lngBefore)
+            {
+                objStatus = objStatus with { LastReadUtc = DateTime.UtcNow };
+            }
             Status = objStatus;
         }
         catch (IOException)
@@ -111,7 +119,7 @@ public sealed class GameLogTail
         }
         catch (UnauthorizedAccessException)
         {
-            Status = new GameStatus();
+            Status = new GameStatus { LogPath = strPath };
         }
 
         return Status != objBefore;
@@ -121,7 +129,7 @@ public sealed class GameLogTail
     {
         _lngPosition = 0;
         _strLeftover = "";
-        Status = new GameStatus();
+        Status = new GameStatus { LogPath = _strPath };
     }
 
     private static Encoding DetectEncoding(FileStream objFile)
@@ -199,6 +207,12 @@ public sealed record GameStatus
 {
     /// <summary>False when the log file is missing or cannot be read: the page then relies on the replay files alone.</summary>
     public bool LogFound { get; init; }
+
+    /// <summary>The log file being followed (or looked for).</summary>
+    public string? LogPath { get; init; }
+
+    /// <summary>Last time the game wrote something new to it.</summary>
+    public DateTime? LastReadUtc { get; init; }
 
     /// <summary>The game started recording a match at this moment and has not stopped.</summary>
     public DateTime? RecordingSinceUtc { get; init; }

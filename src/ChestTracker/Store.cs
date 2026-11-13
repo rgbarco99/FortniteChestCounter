@@ -40,6 +40,8 @@ public sealed class Store
         Settings = ReadJson<TrackerSettings>(_strSettingsFile) ?? new TrackerSettings();
         Settings.ClassOverrides = new Dictionary<string, string>(Settings.ClassOverrides ?? new(), StringComparer.OrdinalIgnoreCase);
         Settings.ExcludedFiles = new HashSet<string>(Settings.ExcludedFiles ?? new(), StringComparer.OrdinalIgnoreCase);
+        Settings.IgnoredFiles = new HashSet<string>(Settings.IgnoredFiles ?? new(), StringComparer.OrdinalIgnoreCase);
+        Settings.LogPath ??= "";
 
         if (!string.IsNullOrWhiteSpace(strDemosPathOverride))
         {
@@ -160,7 +162,7 @@ public sealed class Store
     {
         lock (_objLock)
         {
-            Settings = new TrackerSettings { DemosPath = Settings.DemosPath };
+            Settings = new TrackerSettings { DemosPath = Settings.DemosPath, LogPath = Settings.LogPath };
             _lngRevision++;
             WriteJson(_strSettingsFile, Settings);
         }
