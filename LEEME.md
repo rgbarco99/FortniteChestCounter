@@ -29,11 +29,10 @@ aparece una barra con el botón «Actualizar»: descarga el `.exe` nuevo, sustit
 reinicia solo; la página se reconecta. Tus partidas y ajustes están en
 `%LOCALAPPDATA%\FortniteChestCounter` y no se tocan.
 
-**Novedades**: después de actualizar, arriba de la página se abre una vez un panel con lo que
-trae esa versión. El botón «Novedades» de la cabecera lo vuelve a abrir cuando quieras, con las
-versiones anteriores plegadas debajo. Para anunciar una versión nueva se añade una entrada arriba
-de `ARR_NEWS`, en `src/ChestTracker/ui/index.html`, con la fecha y una línea por cambio en los
-tres idiomas.
+**Novedades**: el botón de la cabecera abre un cuadro con lo que ha entrado en cada versión, con
+su fecha y un resumen por puntos. Mientras quede algo sin leer, el botón lleva un punto dorado.
+Para anunciar una versión nueva se añade una entrada arriba de `ARR_NEWS`, en
+`src/ChestTracker/ui/index.html`, con la fecha y una línea por cambio en los tres idiomas.
 
 ## Idioma
 

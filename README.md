@@ -37,9 +37,8 @@ one, a bar with an **Update** button appears: it downloads the new `.exe`, repla
 one and restarts; the page reconnects by itself. Your matches and settings live in
 `%LOCALAPPDATA%\FortniteChestCounter` and are kept.
 
-A **What's new** panel then opens once at the top of the page with what went into that version.
-The **What's new** button in the header brings it back at any time, with the earlier versions
-folded underneath.
+The **What's new** button in the header opens what went into each version, with its date and a
+short summary. While there is something you have not read, the button carries a gold dot.
 
 ## What counts as a chest
 
@@ -70,7 +69,7 @@ name into the executable.
 
 First say what changed: add an entry at the top of `ARR_NEWS`, in `src/ChestTracker/ui/index.html`
 (version, date and one line per change, written out in Spanish, English and French). That list is
-what the **What's new** panel shows.
+what the **What's new** dialog shows.
 
 Then on GitHub: **Releases → Draft a new release**, type a new tag such as `v1.2.0`, publish. Or with
 git: `git tag v1.2.0` and `git push origin v1.2.0`. Either way the **Release** workflow builds `FortniteChestCounter.exe` on Windows and attaches it to a new

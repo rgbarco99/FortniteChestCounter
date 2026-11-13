@@ -70,27 +70,37 @@ button, input, select { font: inherit; color: inherit; }
 .fail-bar li .msg { color: var(--ink-2); font-size: 13px; word-break: break-word; }
 .fail-bar .row { display: flex; flex-wrap: wrap; gap: 8px; }
 
-/* What went into each version */
-.news-bar { margin: 0 24px 14px; padding: 14px 18px; border-radius: var(--radius); background: var(--card); border-left: 4px solid var(--special); }
-.news-bar[hidden] { display: none; }
-.news-bar .head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
-.news-bar .head b { font-size: 16px; }
-.news-bar .head .ver { font-stretch: 75%; font-weight: 700; color: var(--special); letter-spacing: 0.02em; }
-.news-bar .head .when { color: var(--ink-3); font-size: 13px; }
-.news-bar .grow { flex: 1; }
-.news-bar .x { background: none; border: 0; color: var(--ink-3); font-size: 18px; cursor: pointer; padding: 0 4px; }
-.news-bar ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; max-width: 95ch; }
-.news-bar li { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: baseline; }
-.news-bar li .tag { font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; white-space: nowrap; justify-self: start; }
-.news-bar li .tag.nuevo { background: rgba(31, 168, 144, 0.18); color: var(--good); }
-.news-bar li .tag.mejorado { background: rgba(57, 135, 229, 0.18); color: var(--special); }
-.news-bar li .tag.arreglado { background: rgba(230, 103, 103, 0.18); color: var(--danger); }
-.news-bar .older { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
-.news-bar .older > summary { cursor: pointer; color: var(--ink-2); font-size: 13.5px; }
-.news-bar .older .entry { margin-top: 14px; }
-.news-bar .older .entry .head b { font-size: 15px; }
+/* What went into each version: a dialog over the dashboard, opened from the header */
+.btn.has-news::after {
+    content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--gold); margin-left: 8px; vertical-align: 1px;
+}
+.news { display: none; width: min(720px, calc(100vw - 32px)); max-height: min(78vh, 880px); padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--ink); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); overflow: hidden; }
+.news[open] { display: flex; flex-direction: column; }
+.news::backdrop { background: rgba(14, 10, 32, 0.66); }
+.news .head { display: flex; align-items: center; gap: 12px; padding: 15px 20px; background: var(--card-raised); border-bottom: 1px solid var(--line); }
+.news .head b { font-size: 17px; }
+.news .head .count { color: var(--ink-3); font-size: 13px; }
+.news .head .grow { flex: 1; }
+.news .head .x { background: none; border: 0; color: var(--ink-3); font-size: 20px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.news .head .x:hover { color: var(--ink); }
+.news .body { overflow-y: auto; padding: 0 20px 18px; }
+.news .body:focus { outline: none; }
+.news .entry { padding: 16px 0; border-top: 1px solid var(--line); }
+.news .entry:first-child { border-top: 0; }
+.news .entry .when { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.news .entry .ver { font-stretch: 75%; font-size: 19px; letter-spacing: 0.02em; color: var(--ink-2); }
+.news .entry.latest .ver { color: var(--gold); }
+.news .entry .when .date { color: var(--ink-3); font-size: 13px; }
+.news ul { list-style: none; margin: 11px 0 0; padding: 0; display: grid; gap: 9px; }
+.news li { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: baseline; }
+.news li .tag { justify-self: start; background: var(--card-raised); border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.news li .tag.nuevo { color: var(--good); }
+.news li .tag.mejorado { color: var(--special); }
+.news li .tag.arreglado { color: var(--danger); }
+.news li .what { color: var(--ink-2); }
 @media (max-width: 560px) {
-    .news-bar li { grid-template-columns: 1fr; }
+    .news li { grid-template-columns: 1fr; }
 }
 
 .status button.linkish { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-decoration: underline dotted; }
@@ -442,12 +452,12 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
     <div class="segmented tabs" id="elTabs" role="tablist" aria-label="Secciones"></div>
     <div class="segmented" id="elRange" role="group" aria-label="Partidas que se cuentan"></div>
     <span class="grow"></span>
+    <button class="btn" id="elNewsOpen">Novedades</button>
     <button class="btn" id="elEditToggle">Editar panel</button>
     <div class="segmented lang" id="elLang" role="group" aria-label="Idioma"></div>
-    <button class="btn" id="elNewsOpen" aria-expanded="false" aria-controls="elNewsBar">Novedades</button>
     <button class="btn" id="elSettingsOpen">Ajustes</button>
 </header>
-<div class="news-bar" id="elNewsBar" role="region" aria-label="Novedades" hidden></div>
+<dialog class="news" id="elNewsDialog" aria-label="Novedades"></dialog>
 <div class="update-bar" id="elUpdateBar" hidden></div>
 <div class="fail-bar" id="elFailBar" role="region" aria-label="Repeticiones con error" hidden></div>
 <div class="status" id="elStatus"></div>
@@ -1005,8 +1015,10 @@ const ARR_I18N = [
 
     // What's new (the text of each entry is written out in the three languages in ARR_NEWS)
     ["Novedades", "What's new", "Nouveautés"],
-    ["Qué ha cambiado en esta versión", "What changed in this version", "Ce qui a changé dans cette version"],
-    ["Versiones anteriores", "Earlier versions", "Versions précédentes"],
+    ["Qué ha cambiado en cada versión", "What changed in each version", "Ce qui a changé dans chaque version"],
+    ["Esta versión trae novedades", "This version brings something new", "Cette version apporte du nouveau"],
+    ["{0} versión", "{0} version", "{0} version"],
+    ["{0} versiones", "{0} versions", "{0} versions"],
     ["Cerrar las novedades", "Close what's new", "Fermer les nouveautés"],
     ["Nuevo", "New", "Nouveau"],
     ["Mejorado", "Improved", "Amélioré"],
@@ -1224,14 +1236,26 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
     {
+        strVersion: "1.0.3",
+        strDate: "2026-11-14",
+        arrItems: [
+            {
+                strTag: "mejorado",
+                es: "Las novedades se abren en un cuadro desde el botón «Novedades» de la cabecera, en vez de ocupar una barra fija arriba del panel. El botón lleva un punto dorado mientras quede algo sin leer.",
+                en: "What's new opens in a dialog from the “What's new” button in the header, instead of taking up a fixed bar above the dashboard. The button carries a gold dot while there is something unread.",
+                fr: "Les nouveautés s'ouvrent dans une fenêtre depuis le bouton « Nouveautés » de l'en-tête, au lieu d'occuper une barre fixe au-dessus du tableau de bord. Le bouton porte un point doré tant qu'il reste quelque chose à lire."
+            }
+        ]
+    },
+    {
         strVersion: "1.0.2",
         strDate: "2026-11-13",
         arrItems: [
             {
                 strTag: "nuevo",
-                es: "Novedades: esta sección, arriba del panel, cuenta qué ha entrado en cada versión. Sale sola una vez tras actualizar, y el botón «Novedades» de la cabecera la abre cuando quieras.",
-                en: "What's new: this panel above the dashboard says what went into each version. It appears by itself once after an update, and the “What's new” button in the header opens it whenever you like.",
-                fr: "Nouveautés : ce panneau au-dessus du tableau de bord dit ce qu'apporte chaque version. Il s'affiche seul une fois après une mise à jour, et le bouton « Nouveautés » de l'en-tête l'ouvre quand tu veux."
+                es: "Novedades: el programa ya cuenta qué ha entrado en cada versión, con su fecha y un resumen por puntos.",
+                en: "What's new: the program now tells you what went into each version, with its date and a short summary.",
+                fr: "Nouveautés : le programme indique désormais ce qu'apporte chaque version, avec sa date et un résumé en points."
             },
             {
                 strTag: "mejorado",
@@ -1441,8 +1465,6 @@ const objApp = {
     bConnected: true,
     strServerError: null,
     strDrawerNote: null,
-    // null: open while the newest version has not been read; true/false: the reader decided
-    bNewsOpen: null,
     strTab: { "#tesoros": "tesoros", "#vivo": "vivo" }[location.hash] ?? "partidas",
     objLiveSeen: { strFile: null, intChests: 0 },
     objDrawerOpen: {},
@@ -3511,65 +3533,61 @@ const renderFailures = () => {
 };
 
 // ---------------------------------------------------------------------------
-// What's new: the panel under the header, filled from ARR_NEWS. It opens by
-// itself while the newest entry has not been read, and the header button
-// opens it again at any time, with the older versions folded underneath.
+// What's new: the dialog the header button opens, filled from ARR_NEWS. Every
+// version is in it, newest first. Nothing opens by itself: while the newest
+// entry has not been read the button carries a dot, and opening it clears it.
 // ---------------------------------------------------------------------------
 const STR_NEWS_LATEST = ARR_NEWS[0]?.strVersion ?? "";
 const OBJ_NEWS_TAGS = { nuevo: "Nuevo", mejorado: "Mejorado", arreglado: "Arreglado" };
 
 const readNewsSeen = () => { try { return localStorage.getItem("fcc-news-seen"); } catch (objError) { return null; } };
 const markNewsSeen = () => { try { localStorage.setItem("fcc-news-seen", STR_NEWS_LATEST); } catch (objError) { /* storage unavailable */ } };
-const newsIsOpen = () => !!ARR_NEWS.length && (objApp.bNewsOpen ?? readNewsSeen() !== STR_NEWS_LATEST);
 
 // The date of an entry is written as yyyy-mm-dd; midday keeps it on that same day in every time zone
 const fmtNewsDate = (strDate) => new Date(`${strDate}T12:00:00`).toLocaleDateString(STR_LOCALE, { day: "numeric", month: "long", year: "numeric" });
 
-// data-notr: the line is already in the reader's language, so the translator leaves it alone
-const newsItems = (objEntry) => el("ul", {}, objEntry.arrItems.map((objItem) => el("li", {}, [
-    el("span", { class: `tag ${objItem.strTag}`, text: OBJ_NEWS_TAGS[objItem.strTag] ?? objItem.strTag }),
-    el("span", { "data-notr": true, text: objItem[STR_LANG] ?? objItem.es })
-])));
-
-const renderNews = () => {
-    const elBar = document.getElementById("elNewsBar");
-    const bOpen = newsIsOpen();
-    document.getElementById("elNewsOpen").setAttribute("aria-expanded", String(bOpen));
-    elBar.hidden = !bOpen;
-    if (!bOpen) return;
-
-    const objLatest = ARR_NEWS[0];
-    const arrOlder = ARR_NEWS.slice(1);
-    // The fold is null when there is only one version; replaceChildren would print it as the text "null"
-    elBar.replaceChildren(...[
-        el("div", { class: "head" }, [
-            el("b", { text: "Novedades" }),
-            el("span", { class: "ver", text: objLatest.strVersion }),
-            el("span", { class: "when", text: fmtNewsDate(objLatest.strDate) }),
-            el("span", { class: "grow" }),
-            el("button", {
-                class: "x", text: "×", title: "Cerrar las novedades", "aria-label": "Cerrar las novedades",
-                onclick: () => { objApp.bNewsOpen = false; markNewsSeen(); renderNews(); }
-            })
-        ]),
-        newsItems(objLatest),
-        arrOlder.length ? el("details", { class: "older" }, [
-            el("summary", { text: "Versiones anteriores" }),
-            ...arrOlder.map((objEntry) => el("div", { class: "entry" }, [
-                el("div", { class: "head" }, [
-                    el("b", { class: "ver", text: objEntry.strVersion }),
-                    el("span", { class: "when", text: fmtNewsDate(objEntry.strDate) })
-                ]),
-                newsItems(objEntry)
-            ]))
-        ]) : null
-    ].filter(Boolean));
+// A dot on the button while the newest version has not been read
+const renderNewsButton = () => {
+    const elButton = document.getElementById("elNewsOpen");
+    const bUnread = !!ARR_NEWS.length && readNewsSeen() !== STR_NEWS_LATEST;
+    elButton.hidden = !ARR_NEWS.length;
+    elButton.classList.toggle("has-news", bUnread);
+    elButton.title = bUnread ? "Esta versión trae novedades" : "Qué ha cambiado en cada versión";
 };
 
-document.getElementById("elNewsOpen").addEventListener("click", () => {
-    objApp.bNewsOpen = !newsIsOpen();
-    if (!objApp.bNewsOpen) markNewsSeen();
-    renderNews();
+const openNews = () => {
+    const elDialog = document.getElementById("elNewsDialog");
+    elDialog.replaceChildren(
+        el("div", { class: "head" }, [
+            el("b", { text: "Novedades" }),
+            el("span", { class: "count", text: plural(ARR_NEWS.length, "versión", "versiones") }),
+            el("span", { class: "grow" }),
+            el("button", { class: "x", text: "×", title: "Cerrar las novedades", "aria-label": "Cerrar las novedades", onclick: () => elDialog.close() })
+        ]),
+        // The dialog gives the focus to the first thing that can take it: the scrolling body,
+        // so it opens ready for the keyboard instead of with a ring drawn around its close button
+        el("div", { class: "body", tabindex: "-1", autofocus: true }, ARR_NEWS.map((objEntry, intIndex) => el("section", { class: `entry${intIndex === 0 ? " latest" : ""}` }, [
+            el("div", { class: "when" }, [
+                el("b", { class: "ver figure", text: objEntry.strVersion }),
+                el("span", { class: "date", text: fmtNewsDate(objEntry.strDate) })
+            ]),
+            // data-notr: each line is already in the reader's language, so the translator leaves it alone
+            el("ul", {}, objEntry.arrItems.map((objItem) => el("li", {}, [
+                el("span", { class: `tag ${objItem.strTag}`, text: OBJ_NEWS_TAGS[objItem.strTag] ?? objItem.strTag }),
+                el("span", { class: "what", "data-notr": true, text: objItem[STR_LANG] ?? objItem.es })
+            ])))
+        ])))
+    );
+
+    markNewsSeen();
+    renderNewsButton();
+    if (!elDialog.open) elDialog.showModal();
+};
+
+document.getElementById("elNewsOpen").addEventListener("click", openNews);
+// Esc already closes a modal dialog; this is the click outside it
+document.getElementById("elNewsDialog").addEventListener("click", (objEvent) => {
+    if (objEvent.target.id === "elNewsDialog") document.getElementById("elNewsDialog").close();
 });
 
 // A newer version: a bar under the header with the button that updates
@@ -3690,7 +3708,7 @@ let intResizeTimer = 0;
 window.addEventListener("resize", () => { clearTimeout(intResizeTimer); intResizeTimer = setTimeout(() => { if (objApp.strTab === "vivo") renderLive(); else renderBoard(); }, 150); });
 
 try { objApp.objDrawerOpen = JSON.parse(localStorage.getItem("contador-cofres-ajustes")) ?? {}; } catch (objError) { objApp.objDrawerOpen = {}; }
-renderNews();
+renderNewsButton();
 refresh(true);
 setInterval(refresh, 1500);
 setInterval(updateBusy, 1000);
