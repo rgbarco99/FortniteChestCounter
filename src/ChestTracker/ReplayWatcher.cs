@@ -1,0 +1,353 @@
+namespace ChestTracker;
+
+/// <summary>
+/// Looks at the replay folder every few seconds and reads whatever is new or changed,
+/// newest first. A replay still being written (match in progress) is left alone until
+/// it stops growing. Each replay is read on its own, so one bad file never blocks the rest.
+/// </summary>
+public sealed class ReplayWatcher : BackgroundService
+{
+    private static readonly TimeSpan tsScanInterval = TimeSpan.FromSeconds(2);
+    // A file that is not a match in progress is left alone for a moment in case it is still being copied
+    private static readonly TimeSpan tsQuietTime = TimeSpan.FromSeconds(5);
+
+    // The game writes a match in progress every 20 seconds: two missed writes mean it is over
+    private static readonly TimeSpan tsLiveWindow = TimeSpan.FromSeconds(45);
+
+    // When the header does not say "recording", one full write cycle without growth is enough
+    private static readonly TimeSpan tsClosedWindow = TimeSpan.FromSeconds(25);
+
+    private readonly Store _objStore;
+    private readonly GameLogTail _objGameLog;
+    private readonly SemaphoreSlim _objWakeUp = new(0, 1);
+    private readonly object _objFailuresLock = new();
+    private readonly Dictionary<string, (string Fingerprint, string Message)> _dicFailures = new(StringComparer.OrdinalIgnoreCase);
+    private volatile bool _bForceAll;
+    private volatile bool _bRetryFailed;
+
+    // The replay in progress is read again whenever it has grown (the game writes every 20 seconds)
+    private string? _strLiveFile;
+    private string? _strLiveFingerprint;
+    private bool _bLiveHeaderClosed;
+    private bool _bLiveSawRecording;
+
+    public ReplayWatcher(Store objStore, GameLogTail objGameLog)
+    {
+        _objStore = objStore;
+        _objGameLog = objGameLog;
+    }
+
+    /// <summary>
+    /// Scan now. By default only new or changed replays are read.
+    /// bRetryFailed also retries the ones that failed; bForceAll reads every replay on disk again.
+    /// </summary>
+    public void RequestScan(bool bForceAll = false, bool bRetryFailed = false)
+    {
+        if (bForceAll)
+        {
+            _bForceAll = true;
+        }
+        if (bRetryFailed)
+        {
+            _bRetryFailed = true;
+        }
+
+        try { _objWakeUp.Release(); }
+        catch (SemaphoreFullException) { }
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        // Let the web server start before the first, possibly long, pass
+        await Task.Yield();
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                Scan(stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (Exception objError)
+            {
+                _objStore.Log($"Error al revisar la carpeta de repeticiones: {objError.Message}");
+            }
+
+            try
+            {
+                await _objWakeUp.WaitAsync(tsScanInterval, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+        }
+    }
+
+    private void Scan(CancellationToken objCancel)
+    {
+        var objStatus = _objStore.Status;
+        var strDemosPath = _objStore.Settings.DemosPath;
+        var bForceAll = _bForceAll;
+        var bRetryFailed = _bRetryFailed;
+        _bForceAll = false;
+        _bRetryFailed = false;
+
+        var bFolderExists = Directory.Exists(strDemosPath);
+        var lstFiles = bFolderExists
+            ? new DirectoryInfo(strDemosPath).GetFiles("*.replay").OrderByDescending(objFile => objFile.LastWriteTimeUtc).ToList()
+            : new List<FileInfo>();
+
+        // Failures only matter while the file is still there and unchanged
+        var setNames = lstFiles.Select(objFile => objFile.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        lock (_objFailuresLock)
+        {
+            if (bForceAll || bRetryFailed)
+            {
+                _dicFailures.Clear();
+            }
+            foreach (var strGone in _dicFailures.Keys.Where(strName => !setNames.Contains(strName)).ToList())
+            {
+                _dicFailures.Remove(strGone);
+            }
+        }
+
+        string? strLiveFile = null;
+        var lstToRead = new List<(FileInfo File, string Fingerprint)>();
+
+        foreach (var objFile in lstFiles)
+        {
+            var tsAge = DateTime.UtcNow - objFile.LastWriteTimeUtc;
+
+            // Files come newest first, so only the first one can be the match being played
+            if (strLiveFile == null && objFile == lstFiles[0] && IsBeingWritten(objFile, tsAge))
+            {
+                strLiveFile = objFile.Name;
+                continue;
+            }
+
+            if (tsAge < tsQuietTime)
+            {
+                continue;
+            }
+
+            var strFingerprint = $"{objFile.Length}|{objFile.LastWriteTimeUtc.Ticks}";
+            var objCached = _objStore.FindMatch(objFile.Name);
+            var bUpToDate = objCached != null
+                && objCached.FileSize == objFile.Length
+                && objCached.FileModifiedUtc == objFile.LastWriteTimeUtc
+                && objCached.ParserVersion == ReplayParser.PARSER_VERSION;
+
+            if (bUpToDate && !bForceAll)
+            {
+                continue;
+            }
+
+            // Do not retry a file that already failed unless it changed
+            lock (_objFailuresLock)
+            {
+                if (_dicFailures.TryGetValue(objFile.Name, out var objFailure) && objFailure.Fingerprint == strFingerprint)
+                {
+                    continue;
+                }
+            }
+
+            lstToRead.Add((objFile, strFingerprint));
+        }
+
+        ReadLive(strLiveFile == null ? null : lstFiles.First(objFile => objFile.Name == strLiveFile));
+
+        // The game's log says what the replay cannot yet: end-of-match screen, searching for a match
+        if (_objGameLog.Poll(strDemosPath))
+        {
+            _objStore.Game = _objGameLog.Status;
+            _objStore.Touch();
+        }
+
+        var bChanged = objStatus.DemosFolderExists != bFolderExists
+            || objStatus.ReplayFilesFound != lstFiles.Count
+            || objStatus.LiveFile != strLiveFile
+            || objStatus.PendingCount != lstToRead.Count;
+
+        objStatus.DemosFolderExists = bFolderExists;
+        objStatus.ReplayFilesFound = lstFiles.Count;
+        objStatus.LiveFile = strLiveFile;
+        objStatus.PendingCount = lstToRead.Count;
+        objStatus.BatchTotal = lstToRead.Count;
+        PublishErrors();
+        if (bChanged)
+        {
+            _objStore.Touch();
+        }
+
+        if (lstToRead.Count > 0)
+        {
+            if (lstToRead.Count > 1)
+            {
+                _objStore.Log($"{lstToRead.Count} repeticiones por leer");
+            }
+
+            // A backlog is read a few at a time; a single new match uses one reader
+            var intReaders = Math.Clamp(Environment.ProcessorCount / 4, 1, 3);
+            var intPending = lstToRead.Count;
+
+            Parallel.ForEach(lstToRead, new ParallelOptions { MaxDegreeOfParallelism = intReaders, CancellationToken = objCancel }, objItem =>
+            {
+                objStatus.ParsingFile = objItem.File.Name;
+                ReadOne(objItem.File, objItem.Fingerprint);
+                objStatus.PendingCount = Interlocked.Decrement(ref intPending);
+                PublishErrors();
+
+                // A long backlog must not freeze what the page knows about the match being played
+                lock (_objGameLog)
+                {
+                    if (_objGameLog.Poll(strDemosPath))
+                    {
+                        _objStore.Game = _objGameLog.Status;
+                    }
+                }
+                _objStore.Touch();
+            });
+
+            objStatus.ParsingFile = null;
+            objStatus.PendingCount = 0;
+            objStatus.BatchTotal = 0;
+        }
+
+        objStatus.LastScanUtc = DateTime.UtcNow;
+        if (lstToRead.Count > 0)
+        {
+            _objStore.Touch();
+        }
+    }
+
+    /// <summary>
+    /// Is the game still recording into this file? Recently written, and its header has not been
+    /// closed. If the header never said "recording" we fall back on whether the file keeps growing.
+    /// </summary>
+    private bool IsBeingWritten(FileInfo objFile, TimeSpan tsAge)
+    {
+        if (tsAge >= tsLiveWindow)
+        {
+            return false;
+        }
+        if (objFile.Name != _strLiveFile || !_bLiveHeaderClosed)
+        {
+            return true;
+        }
+        // Header closed: final if we watched it close, otherwise wait a full write cycle
+        return !_bLiveSawRecording && tsAge < tsClosedWindow;
+    }
+
+    /// <summary>Keeps the "match in progress" view up to date. It never touches the saved matches.</summary>
+    private void ReadLive(FileInfo? objFile)
+    {
+        if (objFile == null)
+        {
+            // The game stopped writing: the normal reading takes over and saves the finished match
+            return;
+        }
+
+        var strFingerprint = $"{objFile.Length}|{objFile.LastWriteTimeUtc.Ticks}";
+        if (objFile.Name == _strLiveFile && strFingerprint == _strLiveFingerprint)
+        {
+            return;
+        }
+
+        if (objFile.Name != _strLiveFile)
+        {
+            _bLiveHeaderClosed = false;
+            _bLiveSawRecording = false;
+        }
+
+        try
+        {
+            // First a cheap look: while the game keeps the contents locked there is nothing to read
+            var objRecord = ReplayParser.TryReadLocked(objFile, out var strReason);
+            if (objRecord != null)
+            {
+                if (_objStore.LiveMatch is not { IsLocked: true } objShown || objShown.File != objRecord.File)
+                {
+                    _objStore.Log($"Partida en curso ({objFile.Name}): solo reloj, {strReason}");
+                    _objStore.SetLiveMatch(objRecord);
+                }
+                _bLiveHeaderClosed = false;
+                _bLiveSawRecording = true;
+            }
+            else
+            {
+                objRecord = ParseProcess.Parse(objFile.FullName);
+                if (objRecord.IsLocked)
+                {
+                    return;   // the header changed between the two looks; the next round sorts it out
+                }
+                _bLiveHeaderClosed = !objRecord.IsRecording;
+                _bLiveSawRecording |= objRecord.IsRecording;
+
+                if (_bLiveHeaderClosed && _bLiveSawRecording)
+                {
+                    // We watched the game close the file: the match is over, save it right away
+                    _objStore.SaveMatch(objRecord);
+                    _objStore.SetLiveMatch(null);
+                    _objStore.Log($"Partida terminada y leída: {objFile.Name}");
+                }
+                else
+                {
+                    _objStore.SetLiveMatch(objRecord);
+                }
+            }
+        }
+        catch (Exception objError)
+        {
+            // Normal while the first seconds of a match are on disk; the next write is tried again
+            if (objFile.Name != _strLiveFile)
+            {
+                _objStore.Log($"Partida en curso todavía sin datos legibles ({objFile.Name}): {objError.Message}");
+            }
+        }
+
+        _strLiveFile = objFile.Name;
+        _strLiveFingerprint = strFingerprint;
+    }
+
+    private void ReadOne(FileInfo objFile, string strFingerprint)
+    {
+        try
+        {
+            var objRecord = ParseProcess.Parse(objFile.FullName);
+            if (objRecord.IsLocked)
+            {
+                // Nobody is writing it any more and the key never arrived: the game closed mid-match
+                throw new InvalidDataException("Fortnite no llegó a cerrar esta repetición (el juego se cerró a mitad de partida) y quedó cifrada sin clave: no se puede leer.");
+            }
+            _objStore.SaveMatch(objRecord);
+
+            // The match that was being followed live is now a saved one
+            if (_objStore.LiveMatch?.File == objRecord.File)
+            {
+                _objStore.SetLiveMatch(null);
+            }
+            lock (_objFailuresLock) { _dicFailures.Remove(objFile.Name); }
+            _objStore.Log($"Leída {objFile.Name}");
+        }
+        catch (Exception objError)
+        {
+            lock (_objFailuresLock) { _dicFailures[objFile.Name] = (strFingerprint, objError.Message); }
+            _objStore.Log($"No se pudo leer {objFile.Name}: {objError.Message}");
+        }
+    }
+
+    private void PublishErrors()
+    {
+        lock (_objFailuresLock)
+        {
+            _objStore.Status.Errors = _dicFailures
+                .Select(objPair => new ScanError { File = objPair.Key, Message = objPair.Value.Message })
+                .OrderByDescending(objError => objError.File)
+                .ToList();
+        }
+    }
+}

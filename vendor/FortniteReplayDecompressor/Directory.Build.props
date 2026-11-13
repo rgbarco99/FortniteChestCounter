@@ -1,0 +1,12 @@
+<Project>
+  <!-- Trimmed copy of the upstream Directory.Build.props (test-only settings removed). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Authors>Shiqan</Authors>
+    <!-- Upstream builds with hundreds of nullable warnings; keep this project's build output readable. -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8619;CS8620;CS8625;CS8629;CS8765;CS8767;CS0168;CS0219;CS0414;CS0649;CS0169;CS1591;CS0108;CS0162;CS0164;CS8632;CS8981;CA2022;CS0618;CS8073;CS8714;CS8621;CS8622;CS0067;CS0659;CS0661;CS8605;CS8610;CS8634;CS8669;CS9191;CS9192;CS9195;CS0183;CS0105;SYSLIB0011;CS8500;CS8509;CS8762</NoWarn>
+  </PropertyGroup>
+</Project>
