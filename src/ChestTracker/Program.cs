@@ -26,7 +26,14 @@ var objIndentedJson = new JsonSerializerOptions { WriteIndented = true, Property
 
 if (GetOption("--dump") is { } strDumpFile)
 {
-    // Also how the program reads every replay: one short-lived copy of itself per file
+    // The program has no console of its own (it is a WinExe), so a dump typed at a prompt
+    // borrows that one. When the output is already a pipe there is nothing to borrow: that
+    // is how the program reads every replay, one short-lived copy of itself per file.
+    if (!Console.IsOutputRedirected)
+    {
+        Native.AttachParentConsole();
+    }
+
     try
     {
         var objRecord = ParseProcess.ParseWithLargeStack(strDumpFile);
@@ -47,6 +54,19 @@ if (GetOption("--dump") is { } strDumpFile)
 Updater.WaitForPreviousCopy(GetOption("--wait-pid"));
 
 var strDataFolder = GetOption("--data") ?? GetDefaultDataFolder();
+
+// One copy at a time: opened again by mistake, it hands the dashboard of the copy already
+// running to the browser and closes. --port asks for a copy of its own, and so does
+// --wait-pid, which is the new version taking over right after an update.
+if (GetOption("--port") == null && GetOption("--wait-pid") == null && Instance.FindRunning(strDataFolder) is { } strRunningUrl)
+{
+    if (!args.Contains("--no-browser"))
+    {
+        OpenInBrowser(strRunningUrl);
+    }
+    return 0;
+}
+
 var objStore = new Store(strDataFolder, GetOption("--demos"));
 var intPort = FindFreePort(int.TryParse(GetOption("--port"), out var intPreferred) ? intPreferred : 5380);
 var strUrl = $"http://127.0.0.1:{intPort}";
@@ -65,10 +85,13 @@ objBuilder.Services.AddSingleton<ReplayWatcher>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<ReplayWatcher>());
 objBuilder.Services.AddSingleton<Updater>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<Updater>());
+objBuilder.Services.AddSingleton<TrayIcon>();
+objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<TrayIcon>());
 
 var objApp = objBuilder.Build();
 var objUpdater = objApp.Services.GetRequiredService<Updater>();
 objUpdater.Port = intPort;
+objApp.Services.GetRequiredService<TrayIcon>().Url = strUrl;
 
 // The interface: one HTML file embedded in the executable.
 // FCC_UI can point to a file on disk to edit the page without rebuilding.
@@ -252,25 +275,27 @@ objApp.MapPost("/api/matches/exclude", (ExcludeRequest objRequest) =>
     return Results.Ok();
 });
 
-Console.WriteLine();
-Console.WriteLine($"  Fortnite Chest Counter {Updater.CurrentVersion}");
-Console.WriteLine($"  Dashboard:  {strUrl}");
-Console.WriteLine($"  Replays:    {objStore.Settings.DemosPath}");
-Console.WriteLine($"  Data:       {objStore.DataFolder}");
-Console.WriteLine("  Keep this window open while you play. Ctrl+C to close.");
-Console.WriteLine();
+// There is no window to read: this goes to chestcounter.log, and to the console of
+// whoever started the program if there happens to be one (start.cmd, a prompt).
+objStore.Log($"Fortnite Chest Counter {Updater.CurrentVersion} · panel en {strUrl} · repeticiones en {objStore.Settings.DemosPath}");
+
+// Where a second copy opened by mistake has to look
+Instance.Write(strDataFolder, strUrl);
+objApp.Lifetime.ApplicationStopped.Register(() => Instance.Remove(strDataFolder));
 
 if (!args.Contains("--no-browser"))
 {
-    objApp.Lifetime.ApplicationStarted.Register(() =>
-    {
-        try { Process.Start(new ProcessStartInfo(strUrl) { UseShellExecute = true }); }
-        catch { /* No browser available: the address is printed above */ }
-    });
+    objApp.Lifetime.ApplicationStarted.Register(() => OpenInBrowser(strUrl));
 }
 
 objApp.Run();
 return 0;
+
+static void OpenInBrowser(string strAddress)
+{
+    try { Process.Start(new ProcessStartInfo(strAddress) { UseShellExecute = true }); }
+    catch (Exception) { /* No browser available: the address is in the log, and in the tray tooltip */ }
+}
 
 // %LOCALAPPDATA%\FortniteChestCounter. Data of the earlier Spanish-named version is copied over once.
 static string GetDefaultDataFolder()

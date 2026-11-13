@@ -162,7 +162,7 @@ public sealed class Store
     {
         lock (_objLock)
         {
-            Settings = new TrackerSettings { DemosPath = Settings.DemosPath, LogPath = Settings.LogPath };
+            Settings = new TrackerSettings { DemosPath = Settings.DemosPath, LogPath = Settings.LogPath, TrayNoticeShown = Settings.TrayNoticeShown };
             _lngRevision++;
             WriteJson(_strSettingsFile, Settings);
         }

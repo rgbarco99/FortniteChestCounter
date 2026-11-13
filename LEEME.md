@@ -12,8 +12,13 @@ No usa IA ni toca el juego: solo lee los archivos `.replay` del disco.
    repositorio y ponlo en una carpeta tuya (Escritorio, Documentos…), no en Archivos de programa.
 2. Ábrelo. La primera vez Windows puede avisar con «Windows protegió tu PC», porque el programa no
    está firmado: pulsa «Más información» y «Ejecutar de todas formas».
-3. Se abre el panel en el navegador (`http://127.0.0.1:5380`). Deja la ventana negra abierta
-   mientras juegas: cada partida aparece sola al terminar.
+3. Se abre el panel en el navegador (`http://127.0.0.1:5380`). No hay ninguna ventana que dejar
+   abierta: el programa se queda en un icono junto al reloj mientras juegas, y cada partida
+   aparece sola al terminar. Doble clic en el icono vuelve a abrir el panel; con el botón derecho,
+   «Salir». Si lo abres estando ya en marcha, te abre el panel de la copia que ya estaba.
+
+   Windows 11 esconde los iconos nuevos detrás de la flecha **^** de al lado del reloj; sácalo de
+   ahí para tenerlo a la vista.
 
 Fortnite tiene que tener activada la grabación de repeticiones en sus ajustes.
 
@@ -23,6 +28,12 @@ El programa comprueba en GitHub si hay versión nueva al arrancar y cada pocas h
 aparece una barra con el botón «Actualizar»: descarga el `.exe` nuevo, sustituye al actual y se
 reinicia solo; la página se reconecta. Tus partidas y ajustes están en
 `%LOCALAPPDATA%\FortniteChestCounter` y no se tocan.
+
+**Novedades**: después de actualizar, arriba de la página se abre una vez un panel con lo que
+trae esa versión. El botón «Novedades» de la cabecera lo vuelve a abrir cuando quieras, con las
+versiones anteriores plegadas debajo. Para anunciar una versión nueva se añade una entrada arriba
+de `ARR_NEWS`, en `src/ChestTracker/ui/index.html`, con la fecha y una línea por cambio en los
+tres idiomas.
 
 ## Idioma
 
@@ -211,6 +222,8 @@ src/ChestTracker/
   ParseProcess.cs    lee cada repetición en un proceso aparte, con límite de tiempo
   Store.cs           ajustes y partidas en JSON
   Program.cs         servidor local y API
+  TrayIcon.cs        el icono de al lado del reloj: panel, lectura y salida
+  Instance.cs        una sola copia: la segunda abre el panel de la primera y se cierra
   ui/index.html      el panel (un solo archivo, va dentro del ejecutable)
 vendor/FortniteReplayDecompressor/   biblioteca que descifra y descomprime el .replay (MIT)
 ```

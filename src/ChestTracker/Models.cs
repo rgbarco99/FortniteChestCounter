@@ -109,6 +109,9 @@ public sealed class TrackerSettings
     /// <summary>Fortnite's log file chosen by the user; empty means next to the replay folder.</summary>
     public string LogPath { get; set; } = "";
 
+    /// <summary>The tray icon has already said once where the program lives.</summary>
+    public bool TrayNoticeShown { get; set; }
+
     /// <summary>Dashboard layout as saved by the interface; the server never looks inside.</summary>
     public JsonElement? Layout { get; set; }
 }

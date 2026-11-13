@@ -69,6 +69,30 @@ button, input, select { font: inherit; color: inherit; }
 .fail-bar li .meta { color: var(--ink-3); font-size: 12.5px; }
 .fail-bar li .msg { color: var(--ink-2); font-size: 13px; word-break: break-word; }
 .fail-bar .row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* What went into each version */
+.news-bar { margin: 0 24px 14px; padding: 14px 18px; border-radius: var(--radius); background: var(--card); border-left: 4px solid var(--special); }
+.news-bar[hidden] { display: none; }
+.news-bar .head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.news-bar .head b { font-size: 16px; }
+.news-bar .head .ver { font-stretch: 75%; font-weight: 700; color: var(--special); letter-spacing: 0.02em; }
+.news-bar .head .when { color: var(--ink-3); font-size: 13px; }
+.news-bar .grow { flex: 1; }
+.news-bar .x { background: none; border: 0; color: var(--ink-3); font-size: 18px; cursor: pointer; padding: 0 4px; }
+.news-bar ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; max-width: 95ch; }
+.news-bar li { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: baseline; }
+.news-bar li .tag { font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; white-space: nowrap; justify-self: start; }
+.news-bar li .tag.nuevo { background: rgba(31, 168, 144, 0.18); color: var(--good); }
+.news-bar li .tag.mejorado { background: rgba(57, 135, 229, 0.18); color: var(--special); }
+.news-bar li .tag.arreglado { background: rgba(230, 103, 103, 0.18); color: var(--danger); }
+.news-bar .older { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.news-bar .older > summary { cursor: pointer; color: var(--ink-2); font-size: 13.5px; }
+.news-bar .older .entry { margin-top: 14px; }
+.news-bar .older .entry .head b { font-size: 15px; }
+@media (max-width: 560px) {
+    .news-bar li { grid-template-columns: 1fr; }
+}
+
 .status button.linkish { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-decoration: underline dotted; }
 .update-bar b { color: var(--gold); }
 .update-bar .grow { flex: 1; }
@@ -420,8 +444,10 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
     <span class="grow"></span>
     <button class="btn" id="elEditToggle">Editar panel</button>
     <div class="segmented lang" id="elLang" role="group" aria-label="Idioma"></div>
+    <button class="btn" id="elNewsOpen" aria-expanded="false" aria-controls="elNewsBar">Novedades</button>
     <button class="btn" id="elSettingsOpen">Ajustes</button>
 </header>
+<div class="news-bar" id="elNewsBar" role="region" aria-label="Novedades" hidden></div>
 <div class="update-bar" id="elUpdateBar" hidden></div>
 <div class="fail-bar" id="elFailBar" role="region" aria-label="Repeticiones con error" hidden></div>
 <div class="status" id="elStatus"></div>
@@ -832,7 +858,7 @@ const ARR_I18N = [
     ["No se pudo dibujar este bloque.", "This block could not be drawn.", "Impossible d'afficher ce bloc."],
     ["Editar panel", "Edit board", "Modifier le tableau"],
     ["El programa respondió con un error ({0}). El detalle está en chestcounter.log, en la carpeta de datos.", "The program answered with an error ({0}). Details are in chestcounter.log, in the data folder.", "Le programme a répondu par une erreur ({0}). Le détail est dans chestcounter.log, dans le dossier de données."],
-    ["Sin conexión con el programa. Comprueba que la ventana del contador sigue abierta.", "No connection to the program. Check that the counter window is still open.", "Pas de connexion avec le programme. Vérifie que la fenêtre du compteur est toujours ouverte."],
+    ["Sin conexión con el programa. Comprueba que sigue abierto: su icono está junto al reloj.", "No connection to the program. Check that it is still open: its icon is next to the clock.", "Pas de connexion avec le programme. Vérifie qu'il est toujours ouvert : son icône est à côté de l'horloge."],
     ["Vigilando {0}", "Watching {0}", "Surveillance de {0}"],
     ["Carpeta de repeticiones no encontrada", "Replay folder not found", "Dossier des rediffusions introuvable"],
     ["{0} {1}, {2} {3} en la carpeta", "{0} {1}, {2} {3} in the folder", "{0} {1}, {2} {3} dans le dossier"],
@@ -977,6 +1003,15 @@ const ARR_I18N = [
     ["Comprobado {0}", "Checked {0}", "Vérifié {0}"],
     ["Ver en GitHub", "View on GitHub", "Voir sur GitHub"],
 
+    // What's new (the text of each entry is written out in the three languages in ARR_NEWS)
+    ["Novedades", "What's new", "Nouveautés"],
+    ["Qué ha cambiado en esta versión", "What changed in this version", "Ce qui a changé dans cette version"],
+    ["Versiones anteriores", "Earlier versions", "Versions précédentes"],
+    ["Cerrar las novedades", "Close what's new", "Fermer les nouveautés"],
+    ["Nuevo", "New", "Nouveau"],
+    ["Mejorado", "Improved", "Amélioré"],
+    ["Arreglado", "Fixed", "Corrigé"],
+
     // Failed replays and the game's log
     ["Repeticiones con error", "Replays with errors", "Rediffusions en erreur"],
     ["{0} repeticiones no se pudieron leer", "{0} replays could not be read", "{0} rediffusions n'ont pas pu être lues"],
@@ -1115,13 +1150,16 @@ const objTranslator = (() => {
     // Applied to the page itself, so every render and every update is covered
     const ARR_ATTRIBUTES = ["aria-label", "title", "placeholder"];
     const SET_SKIP = new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT"]);
+    // data-notr marks text already written in the reader's language (the what's-new entries)
+    const isLeftAlone = (elNode) => !!elNode.closest?.("[data-notr]");
     const translateTextNode = (elText) => {
         const elParent = elText.parentNode;
-        if (!elParent || SET_SKIP.has(elParent.nodeName) || elParent.isContentEditable) return;
+        if (!elParent || SET_SKIP.has(elParent.nodeName) || elParent.isContentEditable || isLeftAlone(elParent)) return;
         const strOut = translate(elText.nodeValue);
         if (strOut !== elText.nodeValue) elText.nodeValue = strOut;
     };
     const translateAttributes = (elNode) => {
+        if (isLeftAlone(elNode)) return;
         for (const strAttribute of ARR_ATTRIBUTES) {
             const strValue = elNode.getAttribute?.(strAttribute);
             if (strValue) { const strOut = translate(strValue); if (strOut !== strValue) elNode.setAttribute(strAttribute, strOut); }
@@ -1166,6 +1204,122 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
     elButton.addEventListener("click", () => { try { localStorage.setItem("fcc-language", strCode); } catch (objError) { /* storage unavailable */ } location.reload(); });
     return elButton;
 }));
+
+// ---------------------------------------------------------------------------
+// What's new: what went into each version, newest first. The panel under the
+// header shows the newest entry once, until the reader closes it; the
+// "Novedades" button in the header brings it back with the older ones under it.
+//
+// To announce a version, add an entry on top:
+//   {
+//       strVersion: "1.2.0",
+//       strDate: "2026-12-01",                       // yyyy-mm-dd, shown in the reader's format
+//       arrItems: [
+//           { strTag: "nuevo", es: "…", en: "…", fr: "…" }
+//       ]
+//   }
+// strTag is "nuevo", "mejorado" or "arreglado". Unlike the rest of the page,
+// each line carries its own three languages: this text appears nowhere else,
+// so there is nothing to look up in ARR_I18N.
+// ---------------------------------------------------------------------------
+const ARR_NEWS = [
+    {
+        strVersion: "1.0.2",
+        strDate: "2026-11-13",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Novedades: esta sección, arriba del panel, cuenta qué ha entrado en cada versión. Sale sola una vez tras actualizar, y el botón «Novedades» de la cabecera la abre cuando quieras.",
+                en: "What's new: this panel above the dashboard says what went into each version. It appears by itself once after an update, and the “What's new” button in the header opens it whenever you like.",
+                fr: "Nouveautés : ce panneau au-dessus du tableau de bord dit ce qu'apporte chaque version. Il s'affiche seul une fois après une mise à jour, et le bouton « Nouveautés » de l'en-tête l'ouvre quand tu veux."
+            },
+            {
+                strTag: "mejorado",
+                es: "Se acabó la ventana negra. El programa se queda en un icono junto al reloj: doble clic abre el panel y, con el botón derecho, «Salir».",
+                en: "No more black window. The program sits in an icon next to the clock: double-click opens the dashboard, and right-click offers “Quit”.",
+                fr: "Fini la fenêtre noire. Le programme reste dans une icône à côté de l'horloge : double-clic pour ouvrir le tableau de bord, clic droit pour « Quitter »."
+            },
+            {
+                strTag: "mejorado",
+                es: "Abrirlo estando ya en marcha ya no arranca otra copia: te abre el panel de la que estaba.",
+                en: "Opening it while it is already running no longer starts a second copy: it opens the dashboard of the one already there.",
+                fr: "L'ouvrir alors qu'il tourne déjà ne lance plus une seconde copie : il ouvre le tableau de bord de celle qui tourne."
+            },
+            {
+                strTag: "arreglado",
+                es: "El aviso rojo de una repetición que no se pudo leer terminaba con la palabra «null».",
+                en: "The red notice about a replay that could not be read ended with the word “null”.",
+                fr: "L'avis rouge au sujet d'une rediffusion illisible se terminait par le mot « null »."
+            }
+        ]
+    },
+    {
+        strVersion: "1.0.1",
+        strDate: "2026-11-13",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Las repeticiones que no se pueden leer ya no se quedan ahí: puedes reintentarlas, dejar de intentarlas o borrar el archivo, y el aviso dice el motivo de cada una.",
+                en: "Replays that cannot be read no longer just sit there: you can retry them, stop trying them or delete the file, and the notice says why each one failed.",
+                fr: "Les rediffusions illisibles ne restent plus en plan : tu peux les réessayer, arrêter d'essayer ou supprimer le fichier, et l'avis dit pourquoi chacune a échoué."
+            },
+            {
+                strTag: "mejorado",
+                es: "El tiempo que se le da a cada repetición depende de su tamaño (un minuto más diez segundos por MB), en vez de un límite fijo que cortaba las partidas largas.",
+                en: "The time each replay gets now depends on its size (a minute plus ten seconds per MB), instead of a fixed limit that cut long matches short.",
+                fr: "Le temps accordé à chaque rediffusion dépend maintenant de sa taille (une minute plus dix secondes par Mo), au lieu d'une limite fixe qui coupait les longues parties."
+            },
+            {
+                strTag: "nuevo",
+                es: "En Ajustes puedes indicar dónde está el registro de Fortnite, por si no lo encuentra solo.",
+                en: "Settings now lets you point at Fortnite's log, in case it is not found by itself.",
+                fr: "Les paramètres permettent d'indiquer où se trouve le journal de Fortnite, s'il n'est pas trouvé tout seul."
+            }
+        ]
+    },
+    {
+        strVersion: "1.0.0",
+        strDate: "2026-11-13",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Primera versión. Cuenta los cofres que abres en cada partida leyendo las repeticiones que Fortnite guarda en el PC, con los cofres especiales y los de espíritu aparte.",
+                en: "First version. Counts the chests you open each match by reading the replays Fortnite saves on your PC, with special and spirit chests counted apart.",
+                fr: "Première version. Compte les coffres que tu ouvres à chaque partie en lisant les rediffusions que Fortnite enregistre sur ton PC, les coffres spéciaux et les coffres d'esprit à part."
+            },
+            {
+                strTag: "nuevo",
+                es: "Panel de tus partidas: cofres por minuto, eliminaciones, puesto, minutos jugados, tu squad y los amigos con los que más juegas.",
+                en: "A dashboard of your matches: chests per minute, eliminations, place, minutes played, your squad and the friends you play with most.",
+                fr: "Un tableau de bord de tes parties : coffres par minute, éliminations, place, minutes jouées, ton escouade et les amis avec qui tu joues le plus."
+            },
+            {
+                strTag: "nuevo",
+                es: "Pestaña En vivo: el reloj de la partida en curso y tu ritmo habitual a esas alturas, mientras juegas.",
+                en: "Live tab: the clock of the match in progress and your usual pace at that point, while you play.",
+                fr: "Onglet En direct : le chronomètre de la partie en cours et ton rythme habituel à ce stade, pendant que tu joues."
+            },
+            {
+                strTag: "nuevo",
+                es: "Pestaña Tesoros: un cartón con la probabilidad por cofre de cada tesoro y la de que ya te haya tocado.",
+                en: "Treasures tab: a card with each treasure's chance per chest and the chance you already have it.",
+                fr: "Onglet Trésors : une carte avec la probabilité par coffre de chaque trésor et celle de l'avoir déjà obtenu."
+            },
+            {
+                strTag: "nuevo",
+                es: "Español, inglés y francés, y un panel que puedes reordenar, estrechar, plegar y ocultar a tu gusto.",
+                en: "Spanish, English and French, and a dashboard you can reorder, narrow, fold and hide as you like.",
+                fr: "Espagnol, anglais et français, et un tableau de bord que tu peux réorganiser, rétrécir, replier et masquer à ta guise."
+            },
+            {
+                strTag: "nuevo",
+                es: "Se actualiza solo: comprueba en GitHub si hay una versión nueva y la instala con un botón, sin tocar tus partidas ni tus ajustes.",
+                en: "It updates itself: it checks GitHub for a new version and installs it with one button, leaving your matches and settings alone.",
+                fr: "Il se met à jour seul : il vérifie sur GitHub s'il y a une nouvelle version et l'installe d'un bouton, sans toucher à tes parties ni à tes paramètres."
+            }
+        ]
+    }
+];
 "use strict";
 
 // ---------------------------------------------------------------------------
@@ -1287,6 +1441,8 @@ const objApp = {
     bConnected: true,
     strServerError: null,
     strDrawerNote: null,
+    // null: open while the newest version has not been read; true/false: the reader decided
+    bNewsOpen: null,
     strTab: { "#tesoros": "tesoros", "#vivo": "vivo" }[location.hash] ?? "partidas",
     objLiveSeen: { strFile: null, intChests: 0 },
     objDrawerOpen: {},
@@ -2944,7 +3100,7 @@ const renderChrome = () => {
     if (!objApp.bConnected) {
         elStatus.append(el("span", { class: "warn" }, [el("i", { class: "dot off" }), objApp.strServerError
             ? `El programa respondió con un error (${objApp.strServerError}). El detalle está en chestcounter.log, en la carpeta de datos.`
-            : "Sin conexión con el programa. Comprueba que la ventana del contador sigue abierta."]));
+            : "Sin conexión con el programa. Comprueba que sigue abierto: su icono está junto al reloj."]));
     } else {
         elStatus.append(el("span", {}, [el("i", { class: `dot${objStatus.demosFolderExists ? "" : " off"}` }), objStatus.demosFolderExists ? `Vigilando ${objApp.objState.settings.demosPath}` : "Carpeta de repeticiones no encontrada"]));
         elStatus.append(el("span", { text: `${objApp.objState.matches.length} ${objApp.objState.matches.length === 1 ? "partida guardada" : "partidas guardadas"}, ${objStatus.replayFilesFound} ${objStatus.replayFilesFound === 1 ? "repetición" : "repeticiones"} en la carpeta` }));
@@ -3317,7 +3473,8 @@ const renderFailures = () => {
     const arrFiles = arrErrors.map((objError) => objError.file);
     const intRepeated = arrErrors.filter((objError) => objError.attempts > 1).length;
     const objFirst = arrErrors[0];
-    elBar.replaceChildren(
+    // The detail list is null while it is folded; replaceChildren would print it as the text "null"
+    elBar.replaceChildren(...[
         el("div", { class: "head" }, [
             el("span", { class: "icon", text: "!" }),
             el("b", { text: arrErrors.length === 1 ? "Una repetición no se pudo leer" : `${arrErrors.length} repeticiones no se pudieron leer` }),
@@ -3350,8 +3507,70 @@ const renderFailures = () => {
                 el("span", { class: "meta", style: { alignSelf: "center" }, text: "El detalle también queda en chestcounter.log, en la carpeta de datos." })
             ]))
         ]) : null
-    );
+    ].filter(Boolean));
 };
+
+// ---------------------------------------------------------------------------
+// What's new: the panel under the header, filled from ARR_NEWS. It opens by
+// itself while the newest entry has not been read, and the header button
+// opens it again at any time, with the older versions folded underneath.
+// ---------------------------------------------------------------------------
+const STR_NEWS_LATEST = ARR_NEWS[0]?.strVersion ?? "";
+const OBJ_NEWS_TAGS = { nuevo: "Nuevo", mejorado: "Mejorado", arreglado: "Arreglado" };
+
+const readNewsSeen = () => { try { return localStorage.getItem("fcc-news-seen"); } catch (objError) { return null; } };
+const markNewsSeen = () => { try { localStorage.setItem("fcc-news-seen", STR_NEWS_LATEST); } catch (objError) { /* storage unavailable */ } };
+const newsIsOpen = () => !!ARR_NEWS.length && (objApp.bNewsOpen ?? readNewsSeen() !== STR_NEWS_LATEST);
+
+// The date of an entry is written as yyyy-mm-dd; midday keeps it on that same day in every time zone
+const fmtNewsDate = (strDate) => new Date(`${strDate}T12:00:00`).toLocaleDateString(STR_LOCALE, { day: "numeric", month: "long", year: "numeric" });
+
+// data-notr: the line is already in the reader's language, so the translator leaves it alone
+const newsItems = (objEntry) => el("ul", {}, objEntry.arrItems.map((objItem) => el("li", {}, [
+    el("span", { class: `tag ${objItem.strTag}`, text: OBJ_NEWS_TAGS[objItem.strTag] ?? objItem.strTag }),
+    el("span", { "data-notr": true, text: objItem[STR_LANG] ?? objItem.es })
+])));
+
+const renderNews = () => {
+    const elBar = document.getElementById("elNewsBar");
+    const bOpen = newsIsOpen();
+    document.getElementById("elNewsOpen").setAttribute("aria-expanded", String(bOpen));
+    elBar.hidden = !bOpen;
+    if (!bOpen) return;
+
+    const objLatest = ARR_NEWS[0];
+    const arrOlder = ARR_NEWS.slice(1);
+    // The fold is null when there is only one version; replaceChildren would print it as the text "null"
+    elBar.replaceChildren(...[
+        el("div", { class: "head" }, [
+            el("b", { text: "Novedades" }),
+            el("span", { class: "ver", text: objLatest.strVersion }),
+            el("span", { class: "when", text: fmtNewsDate(objLatest.strDate) }),
+            el("span", { class: "grow" }),
+            el("button", {
+                class: "x", text: "×", title: "Cerrar las novedades", "aria-label": "Cerrar las novedades",
+                onclick: () => { objApp.bNewsOpen = false; markNewsSeen(); renderNews(); }
+            })
+        ]),
+        newsItems(objLatest),
+        arrOlder.length ? el("details", { class: "older" }, [
+            el("summary", { text: "Versiones anteriores" }),
+            ...arrOlder.map((objEntry) => el("div", { class: "entry" }, [
+                el("div", { class: "head" }, [
+                    el("b", { class: "ver", text: objEntry.strVersion }),
+                    el("span", { class: "when", text: fmtNewsDate(objEntry.strDate) })
+                ]),
+                newsItems(objEntry)
+            ]))
+        ]) : null
+    ].filter(Boolean));
+};
+
+document.getElementById("elNewsOpen").addEventListener("click", () => {
+    objApp.bNewsOpen = !newsIsOpen();
+    if (!objApp.bNewsOpen) markNewsSeen();
+    renderNews();
+});
 
 // A newer version: a bar under the header with the button that updates
 const renderUpdate = () => {
@@ -3471,6 +3690,7 @@ let intResizeTimer = 0;
 window.addEventListener("resize", () => { clearTimeout(intResizeTimer); intResizeTimer = setTimeout(() => { if (objApp.strTab === "vivo") renderLive(); else renderBoard(); }, 150); });
 
 try { objApp.objDrawerOpen = JSON.parse(localStorage.getItem("contador-cofres-ajustes")) ?? {}; } catch (objError) { objApp.objDrawerOpen = {}; }
+renderNews();
 refresh(true);
 setInterval(refresh, 1500);
 setInterval(updateBusy, 1000);

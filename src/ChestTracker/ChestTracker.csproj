@@ -1,7 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <!-- WinExe: no console window. The program shows itself with an icon next to the clock
+         (TrayIcon.cs) and its interface is the dashboard in the browser.
+         Windows Forms, which the tray icon uses, needs the -windows framework. -->
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>FortniteChestCounter</AssemblyName>
@@ -17,6 +22,8 @@
   <ItemGroup>
     <!-- The whole interface is one HTML file shipped inside the executable -->
     <EmbeddedResource Include="ui\index.html" LogicalName="index.html" />
+    <!-- The same icon the tray reads at run time, whether it runs as an .exe or through "dotnet" -->
+    <EmbeddedResource Include="icon.ico" LogicalName="icon.ico" />
   </ItemGroup>
 
   <!-- Written in by the release workflow; a build without it never updates itself -->
