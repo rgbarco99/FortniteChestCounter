@@ -21,7 +21,7 @@ cofre tiene una recompensa visible al momento.
 |---|---|---|
 | 1 | Guardar dónde está cada cofre, y releer lo que quede en la carpeta | **Hecho** · 100 % de las aperturas propias posicionadas |
 | 2 | Copia de seguridad (guardar, CSV y restaurar) | **Hecho** |
-| 3 | Pestaña Mapa | Pendiente · la pieza difícil ya está resuelta |
+| 3 | Pestaña Mapa | **Primera versión hecha** · calor, zonas y reparto |
 | 4 | Comparativa de mejora por días/semanas/meses | **Hecho** |
 | 5 | `matches.json` partido por partida | Pendiente |
 | 6 | Tests del parser | Pendiente |
@@ -130,32 +130,91 @@ Hoy la pestaña informa. Debería **motivar**. Ideas, de más a menos clara:
 
 ---
 
-## 3. Pestaña Mapa
+## 3. Pestaña Mapa — **primera versión hecha**
 
-Lo difícil ya está resuelto y comprobado el 14/11/2026:
+Ya está: mapa de calor de tus cofres sobre el mapa de la temporada, lista de zonas con cuántos
+cofres abres en cada una, y el reparto por porcentaje. Se puede ver todo tu histórico o una sola
+partida.
 
-- Las aperturas ya guardan `X`/`Y` en metros (parser 7).
-- **El mapa y los POIs salen de `https://fortnite-api.com/v1/map`**: imagen limpia, imagen con
-  nombres y los 16 POIs de la temporada con sus coordenadas de mundo.
-- **Las coordenadas del replay y las de la API son el mismo sistema.** Comprobado comparando
-  cajas: POIs X [−51.707, 66.471] Y [−45.216, 89.235] contra el botín real X [−59.801, 74.762]
-  Y [−37.747, 73.922], en centímetros. Encajan; los POIs son centros, por eso el botín se
-  desborda unos 80 m.
-- La API da las coordenadas de mundo de los POIs pero **no su posición en píxeles** dentro de la
-  imagen: queda calibrar esa transformación superponiendo y ajustando a ojo una vez.
-- La imagen se descarga en ejecución y se cachea en la carpeta de datos. No meterla en el repo:
-  es arte de Epic y además cambia cada temporada.
+**La calibración, que era el riesgo, está medida** — y costó dos intentos. La imagen no cubre un
+cuadrado centrado en el origen del mundo: la isla está descentrada y los dos ejes no llevan
+exactamente la misma escala.
 
-Qué construir encima: mapa de calor de tus cofres, cofres por zona (leyenda localización–cofres),
-tu ruta de la partida, los seis círculos de tormenta que el replay ya trae, y dónde caes contra
-cuántos cofres sacas en los primeros minutos.
+```
+izquierda = (x - 80) / 2952 + 0,5        arriba = (y - 14) / 3024 + 0,5
+```
 
-**Ojo con la isla previa**: el replay registra botín suyo en el segundo 3, muy al norte del mapa
-(Y > 110.000 cm). No son cofres —ahí solo hay botín por el suelo—, y no llegan a la lista de
-aperturas, así que hoy no estorban. Si algún día el mapa se dibuja desde las posiciones de botín
-en vez de desde las aperturas, habrá que excluirlas.
+Es decir, medio ancho 1.476 m y medio alto 1.512 m, con el centro de la imagen en (80, 14) m.
+Sacado ajustando la densidad de 5.384 cofres de posición conocida contra la silueta de tierra, y
+confirmado a ojo sitio por sitio sobre la imagen que lleva los nombres impresos.
+
+**Tres formas de equivocarse, todas probadas:**
+
+- *La Y invertida.* Es lo habitual en estos mapas y aquí es falso: el mundo crece hacia el sur,
+  igual que la imagen. Con la Y invertida los puntos se reparten de forma plausible y en sitios
+  equivocados.
+- *Suponer 1.350 m centrados.* Daba un resultado que parecía bueno y dejaba los cofres decenas de
+  metros fuera: en Plunder Port el calor caía en mar abierto y en Buggy's Beachhead en el desierto
+  vacío. Un error de 40 m es un edificio entero.
+- *Maximizar «cuántos cofres caen en tierra».* Está sesgado: ampliar la escala comprime todo hacia
+  el centro, que es donde está la isla, así que el número sube siempre. Lo mismo vale, en menor
+  medida, para la correlación con la silueta.
+
+Lo que sí sirve: ajustar y **mirarlo**. Un sitio con nombre tiene que caer sobre sus edificios, y
+eso se ve en un recorte a resolución nativa. Si en una temporada nueva el mapa deja de cuadrar,
+hay que repetir esa medida; los números están en un solo sitio, `OBJ_MAP_FRAME`.
+
+Lo que falta: que enganche
+
+Hoy la pestaña informa. Debería **motivar**. Ideas, de más a menos clara:
+
+- **Quesito por tesoro.** Un gráfico circular por objeto sin tachar: qué parte de la probabilidad
+  ya has «consumido» con los cofres que llevas y cuánta queda. Ver el trozo crecer cofre a cofre
+  es el gancho. Con 1 entre 1.562.500 para el atuendo dorado el trozo será invisible, y eso
+  también cuenta una verdad: enseña a las claras lo imposible que es.
+- **Probabilidad acumulada bien visible.** Ya se calcula; falta que se vea como una barra que
+  sube, no como un porcentaje perdido en una casilla.
+- **Cuántos cofres te faltan.** Para cada tesoro, `1/p` cofres esperados y cuántos llevas. «Te
+  quedan unos 340 cofres para el pico» se entiende mucho mejor que «0,29 %».
+- **Suerte real: observado contra esperado.** Lo que de verdad pide la app. Con tus cofres de la
+  temporada, cuántos Gizmos *deberías* llevar y cuántos llevas. «Esperados 2,3, tienes 4: vas con
+  suerte» es la frase que hace volver a la pestaña. Gana muchísimo con los datos del squad
+  (punto 1), que multiplican la muestra.
+- **Ritmo hasta el final de la temporada.** La temporada de cofres del tesoro acaba el **5 de
+  diciembre de 2026**. Con tu media de cofres por día: cuántos te dará tiempo a abrir y qué
+  probabilidad acumulada tendrás al terminar. Y, si vas corto, cuántos al día harían falta.
+- **Qué es más óptimo.** Cuando esté el mapa (punto 3), cruzar zona con cofres por minuto
+  responde «dónde caer para abrir más», que es la pregunta de quien farmea.
 
 ---
+
+## 3. Pestaña Mapa — **primera versión hecha**
+
+Ya está: mapa de calor de tus cofres sobre el mapa de la temporada, lista de zonas con cuántos
+cofres abres en cada una, y el reparto por porcentaje. Se puede ver todo tu histórico o una sola
+partida.
+
+**La calibración, que era el riesgo, está medida.** La imagen cubre 1.350 m a cada lado del origen
+del mundo, sin invertir la Y, lo que deja el píxel en 1,32 m:
+
+```
+izquierda = (x + 1350) / 2700        arriba = (y + 1350) / 2700
+```
+
+Comprobado superponiendo los sitios publicados sobre la imagen que lleva los nombres impresos:
+Arlong Park, Rubber Resort y Loguetown caen sobre el sitio exacto; Plunder Port se va unos 80 m,
+y es un barco, así que su coordenada publicada no está en su centro visual. Ojo: la primera
+hipótesis (Y invertida, que es lo habitual en estos mapas) daba un resultado plausible pero
+**mal**, y un ajuste automático por silueta de tierra también engaña, porque agrandar la escala
+mete todos los puntos en la isla y parece que mejora.
+
+Lo que falta:
+
+- **Tu ruta de la partida**: el replay ya guarda el recorrido del jugador, pero no se vuelca al
+  disco. Haría falta guardar unos pocos puntos por partida, no la traza entera.
+- **Dónde caes contra cuántos cofres sacas**, que es la pregunta de quien farmea.
+- **Los círculos de tormenta**, que el replay ya trae (seis, con su radio).
+- **Cofres por minuto por zona**, para responder qué sitio renta más y no solo dónde vas.
 
 ## 4. Copia automática {#copia-automática} — **hecho**
 

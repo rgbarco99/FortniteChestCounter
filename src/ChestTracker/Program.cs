@@ -85,6 +85,7 @@ objBuilder.Services.AddSingleton<ReplayWatcher>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<ReplayWatcher>());
 objBuilder.Services.AddSingleton<Updater>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<Updater>());
+objBuilder.Services.AddSingleton<SeasonMap>();
 objBuilder.Services.AddSingleton<TrayIcon>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<TrayIcon>());
 
@@ -225,6 +226,12 @@ objApp.MapGet("/api/export/matches.json", () =>
 objApp.MapGet("/api/export/matches.csv", () =>
     Results.File(Export.BuildCsv(objStore), "text/csv", $"cofres-{DateTime.Now:yyyy-MM-dd}.csv"));
 
+// The season's map: the island and its named places, kept in the data folder
+objApp.MapGet("/api/map", (SeasonMap objMap) => objMap.Describe());
+
+objApp.MapGet("/api/map/image", (SeasonMap objMap) =>
+    objMap.HasImage ? Results.File(objMap.ReadImagePath(), "image/png") : Results.NotFound());
+
 // The copies the program keeps by itself, newest first
 objApp.MapGet("/api/backups", () => Backup.List(strDataFolder));
 
@@ -333,6 +340,9 @@ if (objStore.TakeRecoveryNote() is { } strRecovery)
 // Where a second copy opened by mistake has to look
 Instance.Write(strDataFolder, strUrl);
 objApp.Lifetime.ApplicationStopped.Register(() => Instance.Remove(strDataFolder));
+
+objApp.Lifetime.ApplicationStarted.Register(() =>
+    _ = objApp.Services.GetRequiredService<SeasonMap>().RefreshAsync(objApp.Lifetime.ApplicationStopping));
 
 if (!args.Contains("--no-browser"))
 {

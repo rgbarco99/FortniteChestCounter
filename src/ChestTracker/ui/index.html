@@ -249,6 +249,31 @@ table.progress td.change.good { color: var(--good); }
 table.progress td.change.bad { color: var(--danger); }
 table.progress tbody tr:hover { background: var(--card-raised); }
 
+/* ------------------------------------------------------------------ map tab */
+.map { padding: 0 24px 40px; }
+.m-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 14px; }
+.m-top .grow { flex: 1; }
+.m-count { color: var(--ink-2); font-size: 14px; }
+.m-count b { color: var(--ink); font-size: 17px; font-stretch: 75%; }
+.m-grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+.m-board { position: relative; aspect-ratio: 1; border-radius: var(--radius); overflow: hidden; background: #0e2a44; border: 1px solid var(--line); }
+.m-board img, .m-board canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.m-board canvas { mix-blend-mode: hard-light; }
+.m-noimage { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ink-3); }
+.m-place { position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 2px; pointer-events: none; }
+.m-place i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, 0.85); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45); }
+.m-place b { font-size: 11.5px; font-stretch: 75%; letter-spacing: 0.03em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 3px #000, 0 0 8px #000; white-space: nowrap; }
+.m-side h2 { margin: 0 0 10px; font-size: 16px; }
+.m-side .scroll-y { max-height: 60vh; }
+table.m-rank td { padding: 5px 7px; }
+table.m-rank td.bar { width: 100%; padding: 5px 4px; }
+table.m-rank td.bar i { display: block; height: 7px; border-radius: 4px; background: var(--chest); min-width: 2px; }
+table.m-rank td.share { color: var(--ink-3); font-size: 12.5px; }
+@media (max-width: 1100px) {
+    .m-grid { grid-template-columns: minmax(0, 1fr); }
+    .m-side .scroll-y { max-height: none; }
+}
+
 /* ------------------------------------------------------------------ treasure tab */
 .segmented.tabs button[aria-pressed="true"] { background: var(--gold); color: #241a00; font-weight: 600; }
 body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEditToggle, body:not([data-tab="partidas"]) .tray { display: none; }
@@ -474,6 +499,7 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 <main class="board" id="elBoard"></main>
 <main class="treasure" id="elTreasure" hidden></main>
 <main class="live" id="elLive" hidden></main>
+<main class="map" id="elMap" hidden></main>
 
 <aside class="drawer" id="elDrawer" aria-label="Ajustes"></aside>
 <div class="busy-bar" id="elBusyBar" aria-hidden="true"><i></i></div>
@@ -1032,6 +1058,21 @@ const ARR_I18N = [
     ["Mejorado", "Improved", "Amélioré"],
     ["Arreglado", "Fixed", "Corrigé"],
 
+    // Map tab
+    ["Mapa", "Map", "Carte"],
+    ["Todas tus partidas", "All your matches", "Toutes tes parties"],
+    ["Solo la partida elegida", "Just the chosen match", "Seulement la partie choisie"],
+    [" cofre situado en el mapa", " chest placed on the map", " coffre placé sur la carte"],
+    [" cofres situados en el mapa", " chests placed on the map", " coffres placés sur la carte"],
+    ["Dónde abres los cofres", "Where you open your chests", "Où tu ouvres tes coffres"],
+    ["Todavía no hay cofres situados en estas partidas.", "No chests have been placed in these matches yet.", "Aucun coffre n'est encore placé dans ces parties."],
+    ["{0}: barcos, islotes y lo que hay entre zonas.", "{0}: boats, islets and whatever lies between places.", "{0} : bateaux, îlots et ce qui se trouve entre les lieux."],
+    ["cofre lejos de cualquier sitio con nombre", "chest far from any named place", "coffre loin de tout lieu nommé"],
+    ["cofres lejos de cualquier sitio con nombre", "chests far from any named place", "coffres loin de tout lieu nommé"],
+    ["{0}: son de partidas leídas antes de que el programa guardara la posición.", "{0}: they are from matches read before the program saved the position.", "{0} : elles viennent de parties lues avant que le programme n'enregistre la position."],
+    ["cofre no está en el mapa", "chest is not on the map", "coffre n'est pas sur la carte"],
+    ["cofres no están en el mapa", "chests are not on the map", "coffres ne sont pas sur la carte"],
+
     // Are you getting better
     ["¿Vas mejorando?", "Are you getting better?", "Tu progresses ?"],
     ["Esta semana", "This week", "Cette semaine"],
@@ -1288,6 +1329,36 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // so there is nothing to look up in ARR_I18N.
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
+    {
+        strVersion: "1.2.0",
+        strDate: "2026-11-14",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Pestaña Mapa: dónde abres los cofres, sobre el mapa de la temporada. Donde más farmeas sale en blanco, y de ahí baja a naranja y dorado. Puedes mirar todo tu histórico o una sola partida.",
+                en: "A Map tab: where you open your chests, over the season's map. Where you farm hardest shows white, falling away through orange to gold. You can look at your whole history or at a single match.",
+                fr: "Un onglet Carte : où tu ouvres tes coffres, sur la carte de la saison. Là où tu farmes le plus apparaît en blanc, puis en orange et en doré. Tu peux regarder tout ton historique ou une seule partie."
+            },
+            {
+                strTag: "nuevo",
+                es: "Junto al mapa, la lista de zonas con cuántos cofres has abierto en cada una y qué porcentaje supone. Un cofre cuenta para la zona con nombre más cercana si está a menos de 260 m; si no, suma al recuento de barcos, islotes y lo que hay entre zonas.",
+                en: "Beside the map, the list of places with how many chests you have opened at each and what share that is. A chest counts for the nearest named place within 260 m; farther than that it joins the tally of boats, islets and whatever lies between places.",
+                fr: "À côté de la carte, la liste des lieux avec le nombre de coffres ouverts dans chacun et la part que cela représente. Un coffre compte pour le lieu nommé le plus proche à moins de 260 m ; au-delà, il rejoint le total des bateaux, îlots et espaces intermédiaires."
+            },
+            {
+                strTag: "mejorado",
+                es: "La primera fila del panel se reparte en dos: la partida a la izquierda y «¿Vas mejorando?» a la derecha, que así deja de pasar desapercibido al final de la página. La línea de tiempo de la partida se queda, más compacta.",
+                en: "The top row of the dashboard is now split in two: the match on the left and “Are you getting better?” on the right, where it no longer goes unnoticed at the foot of the page. The match timeline stays, more compact.",
+                fr: "La première ligne du tableau de bord se partage en deux : la partie à gauche et « Tu progresses ? » à droite, où il ne passe plus inaperçu en bas de page. La frise de la partie reste, en plus compact."
+            },
+            {
+                strTag: "nuevo",
+                es: "El programa descarga el mapa de la temporada y los nombres de sus zonas de fortnite-api.com, y los guarda en su carpeta de datos. En esa petición no va nada tuyo, y sin conexión todo funciona igual menos el mapa.",
+                en: "The program downloads the season's map and the names of its places from fortnite-api.com and keeps them in its data folder. Nothing about you travels in that request, and without a connection everything works the same, minus the map.",
+                fr: "Le programme télécharge la carte de la saison et le nom de ses lieux depuis fortnite-api.com et les garde dans son dossier de données. Rien de toi ne circule dans cette requête, et sans connexion tout fonctionne pareil, sauf la carte."
+            }
+        ]
+    },
     {
         strVersion: "1.1.0",
         strDate: "2026-11-14",
@@ -1550,7 +1621,9 @@ const objApp = {
     strDrawerNote: null,
     // Copias que guarda el programa; solo se consultan con los ajustes abiertos
     arrBackups: null,
-    strTab: { "#tesoros": "tesoros", "#vivo": "vivo" }[location.hash] ?? "partidas",
+    // El mapa de la temporada, pedido al abrir la pestaña
+    objMap: null,
+    strTab: { "#tesoros": "tesoros", "#vivo": "vivo", "#mapa": "mapa" }[location.hash] ?? "partidas",
     objLiveSeen: { strFile: null, intChests: 0 },
     objDrawerOpen: {},
     objTreasure: null,
@@ -1754,8 +1827,8 @@ const drawColumns = (elHost, { arrBars, arrSeries, intHeight = 230 }) => {
 const drawTimeline = (elHost, objMatch) => {
     const intWidth = Math.max(elHost.clientWidth, 320);
     const intLabelWidth = 76;
-    const objLanes = { dblChests: 30, dblOther: 62, dblKills: 94, dblYou: 126 };
-    const intHeight = 170;
+    const objLanes = { dblChests: 16, dblOther: 36, dblKills: 56, dblYou: 76 };
+    const intHeight = 108;
     const dblDuration = Math.max(objMatch.durationSec, 60);
     const dblPlotWidth = intWidth - intLabelWidth - 14;
     const toX = (dblSeconds) => intLabelWidth + (Math.min(dblSeconds, dblDuration) / dblDuration) * dblPlotWidth;
@@ -1768,8 +1841,8 @@ const drawTimeline = (elHost, objMatch) => {
     for (let intMinute = 0; intMinute <= intMinutes; intMinute += intStep) {
         const dblX = toX(intMinute * 60);
         elSvg.append(
-            svg("line", { class: "grid", x1: dblX, x2: dblX, y1: 12, y2: 144 }),
-            svg("text", { x: dblX, y: 162, "text-anchor": "middle", text: `${intMinute}'` })
+            svg("line", { class: "grid", x1: dblX, x2: dblX, y1: 5, y2: 88 }),
+            svg("text", { x: dblX, y: 101, "text-anchor": "middle", text: `${intMinute}'` })
         );
     }
 
@@ -1777,8 +1850,8 @@ const drawTimeline = (elHost, objMatch) => {
     if (objMatch.aliveSec < objMatch.durationSec - 5) {
         const dblX = toX(objMatch.aliveSec);
         elSvg.append(
-            svg("rect", { x: dblX, y: 12, width: intWidth - 14 - dblX, height: 132, fill: "var(--page)", opacity: 0.55 }),
-            svg("text", { x: Math.min(dblX + 8, intWidth - 80), y: 24, text: "espectador" })
+            svg("rect", { x: dblX, y: 5, width: intWidth - 14 - dblX, height: 83, fill: "var(--page)", opacity: 0.55 }),
+            svg("text", { x: Math.min(dblX + 8, intWidth - 80), y: 14, text: "espectador" })
         );
     }
 
@@ -1793,7 +1866,7 @@ const drawTimeline = (elHost, objMatch) => {
         const bChest = ARR_CHEST_CATEGORIES.includes(objOpening.category);
         const dblX = toX(objOpening.t);
         const dblY = bChest ? objLanes.dblChests : objLanes.dblOther;
-        const intTickHeight = bChest ? 20 : 12;
+        const intTickHeight = bChest ? 15 : 9;
         elSvg.append(svg("rect", {
             x: dblX - 2, y: dblY - intTickHeight / 2, width: 4, height: intTickHeight, rx: 2,
             fill: OBJ_SERIES[objOpening.category]?.strColor ?? "var(--quiet)",
@@ -1807,7 +1880,7 @@ const drawTimeline = (elHost, objMatch) => {
         const dblY = objLanes.dblKills;
         // Diamond: filled for an elimination, hollow for a knock
         elSvg.append(svg("path", {
-            d: `M${dblX},${dblY - 7} L${dblX + 6},${dblY} L${dblX},${dblY + 7} L${dblX - 6},${dblY} Z`,
+            d: `M${dblX},${dblY - 6} L${dblX + 5},${dblY} L${dblX},${dblY + 6} L${dblX - 5},${dblY} Z`,
 fill: objKill.isKnock ? "var(--card)" : "var(--ink)", stroke: objKill.isKnock ? "var(--ink)" : "var(--card)", "stroke-width": 1.5
         }));
         arrMarks.push({
@@ -1820,14 +1893,14 @@ fill: objKill.isKnock ? "var(--card)" : "var(--ink)", stroke: objKill.isKnock ? 
         const dblX = toX(objDeath.t);
         const dblY = objLanes.dblYou;
         if (objDeath.isKnock) {
-            elSvg.append(svg("circle", { cx: dblX, cy: dblY, r: 5, fill: "var(--card)", stroke: "var(--danger)", "stroke-width": 1.5 }));
+            elSvg.append(svg("circle", { cx: dblX, cy: dblY, r: 4.5, fill: "var(--card)", stroke: "var(--danger)", "stroke-width": 1.5 }));
         } else {
             elSvg.append(svg("path", { d: `M${dblX - 5},${dblY - 5} L${dblX + 5},${dblY + 5} M${dblX + 5},${dblY - 5} L${dblX - 5},${dblY + 5}`, stroke: "var(--danger)", "stroke-width": 2.5, "stroke-linecap": "round" }));
         }
         arrMarks.push({ dblX, dblY, strValue: fmtClock(objDeath.t), arrLines: [objDeath.isKnock ? "Te derriban" : "Te eliminan"] });
     }
 
-    const elOverlay = svg("rect", { x: intLabelWidth - 8, y: 8, width: dblPlotWidth + 16, height: 140, fill: "transparent" });
+    const elOverlay = svg("rect", { x: intLabelWidth - 8, y: 4, width: dblPlotWidth + 16, height: 92, fill: "transparent" });
     elOverlay.addEventListener("pointermove", (objEvent) => {
         const objRect = elSvg.getBoundingClientRect();
         const dblPointerX = objEvent.clientX - objRect.left;
@@ -1885,7 +1958,7 @@ const perMatch = (dblTotal, objTotals) => objTotals.intMatches ? `${fmtNumber(db
 
 const ARR_WIDGETS = [
     {
-        strId: "partida", strTitle: "Partida", strKind: "panel", intSize: 12, bHidden: false, bNoHeading: true,
+        strId: "partida", strTitle: "Partida", strKind: "panel", intSize: 6, bHidden: false, bNoHeading: true,
         fnRender: (elBody, { arrMatches, objSelected, elCollapse }) => {
             if (!objSelected) return;
             const intIndex = arrMatches.indexOf(objSelected);
@@ -2730,10 +2803,182 @@ const renderTreasure = () => {
 };
 
 // ---------------------------------------------------------------------------
+// Map tab: where on the island you open your chests.
+//
+// The replay gives the position of each opening in the game's own metres, and the season's
+// places come in those same metres, so both land on the picture with one transform. The
+// picture covers 1350 m either side of the world's origin, which makes a pixel 1.32 m.
+// ---------------------------------------------------------------------------
+
+const INT_MAP_PIXELS = 2048;      // the picture is square, and this is its side
+
+// What slice of the world the picture shows, in metres. Measured, not assumed: the obvious guess
+// (1350 m each way from the origin) is close enough to look plausible and still lands chests tens
+// of metres off, which is a whole building. These come from fitting this season's picture against
+// 5.384 chests of known position and checking the named places by eye afterwards. The island is
+// not quite centred, and the two axes are not quite the same scale.
+const OBJ_MAP_FRAME = { dblHalfWidth: 1476, dblHalfHeight: 1512, dblMiddleX: 80, dblMiddleY: 14 };
+
+// World metres to a 0..1 place on the picture. The world's Y grows southwards, like the image.
+const mapFraction = (dblX, dblY) => ({
+    dblLeft: (dblX - OBJ_MAP_FRAME.dblMiddleX) / (2 * OBJ_MAP_FRAME.dblHalfWidth) + 0.5,
+    dblTop: (dblY - OBJ_MAP_FRAME.dblMiddleY) / (2 * OBJ_MAP_FRAME.dblHalfHeight) + 0.5
+});
+
+// Every opening of the given matches that the replay managed to place
+const getMapOpenings = (arrMatches) => {
+    const arrPoints = [];
+    for (const objMatch of arrMatches) {
+        for (const objOpening of objMatch.openings) {
+            if (objOpening.x != null && objOpening.y != null && ARR_CHEST_CATEGORIES.includes(objOpening.category)) {
+                arrPoints.push(objOpening);
+            }
+        }
+    }
+    return arrPoints;
+};
+
+// Each chest belongs to the nearest named place, as long as it is not out in the middle of nowhere
+const INT_PLACE_REACH = 260;      // metres; beyond this a chest counts as being nowhere in particular
+const nearestPlace = (arrPlaces, objPoint) => {
+    let objNearest = null;
+    let dblBest = INT_PLACE_REACH * INT_PLACE_REACH;
+    for (const objPlace of arrPlaces) {
+        const dblDistance = (objPlace.x - objPoint.x) ** 2 + (objPlace.y - objPoint.y) ** 2;
+        if (dblDistance < dblBest) { dblBest = dblDistance; objNearest = objPlace; }
+    }
+    return objNearest;
+};
+
+const ARR_MAP_SCOPES = [
+    { strId: "todas", strLabel: "Todas tus partidas" },
+    { strId: "partida", strLabel: "Solo la partida elegida" }
+];
+
+// The heat: every chest a soft blob, the blobs piling up, then the pile coloured
+const drawHeat = (elCanvas, arrPoints, intSide) => {
+    const objPaint = elCanvas.getContext("2d");
+    objPaint.clearRect(0, 0, intSide, intSide);
+    if (!arrPoints.length) return;
+
+    const dblRadius = Math.max(6, intSide / 120);
+    objPaint.globalCompositeOperation = "lighter";
+    for (const objPoint of arrPoints) {
+        const { dblLeft, dblTop } = mapFraction(objPoint.x, objPoint.y);
+        const dblX = dblLeft * intSide;
+        const dblY = dblTop * intSide;
+        const objBlob = objPaint.createRadialGradient(dblX, dblY, 0, dblX, dblY, dblRadius);
+        objBlob.addColorStop(0, "rgba(255, 255, 255, 0.22)");
+        objBlob.addColorStop(1, "rgba(255, 255, 255, 0)");
+        objPaint.fillStyle = objBlob;
+        objPaint.beginPath();
+        objPaint.arc(dblX, dblY, dblRadius, 0, Math.PI * 2);
+        objPaint.fill();
+    }
+
+    objPaint.globalCompositeOperation = "source-over";
+    const objImage = objPaint.getImageData(0, 0, intSide, intSide);
+    const arrPixels = objImage.data;
+
+    // Measured against its own busy spots, so one match reads like a hundred do. Not against the
+    // single busiest pixel: one corner you emptied twenty times would leave the rest invisible.
+    const arrHistogram = new Uint32Array(256);
+    let intLit = 0;
+    for (let intIndex = 3; intIndex < arrPixels.length; intIndex += 4) {
+        const intAlpha = arrPixels[intIndex];
+        if (intAlpha > 2) { arrHistogram[intAlpha]++; intLit++; }
+    }
+    let intPeak = 1;
+    for (let intLevel = 255, intSeen = 0; intLevel > 0; intLevel--) {
+        intSeen += arrHistogram[intLevel];
+        if (intSeen >= intLit * 0.02) { intPeak = Math.max(1, intLevel); break; }
+    }
+
+    // Chest gold where you pass by, through orange, to white where you farm hardest
+    for (let intIndex = 0; intIndex < arrPixels.length; intIndex += 4) {
+        const dblHeat = Math.pow(Math.min(1, arrPixels[intIndex + 3] / intPeak), 0.7);
+        if (dblHeat <= 0.04) { arrPixels[intIndex + 3] = 0; continue; }
+        arrPixels[intIndex] = 255;
+        arrPixels[intIndex + 1] = Math.round(150 + 105 * Math.max(0, dblHeat - 0.3) / 0.7);
+        arrPixels[intIndex + 2] = Math.round(20 + 225 * Math.max(0, dblHeat - 0.6) / 0.4);
+        arrPixels[intIndex + 3] = Math.round(235 * Math.min(1, 0.3 + dblHeat * 0.9));
+    }
+    objPaint.putImageData(objImage, 0, 0);
+};
+
+const renderMap = () => {
+    const objMap = objApp.objMap;
+    if (!objMap) { loadMap().then(() => { if (objApp.strTab === "mapa") renderMap(); }); }
+
+    const arrAll = getNumberedMatches();
+    const strScope = objApp.objLayout?.strMapScope ?? "todas";
+    const objSelected = getSelectedMatch(arrAll);
+    const arrMatches = strScope === "partida" && objSelected ? [objSelected] : arrAll;
+    const arrPoints = getMapOpenings(arrMatches);
+    const arrPlaces = objMap?.places ?? [];
+
+    const elHeat = el("canvas", { class: "heat", width: INT_MAP_PIXELS, height: INT_MAP_PIXELS });
+    const elBoardMap = el("div", { class: "m-board" }, [
+        objMap?.hasImage ? el("img", { src: "/api/map/image", alt: "", draggable: "false" }) : el("div", { class: "m-noimage" }),
+        elHeat,
+        ...arrPlaces.map((objPlace) => {
+            const { dblLeft, dblTop } = mapFraction(objPlace.x, objPlace.y);
+            return el("span", { class: "m-place", style: { left: `${dblLeft * 100}%`, top: `${dblTop * 100}%` } }, [
+                el("i"), el("b", { "data-notr": true, text: objPlace.name })
+            ]);
+        })
+    ]);
+
+    // Chests per place, which is the question somebody farming actually asks
+    const dicByPlace = new Map(arrPlaces.map((objPlace) => [objPlace.name, { strName: objPlace.name, intChests: 0 }]));
+    let intNowhere = 0;
+    for (const objPoint of arrPoints) {
+        const objPlace = nearestPlace(arrPlaces, objPoint);
+        if (objPlace) dicByPlace.get(objPlace.name).intChests++; else intNowhere++;
+    }
+    const arrRanking = [...dicByPlace.values()].filter((objPlace) => objPlace.intChests > 0).sort((objLeft, objRight) => objRight.intChests - objLeft.intChests);
+    const intTop = arrRanking[0]?.intChests ?? 1;
+
+    const intPlaced = arrPoints.length;
+    const intChestsTotal = sum(arrMatches, (objMatch) => objMatch.chestsTotal);
+
+    elMap.replaceChildren(
+        el("div", { class: "m-top" }, [
+            el("div", { class: "segmented" }, ARR_MAP_SCOPES.map((objScope) => el("button", {
+                text: objScope.strLabel, "aria-pressed": String(objScope.strId === strScope),
+                disabled: objScope.strId === "partida" && !objSelected,
+                onclick: () => { objApp.objLayout.strMapScope = objScope.strId; saveLayout(); renderMap(); }
+            }))),
+            el("span", { class: "grow" }),
+            el("span", { class: "m-count" }, [el("b", { text: fmtNumber(intPlaced) }), intPlaced === 1 ? " cofre situado en el mapa" : " cofres situados en el mapa"])
+        ]),
+        el("div", { class: "m-grid" }, [
+            elBoardMap,
+            el("div", { class: "m-side" }, [
+                el("h2", { text: "Dónde abres los cofres" }),
+                arrRanking.length
+                    ? el("div", { class: "table-wrap scroll-y" }, el("table", { class: "m-rank" }, el("tbody", {}, arrRanking.map((objPlace) => el("tr", { style: { cursor: "default" } }, [
+                        el("td", { class: "left", "data-notr": true, text: objPlace.strName }),
+                        el("td", { class: "bar" }, el("i", { style: { width: `${(objPlace.intChests / intTop) * 100}%` } })),
+                        el("td", { text: objPlace.intChests }),
+                        el("td", { class: "share", text: fmtPercent(objPlace.intChests / Math.max(1, intPlaced)) })
+                    ])))))
+                    : el("p", { class: "hint", text: "Todavía no hay cofres situados en estas partidas." }),
+                intNowhere ? el("p", { class: "hint", text: `${plural(intNowhere, "cofre lejos de cualquier sitio con nombre", "cofres lejos de cualquier sitio con nombre")}: barcos, islotes y lo que hay entre zonas.` }) : null,
+                intChestsTotal > intPlaced ? el("p", { class: "hint", text: `${plural(intChestsTotal - intPlaced, "cofre no está en el mapa", "cofres no están en el mapa")}: son de partidas leídas antes de que el programa guardara la posición.` }) : null
+            ])
+        ])
+    );
+
+    drawHeat(elHeat, arrPoints, INT_MAP_PIXELS);
+};
+
+// ---------------------------------------------------------------------------
 // Live tab: the match being played, read from the replay while Fortnite records it
 // ---------------------------------------------------------------------------
 
 const elLive = document.getElementById("elLive");
+const elMap = document.getElementById("elMap");
 const INT_RUSH_SECONDS = 600;   // the first ten minutes are where the chests are
 
 // Seconds the summary of the last match stays after the next one starts (loading screen, bus)
@@ -3067,7 +3312,7 @@ setInterval(() => {
 }, 1000);
 
 // Tabs: matches board, live match, treasure card
-const ARR_TABS = [["partidas", "Partidas", ""], ["vivo", "En vivo", "#vivo"], ["tesoros", "Tesoros", "#tesoros"]];
+const ARR_TABS = [["partidas", "Partidas", ""], ["vivo", "En vivo", "#vivo"], ["mapa", "Mapa", "#mapa"], ["tesoros", "Tesoros", "#tesoros"]];
 const renderTabs = () => {
     document.body.dataset.tab = objApp.strTab;
     document.getElementById("elTabs").replaceChildren(...ARR_TABS.map(([strId, strLabel, strHash]) => el("button", {
@@ -3081,9 +3326,11 @@ const showTab = (bFromPoll = false) => {
     elBoard.hidden = objApp.strTab !== "partidas";
     elTreasure.hidden = objApp.strTab !== "tesoros";
     elLive.hidden = objApp.strTab !== "vivo";
+    elMap.hidden = objApp.strTab !== "mapa";
     if (objApp.strTab === "partidas") { renderBoard(); return; }
     renderChrome();
     if (objApp.strTab === "vivo") { renderLive(); return; }
+    if (objApp.strTab === "mapa") { renderMap(); return; }
     const bTyping = bFromPoll && elTreasure.contains(document.activeElement) && ["INPUT", "SELECT"].includes(document.activeElement.tagName);
     if (!bTyping) renderTreasure();
 };
@@ -3092,18 +3339,45 @@ const showTab = (bFromPoll = false) => {
 // Layout: order, hidden widgets, sizes, table columns, range
 // ---------------------------------------------------------------------------
 
+const INT_LAYOUT_VERSION = 2;
+
 const defaultLayout = () => ({
-    arrOrder: ARR_WIDGETS.map((objWidget) => objWidget.strId),
+    // La partida y «¿Vas mejorando?» comparten la primera fila
+    arrOrder: (() => {
+        const arrIds = ARR_WIDGETS.map((objWidget) => objWidget.strId).filter((strId) => strId !== "progreso");
+        arrIds.splice(arrIds.indexOf("partida") + 1, 0, "progreso");
+        return arrIds;
+    })(),
     objHidden: Object.fromEntries(ARR_WIDGETS.filter((objWidget) => objWidget.bHidden).map((objWidget) => [objWidget.strId, true])),
     objSizes: {},
     objColumns: {},
     objCollapsed: {},
     objTable: {},
-    strRange: "todo"
+    strRange: "todo",
+    intVersion: INT_LAYOUT_VERSION
 });
+
+// A layout saved before the top row was split in two keeps «¿Vas mejorando?» at the very bottom,
+// where it goes unnoticed. This moves it up beside the match once, and leaves it alone after that.
+// intSavedVersion is the version of what was on disk: the merged layout always carries the
+// current one, because the defaults do, so asking it would say every layout is already upgraded.
+const upgradeLayout = (objLayout, intSavedVersion) => {
+    if (intSavedVersion >= INT_LAYOUT_VERSION) return;
+    objLayout.intVersion = INT_LAYOUT_VERSION;
+    const arrOrder = objLayout.arrOrder.filter((strId) => strId !== "progreso");
+    const intMatch = arrOrder.indexOf("partida");
+    arrOrder.splice(intMatch < 0 ? 0 : intMatch + 1, 0, "progreso");
+    objLayout.arrOrder = arrOrder;
+    objLayout.objHidden = { ...objLayout.objHidden, progreso: false };
+    // Both halves of the row go back to their new default width
+    delete objLayout.objSizes.partida;
+    delete objLayout.objSizes.progreso;
+};
 
 // Saved layouts survive new versions: unknown widgets are dropped, new ones appended
 const normalizeLayout = (objSaved) => {
+    // A layout with no version written in it was saved before versions existed: that is version 1
+    const intSavedVersion = objSaved ? (objSaved.intVersion ?? 1) : INT_LAYOUT_VERSION;
     const objLayout = { ...defaultLayout(), ...(objSaved ?? {}) };
     const arrKnown = (objLayout.arrOrder ?? []).filter((strId) => OBJ_WIDGETS[strId]);
     const arrMissing = ARR_WIDGETS.map((objWidget) => objWidget.strId).filter((strId) => !arrKnown.includes(strId));
@@ -3115,6 +3389,7 @@ const normalizeLayout = (objSaved) => {
     objLayout.objCollapsed = { ...(objLayout.objCollapsed ?? {}) };
     objLayout.objTable = { ...(objLayout.objTable ?? {}) };
     if (!ARR_RANGES.some((objRange) => objRange.strId === objLayout.strRange)) objLayout.strRange = "todo";
+    upgradeLayout(objLayout, intSavedVersion);
     return objLayout;
 };
 
@@ -3905,6 +4180,12 @@ const download = (strUrl) => {
     document.body.append(elLink);
     elLink.click();
     elLink.remove();
+};
+
+// El mapa de la temporada: se pide una vez y se queda
+const loadMap = async () => {
+    try { objApp.objMap = await api("GET", "/api/map"); }
+    catch (objError) { objApp.objMap = { hasImage: false, places: [] }; }
 };
 
 const loadBackups = async () => {

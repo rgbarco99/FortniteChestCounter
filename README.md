@@ -11,6 +11,11 @@ squad, the friends you play with most, and the odds of each weekly treasure.
 It only reads the `.replay` files Fortnite saves on your PC. It does not touch the game, does not
 read its memory and does not use AI. Free and open source.
 
+It reaches the internet for three things only, and nothing about you travels in any of them: new
+versions, from GitHub; the season's map picture and the names of its places, from
+[fortnite-api.com](https://fortnite-api.com); and nothing else. Without a connection everything
+works the same, minus the map.
+
 > Not affiliated with or endorsed by Epic Games. Fortnite is a trademark of Epic Games, Inc.
 
 ## Getting started
@@ -39,6 +44,16 @@ one and restarts; the page reconnects by itself. Your matches and settings live 
 
 The **What's new** button in the header opens what went into each version, with its date and a
 short summary. While there is something you have not read, the button carries a gold dot.
+
+## The map
+
+The **Map** tab shows where on the island you open your chests: a heat map over the season's map,
+the chests you have opened at each named place, and a ranking of where you farm most. Pick whether
+to look at all your matches or just the one chosen in the Matches tab.
+
+The replay says where each chest was, in the game's own coordinates; the picture of the island and
+the names of its places come from fortnite-api.com and are kept in the data folder, refreshed
+about once a day. Matches read before version 1.1.0 have no positions, so they are not on the map.
 
 ## Your data
 
@@ -105,6 +120,7 @@ src/ChestTracker/
   Updater.cs         checks GitHub releases and replaces the executable
   Export.cs          the matches as a spreadsheet, for the backup
   Backup.cs          the daily copy of the matches, and putting it back
+  SeasonMap.cs       the season's map picture and its named places
   TrayIcon.cs        the icon next to the clock: dashboard, read the folder, quit
   Instance.cs        one copy at a time: a second one hands over to the first
   Store.cs           settings and matches on disk

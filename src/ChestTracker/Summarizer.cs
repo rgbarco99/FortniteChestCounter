@@ -104,7 +104,7 @@ public static class Summarizer
             }
 
             objSummary.Counts[strCategory]++;
-            objSummary.Openings.Add(new TimelineOpening { T = objOpening.Time, Category = strCategory, ContainerClass = objOpening.ContainerClass, Method = objOpening.Method });
+            objSummary.Openings.Add(new TimelineOpening { T = objOpening.Time, Category = strCategory, ContainerClass = objOpening.ContainerClass, Method = objOpening.Method, X = objOpening.X, Y = objOpening.Y });
         }
 
         objSummary.ChestsTotal = arrChestCategories.Sum(strCategory => objSummary.Counts[strCategory]);

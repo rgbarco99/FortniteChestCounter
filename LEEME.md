@@ -135,6 +135,23 @@ abajo a la izquierda con «Leyendo repeticiones: 3 de 8» mientras lee, y avisos
 derecha (partida leída con sus cofres, partida en curso, finalizada, buscando, errores). Se
 cierran solos.
 
+## Pestaña Mapa
+
+Dónde abres los cofres, sobre el mapa de la temporada.
+
+- **Mapa de calor**: cada cofre que abres deja su huella; donde más farmeas sale en blanco, y de
+  ahí baja a naranja y dorado.
+- **Dónde abres los cofres**: la lista de zonas con cuántos cofres has abierto en cada una y qué
+  porcentaje supone. Un cofre cuenta para la zona con nombre más cercana si está a menos de 260 m;
+  si no, va al recuento de «lejos de cualquier sitio con nombre» (barcos, islotes y lo de en medio).
+- **Todas tus partidas / Solo la partida elegida**: la segunda usa la partida que tengas puesta en
+  la pestaña Partidas.
+- La posición de los cofres se guarda desde la versión 1.1.0: las partidas leídas antes no salen en
+  el mapa, y el panel te dice cuántas son.
+- La imagen del mapa y los nombres de las zonas se descargan de `fortnite-api.com` y se guardan en
+  la carpeta de datos; se refrescan una vez al día. Sin conexión todo funciona igual, menos el mapa.
+  En esa petición no va nada tuyo.
+
 ## Pestaña Tesoros
 
 Un cartón de bingo con los tesoros que puede dar un cofre esta temporada (Treasure Hunters) y las
@@ -241,6 +258,7 @@ src/ChestTracker/
   Store.cs           ajustes y partidas en JSON
   Program.cs         servidor local y API
   Export.cs          las partidas en CSV, para la copia de seguridad
+  SeasonMap.cs       la imagen del mapa de la temporada y sus zonas
   TrayIcon.cs        el icono de al lado del reloj: panel, lectura y salida
   Instance.cs        una sola copia: la segunda abre el panel de la primera y se cierra
   ui/index.html      el panel (un solo archivo, va dentro del ejecutable)

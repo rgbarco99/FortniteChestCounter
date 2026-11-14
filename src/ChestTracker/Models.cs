@@ -192,6 +192,22 @@ public sealed class ScanStatus
     public List<ScanError> Errors { get; set; } = new();
 }
 
+/// <summary>A named place of the season's island, in the same metres the openings use.</summary>
+public sealed class MapPlace
+{
+    public string Name { get; set; } = "";
+    public double X { get; set; }
+    public double Y { get; set; }
+}
+
+/// <summary>The season's map as the page gets it.</summary>
+public sealed class MapView
+{
+    public bool HasImage { get; set; }
+    public List<MapPlace> Places { get; set; } = new();
+    public DateTime? FetchedUtc { get; set; }
+}
+
 /// <summary>One of the copies the program keeps of the saved matches.</summary>
 public sealed class BackupInfo
 {
@@ -284,6 +300,10 @@ public sealed class TimelineOpening
     public string Category { get; set; } = "";
     public string ContainerClass { get; set; } = "";
     public string Method { get; set; } = "search";
+
+    /// <summary>Where it stood, in metres, when the replay placed it. Null in matches read before that.</summary>
+    public double? X { get; set; }
+    public double? Y { get; set; }
 }
 
 public sealed class TimelineKill
