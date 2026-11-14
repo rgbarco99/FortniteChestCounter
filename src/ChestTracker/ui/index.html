@@ -373,12 +373,14 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 @media (max-width: 620px) { .live { padding-left: 14px; padding-right: 14px; } }
 .t-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 14px; }
 .t-bar .week { font-size: 20px; font-stretch: 75%; font-weight: 700; }
+.t-bar .week small { display: block; font-size: 13px; font-weight: 400; font-stretch: 100%; color: var(--ink-2); }
+.t-bar .short { color: var(--gold); font-size: 13px; }
 .t-bar .grow { flex: 1; }
 .t-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 14px; }
 .t-facts > div { background: var(--card); border-radius: var(--radius); padding: 14px 18px; }
 .t-facts .value { font-size: 40px; }
 .t-facts .label { color: var(--ink-2); font-size: 13.5px; margin-top: 6px; }
-.t-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.t-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
 .t-card { background: var(--card); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; position: relative; }
 .t-card .picture { aspect-ratio: 16 / 10; background: var(--card-raised); display: grid; place-items: center; position: relative; overflow: hidden; }
 .t-card .picture img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -413,6 +415,42 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 }
 .t-card .drop { border: 1px dashed var(--ink-3); border-radius: 7px; padding: 8px; text-align: center; cursor: pointer; }
 .t-card .drop.armed { border-color: var(--gold); color: var(--ink); background: var(--card-raised); }
+/* The top row: the figures on the left, the Treasure Hours beside them and not under them */
+.t-top { display: grid; grid-template-columns: minmax(290px, 1fr) minmax(420px, 1fr); gap: 14px; align-items: stretch; margin-bottom: 14px; }
+.t-top .t-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; margin-bottom: 0; }
+.t-top .t-facts > div { display: flex; flex-direction: column; justify-content: center; }
+@media (max-width: 1080px) { .t-top { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .t-hours .when { min-width: 0; white-space: normal; } }
+/* Treasure Hours: one world-wide instant each, read on the clock of whoever is looking */
+.t-hours { background: var(--card); border-radius: var(--radius); padding: 13px 16px 14px; }
+.t-hours h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.t-hours > header p { color: var(--ink-2); font-size: 12.5px; margin: 2px 0 9px; }
+.t-hours > header p b { color: var(--ink); font-weight: 600; }
+.t-hours ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.t-hours li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 16px; background: var(--card-raised); border-left: 4px solid var(--line); border-radius: 9px; padding: 7px 12px; }
+.t-hours li.soon { border-left-color: var(--gold); }
+.t-hours li.live { border-left-color: var(--spirit); box-shadow: 0 0 26px rgba(123, 97, 255, 0.14) inset; }
+.t-hours li.past { opacity: 0.45; }
+.t-hours .when { flex: 0 0 auto; min-width: 280px; white-space: nowrap; }
+.t-hours .when b { font-size: 14.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.t-hours .when small { color: var(--ink-3); font-size: 11.5px; font-variant-numeric: tabular-nums; margin-left: 8px; }
+.t-hours .state { flex: 1 1 auto; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.t-hours li.soon .state { color: var(--gold); font-weight: 600; }
+.t-hours li.live .state { color: var(--spirit); font-weight: 600; }
+.t-hours .boost { flex: 1 0 100%; display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.t-hours .mult { background: var(--card); border-radius: 999px; padding: 2px 9px; font-size: 11.5px; color: var(--ink-2); white-space: nowrap; }
+.t-hours .mult b { color: var(--gold); font-weight: 700; margin-right: 5px; }
+.t-hours .boost .none, .t-hours .empty { color: var(--ink-3); font-size: 12.5px; margin: 0; }
+/* The official name and icon, from fortnite-api.com */
+.t-card .findhint { font-size: 12px; color: var(--ink-3); }
+.t-card .find { display: flex; gap: 6px; align-items: stretch; }
+.t-card .find .btn { flex: none; }
+.t-card .said { font-size: 12px; color: var(--ink-3); }
+.t-card .hits { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; max-height: 216px; overflow-y: auto; padding: 2px; }
+.t-card .hit { display: grid; gap: 3px; background: var(--card-raised); border: 1px solid var(--line); border-radius: 8px; padding: 4px; cursor: pointer; color: inherit; font: inherit; text-align: center; }
+.t-card .hit:hover, .t-card .hit:focus-visible { border-color: var(--gold); }
+.t-card .hit img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 5px; background: var(--card); }
+.t-card .hit span { font-size: 11px; line-height: 1.2; color: var(--ink-2); overflow: hidden; }
 .t-settings { background: var(--card); border-radius: var(--radius); padding: 16px 18px; margin-top: 14px; }
 .t-settings h2 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
 .t-settings h3 { margin: 18px 0 6px; font-size: 14.5px; font-weight: 600; }
@@ -748,7 +786,25 @@ const ARR_I18N = [
     ["Cofres de la temporada que el contador no vio", "Season chests the counter did not see", "Coffres de la saison que le compteur n'a pas vus"],
     ["Cofres de esta semana que no vio", "This week's chests it did not see", "Coffres de la semaine qu'il n'a pas vus"],
     ["Horas del tesoro", "Treasure Hours", "Heures du trésor"],
-    ["Franjas en las que Epic multiplica la probabilidad de algunos tesoros. Los cofres que abriste dentro de una franja se calculan con su multiplicador. Las horas se muestran en la hora de tu PC.", "Time windows when Epic multiplies the chance of some treasures. Chests you opened inside a window use its multiplier. Times are shown in your PC's time zone.", "Créneaux pendant lesquels Epic multiplie la probabilité de certains trésors. Les coffres ouverts pendant un créneau utilisent son multiplicateur. Les heures sont celles de ton PC."],
+    ["Semana {0} de {1}", "Week {0} of {1}", "Semaine {0} sur {1}"],
+    ["más corta: el evento acaba el {0}", "shorter: the event ends on {0}", "plus courte : l'événement finit le {0}"],
+    ["Son el mismo instante en todo el mundo. Tu PC está en", "They are the same instant all over the world. Your PC is in", "Elles sont le même instant partout dans le monde. Ton PC est en"],
+    [", así que las horas de abajo ya son las tuyas.", ", so the times below are already yours.", ", donc les heures ci-dessous sont déjà les tiennes."],
+    ["en directo, queda {0}", "live now, {0} left", "en direct, encore {0}"],
+    ["empieza en {0}", "starts in {0}", "commence dans {0}"],
+    ["ya pasó", "already over", "déjà passé"],
+    ["sin multiplicadores apuntados", "no multipliers written down", "aucun multiplicateur noté"],
+    ["Aún no hay Horas del tesoro apuntadas. Se añaden en «Editar tesoros».", "No Treasure Hours written down yet. You add them in \u201CEdit treasures\u201D.", "Aucune Heure du trésor notée pour l'instant. Tu les ajoutes dans « Modifier les trésors »."],
+    ["Buscar", "Search", "Chercher"],
+    ["Busca el objeto de esta semana para coger su nombre e imagen oficiales", "Search for this week's item to take its official name and picture", "Cherche l'objet de la semaine pour prendre son nom et son image officiels"],
+    ["Volver al oficial", "Back to the official one", "Revenir à l'officiel"],
+    ["Recupera el tesoro que Epic dio esa semana, con su nombre y su imagen.", "Brings back the treasure Epic gave out that week, with its name and its picture.", "Remet le trésor qu'Epic a donné cette semaine-là, avec son nom et son image."],
+    ["Busca el nombre en Fortnite", "Search for the name in Fortnite", "Cherche le nom dans Fortnite"],
+    ["Escribe al menos dos letras.", "Type at least two letters.", "Écris au moins deux lettres."],
+    ["Nada con ese nombre. Un objeto recién salido puede tardar en estar en la API: pega una captura.", "Nothing by that name. A brand-new item can take a while to reach the API: paste a screenshot.", "Rien à ce nom. Un objet tout neuf peut tarder à arriver dans l'API : colle une capture."],
+    ["No se pudo consultar fortnite-api.com. Revisa la conexión o pega una captura.", "Could not reach fortnite-api.com. Check the connection or paste a screenshot.", "Impossible de joindre fortnite-api.com. Vérifie la connexion ou colle une capture."],
+    [", y se guardan en UTC para que cuadren en cualquier país.", ", and they are kept in UTC so they add up in any country.", ", et elles sont gardées en UTC pour tomber juste dans n'importe quel pays."],
+    ["Franjas en las que Epic multiplica la probabilidad de algunos tesoros. Los cofres que abriste dentro de una franja se calculan con su multiplicador. Las horas se muestran en la hora de tu PC", "Time windows when Epic multiplies the chance of some treasures. Chests you opened inside a window use its multiplier. Times are shown in your PC's own time zone", "Créneaux pendant lesquels Epic multiplie la probabilité de certains trésors. Les coffres ouverts pendant un créneau utilisent son multiplicateur. Les heures sont celles de ton PC"],
     ["Empieza", "Starts", "Début"],
     ["Termina", "Ends", "Fin"],
     ["Quitar", "Remove", "Retirer"],
@@ -771,7 +827,7 @@ const ARR_I18N = [
     ["no te falta ningún tesoro esta semana", "you are not missing any treasure this week", "il ne te manque aucun trésor cette semaine"],
     ["de que el próximo cofre te dé {0}", "chance your next chest gives you {0}", "de chances que ton prochain coffre te donne {0}"],
     ["nada nuevo que pueda salir", "nothing new left to drop", "plus rien de nouveau à obtenir"],
-    ["Los dos porcentajes de arriba cuentan solo los tesoros sin tachar; los Gizmos no entran. Probabilidades por cofre publicadas por Epic (Fortnite Status, 7 de noviembre de 2026) para partidas normales. El cálculo usa los cofres, cofres especiales y cofres de espíritu de las partidas leídas, abiertos o rotos; Epic no ha dicho si todos los tipos de cofre cuentan igual. El cambio de semana (domingo, 14:00 UTC) y los objetos de cada semana no los publica Epic: ajústalos en «Editar tesoros».", "The two percentages above only count treasures you have not crossed out; Gizmos are left out. Per-chest odds published by Epic (Fortnite Status, 7 November 2026) for regular matches. The calculation uses the chests, special chests and spirit chests of the matches read, opened or broken; Epic has not said whether every chest type counts the same. Epic does not publish the weekly reset (Sunday, 14:00 UTC) or each week's items: adjust them in “Edit treasures”.", "Les deux pourcentages ci-dessus ne comptent que les trésors non cochés ; les Gizmos n'y entrent pas. Probabilités par coffre publiées par Epic (Fortnite Status, 7 novembre 2026) pour les parties normales. Le calcul utilise les coffres, coffres spéciaux et coffres d'esprit des parties lues, ouverts ou cassés ; Epic n'a pas dit si tous les types de coffres comptent pareil. Epic ne publie ni le changement de semaine (dimanche, 14:00 UTC) ni les objets de chaque semaine : ajuste-les dans « Modifier les trésors »."],
+    ["Los dos porcentajes de arriba cuentan solo los tesoros sin tachar. Probabilidades por cofre publicadas por Epic (Fortnite Status, 7 de noviembre de 2026) para partidas normales. El cálculo usa los cofres, cofres especiales y cofres de espíritu de las partidas leídas, abiertos o rotos; Epic no ha dicho si todos los tipos de cofre cuentan igual. El cambio de semana (domingo, 14:00 UTC) y los objetos de cada semana no los publica Epic: ajústalos en «Editar tesoros». Las Horas del tesoro también se apuntan a mano: las horas son las que anunció Epic, pero algunos multiplicadores vienen de la prensa y no de Epic, así que conviene comprobarlos ahí mismo.", "The two percentages above only count treasures you have not crossed out. Per-chest odds published by Epic (Fortnite Status, 7 November 2026) for regular matches. The calculation uses the chests, special chests and spirit chests of the matches read, opened or broken; Epic has not said whether every chest type counts the same. Epic does not publish the weekly reset (Sunday, 14:00 UTC) or each week's items: adjust them in “Edit treasures”. Treasure Hours are written down by hand too: the times are the ones Epic announced, but some multipliers come from the press rather than from Epic, so they are worth checking there as well.", "Les deux pourcentages ci-dessus ne comptent que les trésors non cochés. Probabilités par coffre publiées par Epic (Fortnite Status, 7 novembre 2026) pour les parties normales. Le calcul utilise les coffres, coffres spéciaux et coffres d'esprit des parties lues, ouverts ou cassés ; Epic n'a pas dit si tous les types de coffres comptent pareil. Epic ne publie ni le changement de semaine (dimanche, 14:00 UTC) ni les objets de chaque semaine : ajuste-les dans « Modifier les trésors ». Les Heures du trésor sont aussi notées à la main : les horaires sont ceux annoncés par Epic, mais certains multiplicateurs viennent de la presse et non d'Epic, donc mieux vaut les vérifier au même endroit."],
 
     // Live tab
     ["FINALIZADA · BUSCANDO PARTIDA", "FINISHED · SEARCHING", "TERMINÉE · RECHERCHE"],
@@ -1330,6 +1386,42 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
     {
+        strVersion: "1.2.1",
+        strDate: "2026-11-14",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Los tesoros de cada semana ya vienen puestos, con el nombre y la foto oficiales: la skin dorada, el vehículo, el pico o la mochila, la pista de improvisación y la pantalla de carga. Siguen siendo tuyos para cambiarlos, y hay un botón para volver al oficial.",
+                en: "Each week's treasures now come filled in, with their official name and picture: the golden outfit, the vehicle, the pickaxe or back bling, the jam track and the loading screen. They are still yours to change, and a button puts the official one back.",
+                fr: "Les trésors de chaque semaine sont déjà remplis, avec leur nom et leur image officiels : la tenue dorée, le véhicule, la pioche ou l'accessoire de dos, la piste de jam et l'écran de chargement. Tu peux toujours les changer, et un bouton remet l'officiel."
+            },
+            {
+                strTag: "nuevo",
+                es: "Las Horas del tesoro se ven en la pestaña: cuánto sube la probabilidad en cada una, cuánto falta para que empiecen y cuánto queda si ya están en marcha. Salen en la hora de tu PC, vivas donde vivas.",
+                en: "Treasure Hours are now shown on the tab: how much each one raises your chances, how long until it starts, and how long is left once it is running. They are shown on your PC's own clock, wherever you live.",
+                fr: "Les Heures du trésor s'affichent dans l'onglet : de combien chacune augmente tes chances, le temps avant qu'elle commence, et ce qu'il en reste quand elle est en cours. Elles sont à l'heure de ton PC, où que tu vives."
+            },
+            {
+                strTag: "nuevo",
+                es: "Puedes buscar cualquier objeto por su nombre y quedarte con su imagen oficial, en vez de pegar una captura a mano. También encuentra coches y pistas de improvisación.",
+                en: "You can search for any item by name and keep its official picture, instead of pasting a screenshot by hand. It finds cars and jam tracks too.",
+                fr: "Tu peux chercher n'importe quel objet par son nom et garder son image officielle, au lieu de coller une capture à la main. Il trouve aussi les voitures et les pistes de jam."
+            },
+            {
+                strTag: "mejorado",
+                es: "La pestaña ya sabe cuándo acaba el evento: son cinco semanas y la última termina el 5 de diciembre. Arriba te dice en cuál estás.",
+                en: "The tab now knows when the event ends: five weeks, the last one finishing on 5 December. The top tells you which one you are in.",
+                fr: "L'onglet sait maintenant quand l'événement se termine : cinq semaines, la dernière finissant le 5 décembre. En haut, tu vois dans laquelle tu es."
+            },
+            {
+                strTag: "mejorado",
+                es: "Tesoros está mejor repartida: las cifras y las Horas del tesoro arriba, una al lado de otra, y las tarjetas ocupan todo el ancho. Los Gizmos ya no ocupan una tarjeta.",
+                en: "The Treasures tab is better laid out: the figures and the Treasure Hours side by side at the top, and the cards fill the whole width. Gizmos no longer take up a card.",
+                fr: "L'onglet Trésors est mieux agencé : les chiffres et les Heures du trésor côte à côte en haut, et les cartes occupent toute la largeur. Les Gizmos ne prennent plus une carte."
+            }
+        ]
+    },
+    {
         strVersion: "1.2.0",
         strDate: "2026-11-14",
         arrItems: [
@@ -1629,7 +1721,9 @@ const objApp = {
     objTreasure: null,
     bTreasureEditing: false,
     intWeekOffset: 0,
-    strPasteTarget: null
+    strPasteTarget: null,
+    // La búsqueda abierta en la pestaña Tesoros: { strKey, strQuery, bBusy, arrHits, strSaid }
+    objFind: null
 };
 
 // ---------------------------------------------------------------------------
@@ -2476,8 +2570,12 @@ const renderTable = (elBody, { arrMatches, objSelected }) => {
 
 // Odds per chest published by Epic (Fortnite Status, 7 Nov 2026) for the Treasure Hunters season.
 // Everything here can be edited from the tab, so a new season only needs new numbers.
+// Bumped when this file brings data an older copy cannot have: on loading, normalizeTreasure
+// folds in what is new (today's Treasure Hours) without touching what the player edited.
+const INT_TREASURE_VERSION = 4;
+
 const defaultTreasure = () => ({
-    intVersion: 1,
+    intVersion: INT_TREASURE_VERSION,
     strSeasonStart: "2026-11-01",
     strSeasonEnd: "2026-12-05",
     intWeekStartDay: 0,          // Sunday, counted in UTC
@@ -2491,21 +2589,86 @@ const defaultTreasure = () => ({
         { strId: "pickaxe", strName: "Pico o accesorio mochilero semanal", dblOneIn: 568, bWeekly: true, bRepeatable: false },
         { strId: "jam", strName: "Pista de improvisación semanal", dblOneIn: 391, bWeekly: true, bRepeatable: false },
         { strId: "loading", strName: "Pantalla de carga semanal", dblOneIn: 272, bWeekly: true, bRepeatable: false },
-        { strId: "gizmo", strName: "Gizmos", dblOneIn: 127, bWeekly: false, bRepeatable: true }
+        // Hidden: nobody cares about Gizmos. The square and its tally stay in the data, waiting
+        // for a better use; it is only kept out of the tab.
+        { strId: "gizmo", strName: "Gizmos", dblOneIn: 127, bWeekly: false, bRepeatable: true, bHidden: true }
     ],
     objItems: {},
     objWon: {},
-    // Treasure Hours confirmed by Epic so far, with their multipliers
+    // The Treasure Hours announced so far, with their multipliers. Each one is a single
+    // world-wide instant, kept in UTC: the tab turns it into the clock of whoever is looking,
+    // which is why nothing here is written in Spanish time.
     arrWindows: [
         { strStart: "2026-11-07T19:00:00Z", strEnd: "2026-11-07T21:00:00Z", objMultipliers: { token: 1.5, gold: 7.5, vehicle: 10 } },
-        { strStart: "2026-11-08T02:00:00Z", strEnd: "2026-11-08T04:00:00Z", objMultipliers: { token: 2, gold: 10 } }
+        { strStart: "2026-11-08T02:00:00Z", strEnd: "2026-11-08T04:00:00Z", objMultipliers: { token: 2, gold: 10 } },
+        // 14 Nov, the "Cursed" ones. Epic gave the hours (19:00 UTC, and 02:00 UTC the day after,
+        // two hours each); the multipliers below are what the press reported, and the second
+        // window's 2x is last week's pattern rather than a figure Epic confirmed. Editable.
+        { strStart: "2026-11-14T19:00:00Z", strEnd: "2026-11-14T21:00:00Z", objMultipliers: { token: 1.5, gold: 7.5, vehicle: 10 } },
+        { strStart: "2026-11-15T02:00:00Z", strEnd: "2026-11-15T04:00:00Z", objMultipliers: { token: 2, gold: 10 } }
     ]
 });
+
+// The official treasures of each week, as Epic hands them out. They are not shop cosmetics: they
+// are unique items that only come out of chests that week, so there is no API that lists them and
+// they are written down here by hand, one per square. Keyed exactly like objItems, by the start of
+// the reward week in UTC. Anything typed in the tab wins over this, field by field.
+//
+// The pictures are the official icons. Most were matched by Epic's own internal id —
+// Pickaxe_SpillStrikeReward and Backpack_RumbaShowyReward carry the "Reward" suffix, and
+// loadingscreen_delilahthw / thw2 carry "thw" for treasure-hunt week — and then checked by eye
+// against the rewards as the game shows them.
+const STR_ICON = "https://fortnite-api.com/images/cosmetics";
+const OBJ_WEEK_ITEMS = {
+    // Semana 1 — A$AP Rocky
+    "2026-11-01T14|gold": { strName: "A$AP Rocky de oro macizo", strImage: `${STR_ICON}/br/character_spillstrike/icon.png` },
+    "2026-11-01T14|vehicle": { strName: "Mercedes-AMG G 63 «G-Wagon»", strImage: `${STR_ICON}/cars/carbody_sandtote/large.png` },
+    "2026-11-01T14|pickaxe": { strName: "Guanteletes de A$AP Rocky", strImage: `${STR_ICON}/br/pickaxe_spillstrikereward/icon.png` },
+    "2026-11-01T14|jam": { strName: "NO TRESPASSING", strImage: "https://cdn.fortnite-api.com/tracks/e4623bde6d624f55.jpg" },
+    "2026-11-01T14|loading": { strName: "Paraíso del saqueo", strImage: `${STR_ICON}/br/loadingscreen_delilahthw/icon.png` },
+    // Semana 2 — Lil Uzi Vert. La piel dorada del Cadillac no tiene icono propio en la API
+    // (devuelve una imagen de relleno), así que va la del coche.
+    "2026-11-08T14|gold": { strName: "Lil Uzi Vert de oro macizo", strImage: `${STR_ICON}/br/character_rumbashowy/icon.png` },
+    "2026-11-08T14|vehicle": { strName: "Cadillac CT5-V Blackwing dorado", strImage: `${STR_ICON}/cars/carbody_burnishedraven/large.png` },
+    "2026-11-08T14|pickaxe": { strName: "Lil' Uzi Crew", strImage: `${STR_ICON}/br/backpack_rumbashowyreward/icon.png` },
+    "2026-11-08T14|jam": { strName: "London", strImage: "https://cdn.fortnite-api.com/tracks/14bc957c9a025056.jpg" },
+    "2026-11-08T14|loading": { strName: "So Kawaii", strImage: `${STR_ICON}/br/loadingscreen_delilahthw2/icon.png` },
+    // El token no cambia de semana: la temporada entera reparte los dos
+    "season|token": { strName: "Acceso a la Tienda pirata (2026 y 2027)" }
+};
+
+// What a square shows: what you wrote, falling back to the official item for that week
+const getItem = (strKey) => ({ ...(OBJ_WEEK_ITEMS[strKey] ?? {}), ...(objApp.objTreasure.objItems[strKey] ?? {}) });
 
 const normalizeTreasure = (objSaved) => {
     const objDefault = defaultTreasure();
     if (!objSaved || !Array.isArray(objSaved.arrRewards)) return objDefault;
-    return { ...objDefault, ...objSaved, objItems: { ...(objSaved.objItems ?? {}) }, objWon: { ...(objSaved.objWon ?? {}) }, objExtraWeek: { ...(objSaved.objExtraWeek ?? {}) }, arrWindows: [...(objSaved.arrWindows ?? [])] };
+    const objOut = { ...objDefault, ...objSaved, objItems: { ...(objSaved.objItems ?? {}) }, objWon: { ...(objSaved.objWon ?? {}) }, objExtraWeek: { ...(objSaved.objExtraWeek ?? {}) }, arrWindows: [...(objSaved.arrWindows ?? [])] };
+
+    // Treasure Hours that Epic announced after this copy last saved. Folded in by start time and
+    // only once, so a window edited or deleted on purpose does not come back on every start.
+    const intSaved = Number(objSaved.intVersion) || 1;
+    if (intSaved < 2) {
+        const setStarts = new Set(objOut.arrWindows.map((objWindow) => objWindow.strStart));
+        for (const objWindow of objDefault.arrWindows) if (!setStarts.has(objWindow.strStart)) objOut.arrWindows.push(objWindow);
+        objOut.arrWindows.sort((objLeft, objRight) => String(objLeft.strStart).localeCompare(String(objRight.strStart)));
+    }
+    // Gizmos put away, without losing how many were counted
+    if (intSaved < 3) {
+        objOut.arrRewards = objOut.arrRewards.map((objReward) => (objReward.strId === "gizmo" ? { ...objReward, bHidden: true } : objReward));
+    }
+    // Until now there was no official list, so whatever was written in those squares was a
+    // stand-in: a pasted screenshot, or a name picked while trying the search. The official
+    // treasure takes over once, and "Volver al oficial" keeps it reversible from here on.
+    // Only where the official entry brings its picture too: the pirate token has no icon in the
+    // API, so a screenshot pasted for it is better than nothing and stays put.
+    if (intSaved < 4) {
+        for (const [strKey, objOfficial] of Object.entries(OBJ_WEEK_ITEMS)) {
+            if (objOfficial.strImage) delete objOut.objItems[strKey];
+        }
+    }
+    if (intSaved < INT_TREASURE_VERSION) objOut.intVersion = INT_TREASURE_VERSION;
+    return objOut;
 };
 
 let intTreasureTimer = 0;
@@ -2522,12 +2685,61 @@ const getWeekStart = (dtMoment) => {
     while (dtStart.getUTCDay() !== objTreasure.intWeekStartDay || dtStart > dtMoment) dtStart.setUTCDate(dtStart.getUTCDate() - 1);
     return dtStart;
 };
+const INT_WEEK_MS = 7 * 24 * 3600 * 1000;
+
+// What the event spans. Both dates count whole, in the PC's own time: the end date is included.
+const getSeasonBounds = () => {
+    const objTreasure = objApp.objTreasure;
+    const dtTo = new Date(`${objTreasure.strSeasonEnd}T00:00:00`);
+    dtTo.setDate(dtTo.getDate() + 1);
+    return { dblFrom: new Date(`${objTreasure.strSeasonStart}T00:00:00`).getTime(), dblTo: dtTo.getTime() };
+};
+
+// The reset that opens the event's first week: the first weekly reset from the start date on.
+// An event starts on a reset, not at midnight, so its first week is whole and not a few hours.
+const getFirstWeekStart = () => {
+    const dblFrom = getSeasonBounds().dblFrom;
+    const dtReset = getWeekStart(new Date(dblFrom));
+    if (dtReset.getTime() < dblFrom) dtReset.setUTCDate(dtReset.getUTCDate() + 7);
+    return dtReset;
+};
+
+// One reward week, cut to the event. The event ends on a day of its own, so the last week is
+// short: the key stays the uncut start, which is what the crossed squares are saved under.
+const makeWeek = (dtRawStart, objBounds, intIndex, intCount) => {
+    const dblRawEnd = dtRawStart.getTime() + INT_WEEK_MS;
+    const dtStart = new Date(Math.max(dtRawStart.getTime(), objBounds.dblFrom));
+    const dtEnd = new Date(Math.min(dblRawEnd, objBounds.dblTo));
+    return {
+        dtStart, dtEnd, intIndex, intCount,
+        strKey: dtRawStart.toISOString().slice(0, 13),
+        bShort: dtEnd.getTime() - dtStart.getTime() < INT_WEEK_MS
+    };
+};
+
+// Every reward week of the event, in order. Capped so an end date typed wrong cannot hang the tab.
+const getEventWeeks = () => {
+    const objBounds = getSeasonBounds();
+    const arrStarts = [];
+    for (let dblStart = getFirstWeekStart().getTime(); dblStart < objBounds.dblTo && arrStarts.length < 520; dblStart += INT_WEEK_MS) arrStarts.push(dblStart);
+    if (!arrStarts.length) arrStarts.push(getWeekStart(new Date()).getTime());     // end date before the start
+    return arrStarts.map((dblStart, intIndex) => makeWeek(new Date(dblStart), objBounds, intIndex, arrStarts.length));
+};
+
+// The event week we are in now; before the event that is the first, after it the last
+const getNowWeekIndex = (arrWeeks) => {
+    const dblNow = Date.now();
+    const intIndex = arrWeeks.findIndex((objWeek) => dblNow < objWeek.dtEnd.getTime());
+    return intIndex < 0 ? arrWeeks.length - 1 : intIndex;
+};
+
+// The week on screen. The offset is kept inside the event, so the arrows cannot walk out of it.
 const getSelectedWeek = () => {
-    const dtStart = getWeekStart(new Date());
-    dtStart.setUTCDate(dtStart.getUTCDate() + 7 * objApp.intWeekOffset);
-    const dtEnd = new Date(dtStart);
-    dtEnd.setUTCDate(dtEnd.getUTCDate() + 7);
-    return { dtStart, dtEnd, strKey: dtStart.toISOString().slice(0, 13) };
+    const arrWeeks = getEventWeeks();
+    const intNow = getNowWeekIndex(arrWeeks);
+    const intWanted = Math.min(arrWeeks.length - 1, Math.max(0, intNow + objApp.intWeekOffset));
+    objApp.intWeekOffset = intWanted - intNow;
+    return arrWeeks[intWanted];
 };
 
 // Every chest of the matches that count, with the real moment it was opened
@@ -2543,16 +2755,20 @@ const getChestMoments = () => {
     return arrMoments;
 };
 
-// The reward week a given moment falls in
+// The reward week a given moment falls in. A match from outside the event keeps its own plain
+// week, so the squares it was counted against are still found under the same key.
 const getWeekAt = (dtMoment) => {
-    const dtStart = getWeekStart(dtMoment);
-    const dtEnd = new Date(dtStart);
-    dtEnd.setUTCDate(dtEnd.getUTCDate() + 7);
-    return { dtStart, dtEnd, strKey: dtStart.toISOString().slice(0, 13) };
+    const arrWeeks = getEventWeeks();
+    const dblMoment = dtMoment.getTime();
+    return arrWeeks.find((objWeek) => dblMoment >= objWeek.dtStart.getTime() && dblMoment < objWeek.dtEnd.getTime())
+        ?? makeWeek(getWeekStart(dtMoment), getSeasonBounds(), -1, arrWeeks.length);
 };
 
 // Treasures still to get in a week: not crossed out, and never the repeatable ones (Gizmos)
-const getMissingRewards = (objWeek) => objApp.objTreasure.arrRewards.filter((objReward) => !objReward.bRepeatable && !objApp.objTreasure.objWon[getScopeKey(objReward, objWeek)]);
+// The squares the tab shows. A hidden one keeps its data and its tally; it just stays out of sight.
+const getShownRewards = () => objApp.objTreasure.arrRewards.filter((objReward) => !objReward.bHidden);
+
+const getMissingRewards = (objWeek) => getShownRewards().filter((objReward) => !objReward.bRepeatable && !objApp.objTreasure.objWon[getScopeKey(objReward, objWeek)]);
 
 const getScopeKey = (objReward, objWeek) => `${objReward.bWeekly ? objWeek.strKey : "season"}|${objReward.strId}`;
 
@@ -2570,8 +2786,9 @@ const chanceAt = (objReward, dblMoment) => {
 // Odds of a reward over the chests in its scope: this week for weekly rewards, the season for the rest
 const getRewardOdds = (objReward, objWeek, arrMoments) => {
     const objTreasure = objApp.objTreasure;
-    const dblFrom = objReward.bWeekly ? objWeek.dtStart.getTime() : new Date(`${objTreasure.strSeasonStart}T00:00:00`).getTime();
-    const dblTo = objReward.bWeekly ? objWeek.dtEnd.getTime() : new Date(`${objTreasure.strSeasonEnd}T23:59:59`).getTime();
+    const objBounds = getSeasonBounds();
+    const dblFrom = objReward.bWeekly ? objWeek.dtStart.getTime() : objBounds.dblFrom;
+    const dblTo = objReward.bWeekly ? objWeek.dtEnd.getTime() : objBounds.dblTo;
     const arrInScope = arrMoments.filter((dblMoment) => dblMoment >= dblFrom && dblMoment < dblTo);
     const intExtra = Math.max(0, Number(objReward.bWeekly ? objTreasure.objExtraWeek[objWeek.strKey] : objTreasure.intExtraSeason) || 0);
     const dblBase = 1 / objReward.dblOneIn;
@@ -2628,10 +2845,222 @@ document.addEventListener("paste", (objEvent) => {
 
 const elTreasure = document.getElementById("elTreasure");
 
+// ---------------------------------------------------------------------------
+// The official name and icon, from fortnite-api.com
+//
+// The weekly item's picture used to be a screenshot pasted by hand. The API serves the icon
+// Epic ships and the name already translated, so searchLanguage has to be the same language the
+// name is typed in: searching "Banano" while the API looks in English finds nothing at all.
+// ---------------------------------------------------------------------------
+
+const STR_FIND_URL = "https://fortnite-api.com/v2/cosmetics/br/search/all";
+
+// Cars, jam tracks and instruments are not in the battle royale catalogue and have no search
+// endpoint of their own, so each whole list is fetched once and sifted here: about 1,5 MB between
+// the three. The battle royale catalogue is searched by the API instead, because downloading it
+// means 20 MB. Without this, "Cadillac CT5" — a real weekly treasure — could not be found at all.
+const ARR_CATALOGUES = [
+    { strFamily: "cars", strUrl: "https://fortnite-api.com/v2/cosmetics/cars" },
+    { strFamily: "tracks", strUrl: "https://fortnite-api.com/v2/cosmetics/tracks" },
+    { strFamily: "instruments", strUrl: "https://fortnite-api.com/v2/cosmetics/instruments" }
+];
+
+// The shapes the API answers with, made into one. Battle royale items carry images.icon, cars and
+// instruments only small and large, and a jam track has no name at all: it has a title and an
+// artist, with the album art for a picture.
+const readCosmetic = (objItem, strFamily) => {
+    if (strFamily === "tracks") return { strName: objItem?.title, strKind: objItem?.artist ?? "", strImage: objItem?.albumArt ?? null };
+    const strKind = [objItem?.type?.displayValue, objItem?.rarity?.displayValue].filter(Boolean).join(" · ");
+    if (strFamily === "br") return { strName: objItem?.name, strKind, strImage: objItem?.images?.icon ?? objItem?.images?.smallIcon ?? objItem?.images?.featured ?? null };
+    return { strName: objItem?.name, strKind, strImage: objItem?.images?.large ?? objItem?.images?.small ?? null };
+};
+
+// Accents and capitals out of the way, so "cadillac" finds "Cadillac CT5-V Blackwing"
+const foldText = (strText) => String(strText ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+// The three lists, asked for once a run and kept. Started when the editing begins, so by the time
+// anything is typed they are usually already here.
+let objCataloguesWait = null;
+const loadCatalogues = () => {
+    if (objCataloguesWait) return objCataloguesWait;
+    objCataloguesWait = Promise.all(ARR_CATALOGUES.map(async (objWhich) => {
+        try {
+            const objUrl = new URL(objWhich.strUrl);
+            objUrl.search = new URLSearchParams({ language: STR_LANG });
+            const objResponse = await fetch(objUrl);
+            if (!objResponse.ok) throw new Error(String(objResponse.status));
+            return [].concat((await objResponse.json())?.data ?? [])
+                .map((objItem) => readCosmetic(objItem, objWhich.strFamily))
+                .filter((objHit) => objHit.strName && objHit.strImage);
+        } catch (objError) {
+            return [];                 // one list missing must not sink the whole search
+        }
+    })).then((arrLists) => arrLists.flat());
+    return objCataloguesWait;
+};
+
+let objFindAbort = null;
+let bFindFocus = false;
+
+const findCosmetics = async (strKey, strQuery) => {
+    objFindAbort?.abort();
+    const strTerm = strQuery.trim();
+    bFindFocus = true;
+    if (strTerm.length < 2) {
+        objApp.objFind = { strKey, strQuery, bBusy: false, arrHits: [], strSaid: "Escribe al menos dos letras." };
+        renderTreasure();
+        return;
+    }
+    objApp.objFind = { strKey, strQuery, bBusy: true, arrHits: [], strSaid: "" };
+    renderTreasure();
+
+    const objAbort = new AbortController();
+    objFindAbort = objAbort;
+    let bFailed = false;
+
+    // Battle royale is searched by the API; cars, tracks and instruments, here
+    const findBattleRoyale = async () => {
+        const objUrl = new URL(STR_FIND_URL);
+        objUrl.search = new URLSearchParams({ language: STR_LANG, searchLanguage: STR_LANG, matchMethod: "contains", name: strTerm });
+        const objResponse = await fetch(objUrl, { signal: objAbort.signal });
+        if (!objResponse.ok && objResponse.status !== 404) throw new Error(String(objResponse.status));
+        // 404 is how the API says "nothing by that name"
+        const arrData = objResponse.status === 404 ? [] : [].concat((await objResponse.json())?.data ?? []);
+        return arrData.map((objItem) => readCosmetic(objItem, "br")).filter((objHit) => objHit.strName && objHit.strImage);
+    };
+    const findInCatalogues = async () => {
+        const strWanted = foldText(strTerm);
+        return (await loadCatalogues()).filter((objHit) => foldText(objHit.strName).includes(strWanted));
+    };
+
+    const [arrBattleRoyale, arrRest] = await Promise.all([
+        findBattleRoyale().catch(() => { bFailed = true; return []; }),
+        findInCatalogues().catch(() => { bFailed = true; return []; })
+    ]);
+    if (objAbort.signal.aborted) return;
+
+    const arrHits = [...arrBattleRoyale, ...arrRest].slice(0, 36);
+    objApp.objFind = {
+        strKey, strQuery, bBusy: false, arrHits,
+        strSaid: arrHits.length ? "" : bFailed
+            ? "No se pudo consultar fortnite-api.com. Revisa la conexión o pega una captura."
+            : "Nada con ese nombre. Un objeto recién salido puede tardar en estar en la API: pega una captura."
+    };
+    bFindFocus = true;
+    renderTreasure();
+};
+
+// Takes the name and the icon of the chosen one. The address shows straight away; then a copy is
+// shrunk into the data, so the picture is still there without internet, like a pasted screenshot.
+const takeCosmetic = async (strItemKey, objHit) => {
+    changeTreasure((objData) => {
+        const objItem = objData.objItems[strItemKey] ?? {};
+        objData.objItems[strItemKey] = { ...objItem, strName: objHit.strName, strImage: objHit.strImage ?? objItem.strImage ?? null };
+    });
+    objApp.objFind = null;
+    if (!objHit.strImage) { renderTreasure(); return; }
+    try {
+        const objResponse = await fetch(objHit.strImage);
+        if (objResponse.ok) await storeImage(strItemKey, await objResponse.blob());
+    } catch (objError) { /* the address stays, and that still shows while there is internet */ }
+    renderTreasure();
+};
+
+// ---------------------------------------------------------------------------
+// Treasure Hours: the same instant everywhere, so every PC shows its own clock
+//
+// Epic announces one world-wide window, and the press writes it in whatever zone it happens to
+// use. Stored in UTC, read here in the zone this PC is set to, with the zone named next to it so
+// it can be checked: a player in Madrid and one in Los Angeles see different hours, same moment.
+// ---------------------------------------------------------------------------
+
+const STR_TIME_ZONE = (() => {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (objError) { return ""; }
+})();
+
+const fmtZoneOffset = (dtMoment) => {
+    const intMinutes = -dtMoment.getTimezoneOffset();
+    const intAbs = Math.abs(intMinutes);
+    return `UTC${intMinutes < 0 ? "−" : "+"}${Math.floor(intAbs / 60)}${intAbs % 60 ? `:${String(intAbs % 60).padStart(2, "0")}` : ""}`;
+};
+const strZoneLabel = (dtMoment) => (STR_TIME_ZONE ? `${STR_TIME_ZONE} (${fmtZoneOffset(dtMoment)})` : fmtZoneOffset(dtMoment));
+const fmtTimeOfDay = (dtMoment) => dtMoment.toLocaleTimeString(STR_LOCALE, { hour: "2-digit", minute: "2-digit" });
+const fmtWeekDay = (dtMoment) => dtMoment.toLocaleDateString(STR_LOCALE, { weekday: "short", day: "numeric", month: "short" });
+const fmtUtcTime = (dtMoment) => `${String(dtMoment.getUTCHours()).padStart(2, "0")}:${String(dtMoment.getUTCMinutes()).padStart(2, "0")}`;
+
+// "2 h 14 min", "14 min", "45 s": the closer it gets, the finer
+const fmtLeft = (dblMs) => {
+    const intSeconds = Math.max(0, Math.round(dblMs / 1000));
+    if (intSeconds >= 3600) return `${Math.floor(intSeconds / 3600)} h ${Math.floor((intSeconds % 3600) / 60)} min`;
+    if (intSeconds >= 60) return `${Math.floor(intSeconds / 60)} min`;
+    return `${intSeconds} s`;
+};
+
+const renderTreasureHours = () => {
+    const objTreasure = objApp.objTreasure;
+    const dblNow = Date.now();
+    const objBounds = getSeasonBounds();
+
+    const arrAll = objTreasure.arrWindows
+        .map((objWindow) => ({ objWindow, dblStart: new Date(objWindow.strStart).getTime(), dblEnd: new Date(objWindow.strEnd).getTime() }))
+        .filter((objRow) => Number.isFinite(objRow.dblStart) && Number.isFinite(objRow.dblEnd) && objRow.dblEnd > objRow.dblStart && objRow.dblEnd > objBounds.dblFrom)
+        .sort((objLeft, objRight) => objLeft.dblStart - objRight.dblStart);
+
+    // Everything still to come, and the last one that went by, so the panel stays small
+    const arrGone = arrAll.filter((objRow) => objRow.dblEnd <= dblNow);
+    const arrShown = [...arrGone.slice(-1), ...arrAll.filter((objRow) => objRow.dblEnd > dblNow)];
+
+    const arrRows = arrShown.map(({ objWindow, dblStart, dblEnd }) => {
+        const dtStart = new Date(dblStart);
+        const dtEnd = new Date(dblEnd);
+        const bLive = dblNow >= dblStart && dblNow < dblEnd;
+        const bGone = dblEnd <= dblNow;
+        const bSameDay = dtStart.toDateString() === dtEnd.toDateString();
+        const arrBoost = getShownRewards()
+            .filter((objReward) => Number(objWindow.objMultipliers?.[objReward.strId]) > 1)
+            .map((objReward) => el("span", { class: "mult" }, [
+                el("b", { "data-notr": true, text: `×${fmtNumber(Number(objWindow.objMultipliers[objReward.strId]))}` }),
+                objReward.strName
+            ]));
+
+        return el("li", { class: bLive ? "live" : bGone ? "past" : "soon" }, [
+            // Already the reader's own clock and language, so the translator leaves it alone
+            el("div", { class: "when", "data-notr": true }, [
+                el("b", { text: `${fmtWeekDay(dtStart)}, ${fmtTimeOfDay(dtStart)} – ${bSameDay ? "" : `${fmtWeekDay(dtEnd)}, `}${fmtTimeOfDay(dtEnd)}` }),
+                el("small", { text: `${fmtUtcTime(dtStart)} – ${fmtUtcTime(dtEnd)} UTC` })
+            ]),
+            el("div", { class: "state", text: bLive ? `en directo, queda ${fmtLeft(dblEnd - dblNow)}` : bGone ? "ya pasó" : `empieza en ${fmtLeft(dblStart - dblNow)}` }),
+            el("div", { class: "boost" }, arrBoost.length ? arrBoost : el("span", { class: "none", text: "sin multiplicadores apuntados" }))
+        ]);
+    });
+
+    return el("section", { class: "t-hours", id: "elTreasureHours" }, [
+        el("header", {}, [
+            el("h2", { text: "Horas del tesoro" }),
+            el("p", {}, [
+                "Son el mismo instante en todo el mundo. Tu PC está en ",
+                el("b", { "data-notr": true, text: strZoneLabel(new Date()) }),
+                ", así que las horas de abajo ya son las tuyas."
+            ])
+        ]),
+        arrRows.length ? el("ul", {}, arrRows) : el("p", { class: "empty", text: "Aún no hay Horas del tesoro apuntadas. Se añaden en «Editar tesoros»." })
+    ]);
+};
+
+// The thumbnails you pick from, the same for the patch's new items and for a search
+const hitGrid = (strKey, arrHits) => el("div", { class: "hits" }, arrHits.map((objHit) => el("button", {
+    // data-notr: the API already answered in the reader's language
+    class: "hit", type: "button", "data-notr": true, title: [objHit.strName, objHit.strKind].filter(Boolean).join(" · "),
+    onclick: () => takeCosmetic(strKey, objHit)
+}, [
+    objHit.strImage ? el("img", { src: objHit.strImage, alt: "", loading: "lazy" }) : el("span", { class: "glyph", text: "?" }),
+    el("span", { text: objHit.strName })
+])));
+
 const renderTreasureCard = (objReward, objWeek, arrMoments) => {
     const objTreasure = objApp.objTreasure;
     const strKey = getScopeKey(objReward, objWeek);
-    const objItem = objTreasure.objItems[strKey] ?? {};
+    const objItem = getItem(strKey);
     const varWon = objTreasure.objWon[strKey];
     const intCount = objReward.bRepeatable ? (Number(varWon) || 0) : 0;
     const bWon = objReward.bRepeatable ? false : !!varWon;
@@ -2661,9 +3090,21 @@ const renderTreasureCard = (objReward, objWeek, arrMoments) => {
         const setReward = (strField, varValue) => changeTreasure((objData) => { objData.arrRewards.find((objOther) => objOther.strId === objReward.strId)[strField] = varValue; });
         const elFile = el("input", { type: "file", accept: "image/*", style: { display: "none" }, onchange: (objEvent) => { if (objEvent.target.files[0]) storeImage(strKey, objEvent.target.files[0]); } });
         const bArmed = objApp.strPasteTarget === strKey;
+        const objFind = objApp.objFind?.strKey === strKey ? objApp.objFind : null;
+        const elFindInput = el("input", {
+            type: "text", value: objFind?.strQuery ?? objItem.strName ?? "", placeholder: "Busca el nombre en Fortnite", id: objFind ? "elFind" : null,
+            onkeydown: (objEvent) => { if (objEvent.key === "Enter") { objEvent.preventDefault(); findCosmetics(strKey, elFindInput.value); } }
+        });
 
         elEditor = el("div", { class: "editor" }, [
             el("label", {}, [objReward.bWeekly ? "Nombre del objeto de esta semana" : "Nombre del objeto", el("input", { type: "text", value: objItem.strName ?? "", placeholder: "Como aparece en el juego", onchange: (objEvent) => setItem("strName", objEvent.target.value.trim()) })]),
+            el("div", { class: "findhint", text: "Busca el objeto de esta semana para coger su nombre e imagen oficiales" }),
+            el("div", { class: "find" }, [
+                elFindInput,
+                el("button", { class: `btn small${objFind?.bBusy ? " working" : ""}`, text: "Buscar", onclick: () => findCosmetics(strKey, elFindInput.value) })
+            ]),
+            objFind?.strSaid ? el("div", { class: "said", text: objFind.strSaid }) : null,
+            objFind?.arrHits.length ? hitGrid(strKey, objFind.arrHits) : null,
             el("div", {
                 class: `drop${bArmed ? " armed" : ""}`, tabindex: 0, role: "button",
                 text: bArmed ? "Pega ahora la captura (Ctrl+V) o suelta aquí una imagen" : "Foto: pulsa aquí y pega una captura (Ctrl+V), o suelta una imagen",
@@ -2677,6 +3118,10 @@ const renderTreasureCard = (objReward, objWeek, arrMoments) => {
                 objItem.strImage ? el("button", { class: "btn small ghost", text: "Quitar foto", onclick: () => setItem("strImage", null) }) : null
             ]),
             el("label", {}, ["O la dirección de una imagen", el("input", { type: "text", value: (objItem.strImage ?? "").startsWith("data:") ? "" : (objItem.strImage ?? ""), placeholder: "https://…", onchange: (objEvent) => setItem("strImage", objEvent.target.value.trim() || null) })]),
+            OBJ_WEEK_ITEMS[strKey] && objTreasure.objItems[strKey] ? el("div", { class: "inline" }, el("button", {
+                class: "btn small ghost", text: "Volver al oficial", title: "Recupera el tesoro que Epic dio esa semana, con su nombre y su imagen.",
+                onclick: () => changeTreasure((objData) => { delete objData.objItems[strKey]; })
+            })) : null,
             el("label", {}, ["Nombre de la casilla", el("input", { type: "text", value: objReward.strName, onchange: (objEvent) => setReward("strName", objEvent.target.value.trim() || objReward.strName) })]),
             el("label", {}, ["Probabilidad por cofre: 1 entre", el("input", { type: "number", min: 1, step: 1, value: objReward.dblOneIn, onchange: (objEvent) => { const dblValue = Number(objEvent.target.value); if (dblValue >= 1) setReward("dblOneIn", dblValue); } })]),
             el("div", { class: "inline" }, [
@@ -2692,7 +3137,7 @@ const renderTreasureCard = (objReward, objWeek, arrMoments) => {
         elPicture,
         el("div", { class: "info" }, [
             el("div", { class: "kind", text: objReward.strName }),
-            objItem.strName ? el("div", { class: "item", text: objItem.strName }) : null,
+            objItem.strName ? el("div", { class: "item", "data-notr": true, text: objItem.strName }) : null,
             el("div", { class: "odds" }, ["Por cofre: ", el("b", { text: fmtPercent(objOdds.dblPerChest) }), ` (1 entre ${fmtWhole(objReward.dblOneIn)})`]),
             el("div", { class: "chance" }, [
                 el("div", { class: "figure", text: fmtPercent(objOdds.dblAtLeastOne) }),
@@ -2727,13 +3172,17 @@ const renderTreasureSettings = (objWeek) => {
         ]),
 
         el("h3", { text: "Horas del tesoro" }),
-        el("p", { text: "Franjas en las que Epic multiplica la probabilidad de algunos tesoros. Los cofres que abriste dentro de una franja se calculan con su multiplicador. Las horas se muestran en la hora de tu PC." }),
+        el("p", {}, [
+            "Franjas en las que Epic multiplica la probabilidad de algunos tesoros. Los cofres que abriste dentro de una franja se calculan con su multiplicador. Las horas se muestran en la hora de tu PC",
+            el("b", { "data-notr": true, text: ` (${strZoneLabel(new Date())})` }),
+            ", y se guardan en UTC para que cuadren en cualquier país."
+        ]),
         el("table", {}, [
-            el("thead", {}, el("tr", {}, [el("th", { text: "Empieza" }), el("th", { text: "Termina" }), ...objTreasure.arrRewards.map((objReward) => el("th", { text: objReward.strName })), el("th")])),
+            el("thead", {}, el("tr", {}, [el("th", { text: "Empieza" }), el("th", { text: "Termina" }), ...getShownRewards().map((objReward) => el("th", { text: objReward.strName })), el("th")])),
             el("tbody", {}, objTreasure.arrWindows.map((objWindow, intIndex) => el("tr", {}, [
                 el("td", {}, el("input", { type: "datetime-local", value: toLocalInput(objWindow.strStart), "aria-label": "Empieza", onchange: (objEvent) => { if (objEvent.target.value) changeTreasure((objData) => { objData.arrWindows[intIndex].strStart = fromLocalInput(objEvent.target.value); }); } })),
                 el("td", {}, el("input", { type: "datetime-local", value: toLocalInput(objWindow.strEnd), "aria-label": "Termina", onchange: (objEvent) => { if (objEvent.target.value) changeTreasure((objData) => { objData.arrWindows[intIndex].strEnd = fromLocalInput(objEvent.target.value); }); } })),
-                ...objTreasure.arrRewards.map((objReward) => el("td", {}, el("input", {
+                ...getShownRewards().map((objReward) => el("td", {}, el("input", {
                     type: "number", min: 1, step: 0.5, value: objWindow.objMultipliers?.[objReward.strId] ?? 1, "aria-label": `Multiplicador de ${objReward.strName}`,
                     onchange: (objEvent) => changeTreasure((objData) => {
                         const dblValue = Number(objEvent.target.value) || 1;
@@ -2760,8 +3209,7 @@ const renderTreasure = () => {
     const dblScroll = window.scrollY;
 
     const intWeekChests = arrMoments.filter((dblMoment) => dblMoment >= objWeek.dtStart.getTime() && dblMoment < objWeek.dtEnd.getTime()).length + (Number(objTreasure.objExtraWeek[objWeek.strKey]) || 0);
-    const dblSeasonFrom = new Date(`${objTreasure.strSeasonStart}T00:00:00`).getTime();
-    const dblSeasonTo = new Date(`${objTreasure.strSeasonEnd}T23:59:59`).getTime();
+    const { dblFrom: dblSeasonFrom, dblTo: dblSeasonTo } = getSeasonBounds();
     const intSeasonChests = arrMoments.filter((dblMoment) => dblMoment >= dblSeasonFrom && dblMoment < dblSeasonTo).length + (Number(objTreasure.intExtraSeason) || 0);
 
     // Odds over the squares still open, each over its own chests. Gizmos and crossed squares stay out.
@@ -2772,35 +3220,48 @@ const renderTreasure = () => {
         dblNoneMissing *= 1 - getRewardOdds(objReward, objWeek, arrMoments).dblAtLeastOne;
         dblNoNewPerChest *= 1 - 1 / objReward.dblOneIn;
     }
-    let intCrossed = 0;
-    for (const objReward of objTreasure.arrRewards) {
-        if (!objReward.bRepeatable && objTreasure.objWon[getScopeKey(objReward, objWeek)]) intCrossed++;
-    }
     const strMissing = arrMissing.length === 1 ? "el que te falta" : `alguno de los ${arrMissing.length} que te faltan`;
-    const intSquares = objTreasure.arrRewards.filter((objReward) => !objReward.bRepeatable).length;
     const dtLastDay = new Date(objWeek.dtEnd.getTime() - 1);
 
     elTreasure.replaceChildren(...[
         el("div", { class: "t-bar" }, [
-            el("span", { class: "week", text: `Semana del ${fmtDay(objWeek.dtStart)} al ${fmtDay(dtLastDay)}${objApp.intWeekOffset === 0 ? ", la actual" : ""}` }),
-            el("button", { class: "btn small", text: "Semana anterior", onclick: () => { objApp.intWeekOffset--; renderTreasure(); } }),
-            el("button", { class: "btn small", text: "Semana siguiente", disabled: objApp.intWeekOffset >= 0, onclick: () => { objApp.intWeekOffset++; renderTreasure(); } }),
+            el("span", { class: "week" }, [
+                `Semana ${objWeek.intIndex + 1} de ${objWeek.intCount}`,
+                el("small", { text: `${fmtDay(objWeek.dtStart)} – ${fmtDay(dtLastDay)}${objApp.intWeekOffset === 0 ? ", la actual" : ""}` })
+            ]),
+            el("button", { class: "btn small", text: "Semana anterior", disabled: objWeek.intIndex === 0, onclick: () => { objApp.intWeekOffset--; renderTreasure(); } }),
+            el("button", { class: "btn small", text: "Semana siguiente", disabled: objApp.intWeekOffset >= 0 || objWeek.intIndex >= objWeek.intCount - 1, onclick: () => { objApp.intWeekOffset++; renderTreasure(); } }),
+            objWeek.bShort ? el("span", { class: "short", text: `más corta: el evento acaba el ${fmtDay(new Date(dblSeasonTo - 1))}` }) : null,
             el("span", { class: "grow" }),
-            el("button", { class: `btn${objApp.bTreasureEditing ? " primary" : ""}`, text: objApp.bTreasureEditing ? "Terminar de editar" : "Editar tesoros", onclick: () => { objApp.bTreasureEditing = !objApp.bTreasureEditing; objApp.strPasteTarget = null; renderTreasure(); } })
+            el("button", { class: `btn${objApp.bTreasureEditing ? " primary" : ""}`, text: objApp.bTreasureEditing ? "Terminar de editar" : "Editar tesoros", onclick: () => { objApp.bTreasureEditing = !objApp.bTreasureEditing; objApp.strPasteTarget = null; objApp.objFind = null; if (objApp.bTreasureEditing) loadCatalogues(); renderTreasure(); } })
         ]),
-        el("div", { class: "t-facts" }, [
-            el("div", {}, [el("div", { class: "value figure", text: fmtWhole(intWeekChests) }), el("div", { class: "label", text: "cofres abiertos esta semana" })]),
-            el("div", {}, [el("div", { class: "value figure", text: fmtWhole(intSeasonChests) }), el("div", { class: "label", text: "cofres abiertos en la temporada" })]),
-            el("div", {}, [el("div", { class: "value figure", text: arrMissing.length ? fmtPercent(1 - dblNoneMissing) : "–" }), el("div", { class: "label", text: arrMissing.length ? `de que ya te hubiera tocado ${strMissing}` : "no te falta ningún tesoro esta semana" })]),
-            el("div", {}, [el("div", { class: "value figure", text: arrMissing.length ? fmtPercent(1 - dblNoNewPerChest) : "–" }), el("div", { class: "label", text: arrMissing.length ? `de que el próximo cofre te dé ${strMissing}` : "nada nuevo que pueda salir" })]),
-            el("div", {}, [el("div", { class: "value figure", text: `${intCrossed} de ${intSquares}` }), el("div", { class: "label", text: "casillas tachadas" })])
+        el("div", { class: "t-top" }, [
+            el("div", { class: "t-facts" }, [
+                el("div", {}, [el("div", { class: "value figure", text: fmtWhole(intWeekChests) }), el("div", { class: "label", text: "cofres abiertos esta semana" })]),
+                el("div", {}, [el("div", { class: "value figure", text: fmtWhole(intSeasonChests) }), el("div", { class: "label", text: "cofres abiertos en la temporada" })]),
+                el("div", {}, [el("div", { class: "value figure", text: arrMissing.length ? fmtPercent(1 - dblNoneMissing) : "–" }), el("div", { class: "label", text: arrMissing.length ? `de que ya te hubiera tocado ${strMissing}` : "no te falta ningún tesoro esta semana" })]),
+                el("div", {}, [el("div", { class: "value figure", text: arrMissing.length ? fmtPercent(1 - dblNoNewPerChest) : "–" }), el("div", { class: "label", text: arrMissing.length ? `de que el próximo cofre te dé ${strMissing}` : "nada nuevo que pueda salir" })])
+            ]),
+            renderTreasureHours()
         ]),
-        el("div", { class: "t-grid" }, objTreasure.arrRewards.map((objReward) => renderTreasureCard(objReward, objWeek, arrMoments))),
+        el("div", { class: "t-grid" }, getShownRewards().map((objReward) => renderTreasureCard(objReward, objWeek, arrMoments))),
         objApp.bTreasureEditing ? renderTreasureSettings(objWeek) : null,
-        el("p", { class: "t-note", text: "Los dos porcentajes de arriba cuentan solo los tesoros sin tachar; los Gizmos no entran. Probabilidades por cofre publicadas por Epic (Fortnite Status, 7 de noviembre de 2026) para partidas normales. El cálculo usa los cofres, cofres especiales y cofres de espíritu de las partidas leídas, abiertos o rotos; Epic no ha dicho si todos los tipos de cofre cuentan igual. El cambio de semana (domingo, 14:00 UTC) y los objetos de cada semana no los publica Epic: ajústalos en «Editar tesoros»." })
+        el("p", { class: "t-note", text: "Los dos porcentajes de arriba cuentan solo los tesoros sin tachar. Probabilidades por cofre publicadas por Epic (Fortnite Status, 7 de noviembre de 2026) para partidas normales. El cálculo usa los cofres, cofres especiales y cofres de espíritu de las partidas leídas, abiertos o rotos; Epic no ha dicho si todos los tipos de cofre cuentan igual. El cambio de semana (domingo, 14:00 UTC) y los objetos de cada semana no los publica Epic: ajústalos en «Editar tesoros». Las Horas del tesoro también se apuntan a mano: las horas son las que anunció Epic, pero algunos multiplicadores vienen de la prensa y no de Epic, así que conviene comprobarlos ahí mismo." })
     ].filter(Boolean));
+    if (bFindFocus) {
+        bFindFocus = false;
+        const elFind = document.getElementById("elFind");
+        if (elFind) { elFind.focus(); elFind.setSelectionRange(elFind.value.length, elFind.value.length); }
+    }
     if (Math.abs(window.scrollY - dblScroll) > 1) window.scrollTo(0, dblScroll);
 };
+
+// The Treasure Hours are a countdown, so that panel redraws itself. Only that panel: the rest of
+// the tab has boxes being typed into and must not be rebuilt under the player's fingers.
+setInterval(() => {
+    if (objApp.strTab !== "tesoros" || !objApp.objState || !objApp.objTreasure) return;
+    document.getElementById("elTreasureHours")?.replaceWith(renderTreasureHours());
+}, 1000);
 
 // ---------------------------------------------------------------------------
 // Map tab: where on the island you open your chests.

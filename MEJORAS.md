@@ -15,7 +15,7 @@ cofre tiene una recompensa visible al momento.
 
 ---
 
-## Estado de los seis puntos acordados
+## Estado de lo acordado
 
 | # | Punto | Estado |
 |---|---|---|
@@ -25,6 +25,9 @@ cofre tiene una recompensa visible al momento.
 | 4 | Comparativa de mejora por días/semanas/meses | **Hecho** |
 | 5 | `matches.json` partido por partida | Pendiente |
 | 6 | Tests del parser | Pendiente |
+| 7 | Imágenes y nombres desde la API (2.1) | **Hecho** · buscador sobre los cuatro catálogos |
+| 8 | Semanas cortadas al final del evento | **Hecho** · cinco semanas, la última acaba el 5 de diciembre |
+| 9 | Tesoros oficiales de cada semana por defecto | **Hecho** · semanas 1 y 2, editables, con «Volver al oficial» |
 
 ---
 
@@ -76,28 +79,54 @@ PC. Nunca por defecto, nunca sin que se vea.
 
 El corazón de la app. Hoy es la parte con más mantenimiento manual y la que menos engancha.
 
-### 2.1 Imágenes y títulos automáticos
+### 2.1 Imágenes y títulos automáticos — **hecho**
 
-*Comprobado el 14/11/2026.* Hoy pegas una captura a mano. No hace falta: `fortnite-api.com` sirve
-el icono oficial y el nombre ya traducido.
+**Cómo funcionan los tesoros, que es lo que hay que tener claro.** Cada semana hay **un solo**
+objeto por casilla: una skin dorada, una skin de vehículo, un pico *o* una mochila, una pista de
+improvisación, una pantalla de carga; y el token pirata, que no cambia de semana. No son los
+cosméticos que salen en la tienda: **no se ven ni se compran en la tienda**, son objetos únicos
+que esa semana solo se consiguen por probabilidad dentro de los cofres. Esto descarta de raíz
+usar las novedades de la tienda para adivinarlos (ver «Pendientes menores»).
 
-```
-https://fortnite-api.com/v2/cosmetics/br/search
-    ?language=es&searchLanguage=es&matchMethod=contains&name=<lo que escribas>
-```
+*Comprobado el 14/11/2026.* Antes pegabas una captura a mano. Ya no hace falta: `fortnite-api.com`
+sirve el icono oficial y el nombre ya traducido. El objeto lo ves en el juego, escribes su nombre
+y el programa trae el resto.
 
-Devuelve nombre localizado, tipo, rareza y varias imágenes (`icon`, `smallIcon`, `featured`).
-Comprobado: buscando `Banano` en español sale «Banano · Traje», y `pirata` por coincidencia
-parcial encuentra «Pantera pirata». Sin `searchLanguage=es` el nombre en español no encuentra
-nada, así que ese parámetro es obligatorio.
+**Cómo quedó.** En «Editar tesoros», cada casilla tiene una caja de búsqueda. Al elegir un
+resultado se guarda el nombre oficial y, acto seguido, se **descarga el icono y se encoge dentro
+de los datos** como una captura pegada: así la foto sigue estando sin internet. Si la descarga
+falla queda la dirección, que funciona mientras haya red. Pegar una captura, soltar un archivo o
+escribir una dirección siguen estando, porque un objeto recién salido puede tardar en aparecer en
+la API.
 
-Cómo: al escribir el nombre del objeto de la semana, buscar y ofrecer los resultados con su
-imagen; al elegir uno, guardarlo como hasta ahora. Dejar siempre la opción de pegar una captura,
-porque un objeto recién salido puede tardar en aparecer en la API.
+**No vale con buscar solo en battle royale, y esto casi se cuela.** `/v2/cosmetics/br/search/all`
+cubre trajes, picos, mochilas, envoltorios y pantallas de carga, pero **no los coches ni las
+pistas de improvisación**, que viven en catálogos aparte y no tienen buscador propio. Buscar
+`Cadillac` en `br` devuelve **404**, y «CADILLAC CT5» era justo el tesoro de vehículo de una
+semana real. Así que:
 
-También hay `GET /v2/cosmetics/new`, que da los cosméticos añadidos en el último parche con sus
-fechas (41 el día de la comprobación). Sirve para **proponer** los objetos de la semana en vez de
-que los busques a ciegas.
+| Catálogo | Cómo se busca | Tamaño |
+|---|---|---|
+| `/v2/cosmetics/br/search/all` | en el servidor, con `matchMethod=contains` | — (bajarlo entero serían 20 MB) |
+| `/v2/cosmetics/cars` | se baja entero una vez y se filtra aquí | ~1 MB, 1.858 objetos |
+| `/v2/cosmetics/tracks` | igual | ~250 KB, 764 |
+| `/v2/cosmetics/instruments` | igual | ~190 KB, 322 |
+
+Los tres catálogos se piden **una vez por ejecución**, al entrar en «Editar tesoros», así que
+cuando escribes ya suelen estar. Comprobado: `Cadillac CT5` → «Cadillac CT5-V Blackwing»
+(carrocería y rueda), `Shut Up and Dance` → la pista con su carátula, y `cazatesoros` en
+minúsculas encuentra «CAZATESOROS» en mayúsculas porque los nombres se comparan sin tildes ni
+mayúsculas.
+
+Ojo con las formas distintas en que responde la API: los objetos de battle royale traen
+`images.icon`; los coches y los instrumentos solo `small` y `large`; y una pista de improvisación
+**no tiene `name`**, tiene `title`, `artist` y `albumArt`. `readCosmetic` las aplana a una sola
+forma. Dos coches con el mismo nombre no son un duplicado: son la carrocería y la rueda del mismo
+modelo, con imágenes distintas.
+
+Sin `searchLanguage` igual al idioma en que escribes, un nombre en español no encuentra nada: ese
+parámetro es obligatorio, no un adorno. La API responde con `access-control-allow-origin: *`, así
+que el navegador la llama directamente y no hace falta pasar por el programa.
 
 ### 2.2 Objetos de la semana y Horas del tesoro
 
@@ -105,6 +134,63 @@ Esto **no tiene API**: Epic lo publica en su blog y dentro del juego. El proceso
 y acordado: cuando salgan, avisas, se leen, se meten en los datos de la pestaña y salen en una
 release. Conviene que el programa ayude recordando que toca: avisar cuando el cambio de semana
 haya pasado y queden casillas sin revisar.
+
+**Los tesoros oficiales vienen puestos de fábrica** (`OBJ_WEEK_ITEMS`), con la clave
+`<inicio de la semana en UTC>|<casilla>`, igual que `objItems`. Lo que escribas en la pestaña gana
+campo a campo, y «Volver al oficial» deshace el cambio de esa casilla. Añadir una semana nueva es
+añadir cinco líneas ahí.
+
+| Casilla | Semana 1 (1–8 nov) | Semana 2 (8–15 nov) |
+|---|---|---|
+| Atuendo dorado | A$AP Rocky de oro macizo | Lil Uzi Vert de oro macizo |
+| Vehículo | Mercedes-AMG G 63 «G-Wagon» | Cadillac CT5-V Blackwing dorado |
+| Pico o mochilero | Guanteletes de A$AP Rocky | Lil' Uzi Crew |
+| Pista de improvisación | NO TRESPASSING | London |
+| Pantalla de carga | Paraíso del saqueo | So Kawaii |
+| Tienda pirata | 2026 y 2027, toda la temporada | igual |
+
+**Cómo se encontraron los iconos, que tiene truco.** Los tesoros son exclusivos y la API los tiene
+con nombres que no son los del juego: el atuendo dorado de A$AP Rocky figura como «Rugahand de oro
+macizo» (`Character_SpillStrike`, nombre en clave) y «Lil' Uzi Crew» figura como «Oro y diamante»
+(`Backpack_RumbaShowyReward`). Buscar por nombre no vale. Lo que sí vale es el **identificador
+interno de Epic**, que marca los tesoros:
+
+- sufijo `Reward` — `Pickaxe_SpillStrikeReward`, `Backpack_RumbaShowyReward`
+- `thw` de *treasure-hunt week* — `loadingscreen_delilahthw` (semana 1) y `…thw2` (semana 2)
+- `TreasureHunt01` en los coches — `CarSkin_BurnishedRavenTreasureHunt01`
+- y la familia del nombre en clave se repite dentro de la semana: todo lo dorado de A$AP Rocky es
+  `SpillStrike`, todo lo de Lil Uzi Vert es `RumbaShowy`
+
+Encontrado eso, **se comprobó a ojo** cada icono contra la recompensa tal como la enseña el juego.
+Siete de ocho coincidían exactamente. La octava, la piel dorada del Cadillac
+(`CarSkin_BurnishedRavenTreasureHunt01`), devuelve una imagen de relleno con el logo de Fortnite,
+así que esa casilla lleva la foto del coche. El acceso a la Tienda pirata no es un cosmético y no
+está en la API: esa casilla se queda sin imagen oficial.
+
+Para rastrear nuevos tesoros por identificador hay que bajarse el catálogo entero de battle royale
+(`/v2/cosmetics/br`, **16 MB, 16.848 objetos**) y buscar por `id`, porque el buscador de la API
+solo mira el nombre. Es una consulta de investigación, no algo que haga el programa.
+
+**Los Gizmos son cinco objetos, no uno.** La semana 2 reparte Localizador de Sprites, Localizador
+de la suerte, Extractor portátil, Acelerador de extracción y Fuego artificial dorado. La casilla
+está oculta (ver «Pendientes menores»), así que esto queda apuntado por si se le da otro uso.
+
+**Las franjas son un instante mundial, no una hora española.** Esto era lo fácil de equivocar. Epic
+anuncia una ventana y cada web la escribe en su propia zona: la prensa estadounidense la da en ET,
+la británica en GMT. Lo que es igual para todos es el instante. Por eso se guardan en UTC y la
+pestaña las pinta con el reloj del PC que mira, con la zona escrita al lado
+(`Intl.DateTimeFormat().resolvedOptions().timeZone`) y el UTC debajo para poder contrastarlo con lo
+que publicó Epic. Un jugador en Madrid y otro en Los Ángeles ven horas distintas y el mismo momento.
+
+**Apuntadas hasta ahora** (14/11/2026): 7 nov 19:00–21:00 UTC, 8 nov 02:00–04:00 UTC, 14 nov
+19:00–21:00 UTC y 15 nov 02:00–04:00 UTC. Las horas del 14 son las que dio Epic; **los
+multiplicadores de esas dos no los confirmó Epic**, los dio la prensa, y el ×2 de la segunda es el
+patrón de la semana anterior y no un dato. Se pueden corregir en «Editar tesoros», y la pestaña lo
+avisa en su nota al pie.
+
+Las franjas nuevas que trae una versión se **mezclan una sola vez** con las que ya tenías
+(`INT_TREASURE_VERSION` en `normalizeTreasure`, comparando por hora de inicio). Así una franja que
+borraste a propósito no vuelve en cada arranque.
 
 ### 2.3 Lo que falta: que enganche
 
@@ -125,6 +211,12 @@ Hoy la pestaña informa. Debería **motivar**. Ideas, de más a menos clara:
 - **Ritmo hasta el final de la temporada.** La temporada de cofres del tesoro acaba el **5 de
   diciembre de 2026**. Con tu media de cofres por día: cuántos te dará tiempo a abrir y qué
   probabilidad acumulada tendrás al terminar. Y, si vas corto, cuántos al día harían falta.
+  *La mitad de abajo ya está*: las semanas se cortan al evento, son cinco, se numeran («Semana 2
+  de 5») y la última acaba el 5 de diciembre en vez de correr siete días enteros. El reparto sale
+  de `getEventWeeks`, que arranca en el primer cambio de semana desde la fecha de inicio —no a
+  medianoche, o la primera semana duraría quince horas— y recorta la última contra la fecha de
+  fin. La clave con la que se guardan las casillas tachadas sigue siendo el inicio **sin recortar**,
+  para no perder lo ya marcado.
 - **Qué es más óptimo.** Cuando esté el mapa (punto 3), cruzar zona con cofres por minuto
   responde «dónde caer para abrir más», que es la pregunta de quien farmea.
 
@@ -163,50 +255,6 @@ confirmado a ojo sitio por sitio sobre la imagen que lleva los nombres impresos.
 Lo que sí sirve: ajustar y **mirarlo**. Un sitio con nombre tiene que caer sobre sus edificios, y
 eso se ve en un recorte a resolución nativa. Si en una temporada nueva el mapa deja de cuadrar,
 hay que repetir esa medida; los números están en un solo sitio, `OBJ_MAP_FRAME`.
-
-Lo que falta: que enganche
-
-Hoy la pestaña informa. Debería **motivar**. Ideas, de más a menos clara:
-
-- **Quesito por tesoro.** Un gráfico circular por objeto sin tachar: qué parte de la probabilidad
-  ya has «consumido» con los cofres que llevas y cuánta queda. Ver el trozo crecer cofre a cofre
-  es el gancho. Con 1 entre 1.562.500 para el atuendo dorado el trozo será invisible, y eso
-  también cuenta una verdad: enseña a las claras lo imposible que es.
-- **Probabilidad acumulada bien visible.** Ya se calcula; falta que se vea como una barra que
-  sube, no como un porcentaje perdido en una casilla.
-- **Cuántos cofres te faltan.** Para cada tesoro, `1/p` cofres esperados y cuántos llevas. «Te
-  quedan unos 340 cofres para el pico» se entiende mucho mejor que «0,29 %».
-- **Suerte real: observado contra esperado.** Lo que de verdad pide la app. Con tus cofres de la
-  temporada, cuántos Gizmos *deberías* llevar y cuántos llevas. «Esperados 2,3, tienes 4: vas con
-  suerte» es la frase que hace volver a la pestaña. Gana muchísimo con los datos del squad
-  (punto 1), que multiplican la muestra.
-- **Ritmo hasta el final de la temporada.** La temporada de cofres del tesoro acaba el **5 de
-  diciembre de 2026**. Con tu media de cofres por día: cuántos te dará tiempo a abrir y qué
-  probabilidad acumulada tendrás al terminar. Y, si vas corto, cuántos al día harían falta.
-- **Qué es más óptimo.** Cuando esté el mapa (punto 3), cruzar zona con cofres por minuto
-  responde «dónde caer para abrir más», que es la pregunta de quien farmea.
-
----
-
-## 3. Pestaña Mapa — **primera versión hecha**
-
-Ya está: mapa de calor de tus cofres sobre el mapa de la temporada, lista de zonas con cuántos
-cofres abres en cada una, y el reparto por porcentaje. Se puede ver todo tu histórico o una sola
-partida.
-
-**La calibración, que era el riesgo, está medida.** La imagen cubre 1.350 m a cada lado del origen
-del mundo, sin invertir la Y, lo que deja el píxel en 1,32 m:
-
-```
-izquierda = (x + 1350) / 2700        arriba = (y + 1350) / 2700
-```
-
-Comprobado superponiendo los sitios publicados sobre la imagen que lleva los nombres impresos:
-Arlong Park, Rubber Resort y Loguetown caen sobre el sitio exacto; Plunder Port se va unos 80 m,
-y es un barco, así que su coordenada publicada no está en su centro visual. Ojo: la primera
-hipótesis (Y invertida, que es lo habitual en estos mapas) daba un resultado plausible pero
-**mal**, y un ajuste automático por silueta de tierra también engaña, porque agrandar la escala
-mete todos los puntos en la isla y parece que mejora.
 
 Lo que falta:
 
@@ -270,3 +318,13 @@ del parser, no después.**
   visible como dato, quitar la caja de edición.
 - **Enlazar con el visor de repeticiones** desde la lista de cofres: descartado a propósito. Esa
   lista existe para contrastar que el programa cuenta bien, no para quedarse.
+- **Qué ha salido nuevo en Fortnite, de un vistazo.** `GET /v2/cosmetics/new` da los cosméticos
+  que añadió el último parche, repartidos por familia (`br`, `cars`, `tracks`, `instruments`,
+  `lego`) y con la versión del build dentro de `++Fortnite+Release-43.10-CL-…`. **No sirve para
+  los tesoros de la semana** —son objetos exclusivos que no pasan por la tienda—, pero sí para
+  una consulta rápida de novedades, que es información que hoy el programa no da. Sitio natural:
+  un apartado propio, no la pestaña Tesoros. Se probó y funciona: el parche 43.10 trae 41 objetos
+  de battle royale, 18 de coches y 7 pistas.
+- **Los Gizmos están ocultos, no borrados.** La casilla sigue en los datos con `bHidden`, y lo que
+  llevas contado (18 el 14/11/2026) no se ha tocado. Se escondió porque no interesa a nadie;
+  queda pendiente darle otro uso a ese hueco.
