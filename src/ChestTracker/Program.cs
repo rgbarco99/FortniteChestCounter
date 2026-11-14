@@ -217,6 +217,51 @@ objApp.MapPost("/api/reset", (string? scope, ReplayWatcher objWatcher) =>
     return Results.Ok();
 });
 
+// Backup. Fortnite deletes its replays within days, so a match that is only here is gone for
+// good if this folder is lost: these two give the reader a copy they keep themselves.
+objApp.MapGet("/api/export/matches.json", () =>
+    Results.File(System.Text.Encoding.UTF8.GetBytes(objStore.ReadRawMatches()), "application/json", $"cofres-{DateTime.Now:yyyy-MM-dd}.json"));
+
+objApp.MapGet("/api/export/matches.csv", () =>
+    Results.File(Export.BuildCsv(objStore), "text/csv", $"cofres-{DateTime.Now:yyyy-MM-dd}.csv"));
+
+// The copies the program keeps by itself, newest first
+objApp.MapGet("/api/backups", () => Backup.List(strDataFolder));
+
+objApp.MapPost("/api/backups/now", () => objStore.CopyNow() ? Results.Ok() : Results.Conflict());
+
+objApp.MapPost("/api/backups/restore", (string name, ReplayWatcher objWatcher) =>
+{
+    try
+    {
+        var objOutcome = objStore.ImportMatches(Backup.Read(strDataFolder, name));
+        objStore.Log($"Recuperadas {objOutcome.Added} partidas de la copia {name} ({objOutcome.Skipped} ya estaban)");
+        return Results.Ok(objOutcome);
+    }
+    catch (Exception objError) when (objError is ArgumentException or IOException or JsonException)
+    {
+        return Results.BadRequest(new { error = objError.Message });
+    }
+});
+
+// Restoring is what makes a backup worth taking. Matches already here are left alone, so the
+// same file can be loaded twice without harm, and nothing is ever replaced by an older copy.
+objApp.MapPost("/api/import", async (HttpRequest objRequest, ReplayWatcher objWatcher) =>
+{
+    using var objReader = new StreamReader(objRequest.Body);
+    var strBody = await objReader.ReadToEndAsync();
+    try
+    {
+        var objOutcome = objStore.ImportMatches(strBody);
+        objStore.Log($"Restauradas {objOutcome.Added} partidas de una copia de seguridad ({objOutcome.Skipped} ya estaban)");
+        return Results.Ok(objOutcome);
+    }
+    catch (JsonException objError)
+    {
+        return Results.BadRequest(new { error = objError.Message });
+    }
+}).WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(200_000_000));
+
 objApp.MapPost("/api/update/check", () => { objUpdater.RequestCheck(); return Results.Ok(); });
 objApp.MapPost("/api/update/apply", () => objUpdater.StartApply() ? Results.Ok() : Results.Conflict());
 
@@ -278,6 +323,12 @@ objApp.MapPost("/api/matches/exclude", (ExcludeRequest objRequest) =>
 // There is no window to read: this goes to chestcounter.log, and to the console of
 // whoever started the program if there happens to be one (start.cmd, a prompt).
 objStore.Log($"Fortnite Chest Counter {Updater.CurrentVersion} · panel en {strUrl} · repeticiones en {objStore.Settings.DemosPath}");
+
+// The matches were missing and came back from a copy: say so where it can be read afterwards
+if (objStore.TakeRecoveryNote() is { } strRecovery)
+{
+    objStore.Log(strRecovery);
+}
 
 // Where a second copy opened by mistake has to look
 Instance.Write(strDataFolder, strUrl);

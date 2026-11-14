@@ -65,11 +65,56 @@ public sealed class Store
             Console.WriteLine($"No se pudo leer {_strTreasureFile}: {objError.Message}");
         }
 
-        var lstMatches = ReadJson<List<MatchRecord>>(_strMatchesFile) ?? new List<MatchRecord>();
+        var lstMatches = ReadJson<List<MatchRecord>>(_strMatchesFile) ?? RecoverMatches();
         foreach (var objMatch in lstMatches)
         {
             _dicMatches[objMatch.File] = objMatch;
         }
+
+        // What was already here does not count as new: the copy follows what is read from now on
+        _intMatchesAtLastCopy = _dicMatches.Count;
+    }
+
+    /// <summary>
+    /// The matches file is not there, or could not be read: the matches whose replay Fortnite has
+    /// already deleted would be lost for good, so the newest copy is put back by itself.
+    /// An empty file is a different matter — that is somebody having chosen to delete them — and
+    /// never gets here, because an empty list reads perfectly well.
+    /// </summary>
+    private List<MatchRecord> RecoverMatches()
+    {
+        try
+        {
+            if (Backup.ReadNewest(DataFolder) is not { } strJson)
+            {
+                return new List<MatchRecord>();
+            }
+
+            var lstRecovered = JsonSerializer.Deserialize<List<MatchRecord>>(strJson, objJsonOptions) ?? new List<MatchRecord>();
+            if (lstRecovered.Count == 0)
+            {
+                return lstRecovered;
+            }
+
+            WriteJson(_strMatchesFile, lstRecovered, bCompact: true);
+            _strRecoveryNote = $"No estaban las partidas guardadas: se han recuperado {lstRecovered.Count} de la copia de seguridad más reciente.";
+            return lstRecovered;
+        }
+        catch (Exception objError)
+        {
+            Console.WriteLine($"No se pudo recuperar la copia de seguridad: {objError.Message}");
+            return new List<MatchRecord>();
+        }
+    }
+
+    /// <summary>Said once, as soon as there is a log to say it in: the matches came back from a copy.</summary>
+    private string? _strRecoveryNote;
+
+    public string? TakeRecoveryNote()
+    {
+        var strNote = _strRecoveryNote;
+        _strRecoveryNote = null;
+        return strNote;
     }
 
     /// <summary>%LOCALAPPDATA%\FortniteGame\Saved\Demos, where the game writes its replays.</summary>
@@ -136,6 +181,7 @@ public sealed class Store
 
             _dicMatches[objMatch.File] = objMatch;
             _lngRevision++;
+            KeepCopy();
 
             // The first replay with a known owner teaches us who the user is
             if (string.IsNullOrEmpty(Settings.EpicId) && !string.IsNullOrEmpty(objMatch.DetectedOwnerId))
@@ -143,6 +189,81 @@ public sealed class Store
                 Settings.EpicId = objMatch.DetectedOwnerId;
                 WriteJson(_strSettingsFile, Settings);
             }
+        }
+    }
+
+    /// <summary>
+    /// Keeps today's copy of the saved matches up to date. Called whenever they change; the copy
+    /// itself decides whether enough time has passed to be worth rewriting.
+    /// </summary>
+    private void KeepCopy()
+    {
+        if (_dicMatches.Count == 0)
+        {
+            return;     // Nothing worth copying, and never a copy that would undo a deletion
+        }
+
+        // Normally the copy waits out its own gap, so an evening of matches is not a copy each.
+        // But a folder being read for the first time saves dozens in a row, and a copy holding
+        // only the first of them would be worth nothing: enough new matches and it is rewritten.
+        var bEnoughNew = _dicMatches.Count - _intMatchesAtLastCopy >= INT_MATCHES_PER_COPY;
+        if (Backup.Write(DataFolder, File.Exists(_strMatchesFile) ? File.ReadAllText(_strMatchesFile) : "[]", Log, bForce: bEnoughNew))
+        {
+            _intMatchesAtLastCopy = _dicMatches.Count;
+        }
+    }
+
+    private const int INT_MATCHES_PER_COPY = 5;
+    private int _intMatchesAtLastCopy;
+
+    /// <summary>Makes a copy now, however little time has passed since the last one.</summary>
+    public bool CopyNow()
+    {
+        lock (_objLock)
+        {
+            return _dicMatches.Count > 0 && Backup.Write(DataFolder, File.ReadAllText(_strMatchesFile), Log, bForce: true);
+        }
+    }
+
+    /// <summary>The matches file exactly as it sits on disk, for the reader to keep a copy of.</summary>
+    public string ReadRawMatches()
+    {
+        lock (_objLock)
+        {
+            return File.Exists(_strMatchesFile) ? File.ReadAllText(_strMatchesFile) : "[]";
+        }
+    }
+
+    /// <summary>
+    /// Puts back the matches of a backup. A match already here is left as it is: restoring the
+    /// same file twice changes nothing, and a saved copy never overwrites what was read since.
+    /// </summary>
+    public ImportOutcome ImportMatches(string strJson)
+    {
+        var lstIncoming = JsonSerializer.Deserialize<List<MatchRecord>>(strJson, objJsonOptions)
+            ?? throw new JsonException("El archivo no contiene una lista de partidas.");
+
+        lock (_objLock)
+        {
+            var intAdded = 0;
+            foreach (var objMatch in lstIncoming.Where(objMatch => !string.IsNullOrEmpty(objMatch.File)))
+            {
+                if (_dicMatches.ContainsKey(objMatch.File))
+                {
+                    continue;
+                }
+                _dicMatches[objMatch.File] = objMatch;
+                intAdded++;
+            }
+
+            if (intAdded > 0)
+            {
+                WriteJson(_strMatchesFile, _dicMatches.Values.OrderBy(objItem => objItem.StartedAt).ToList(), bCompact: true);
+                _lngRevision++;
+                KeepCopy();
+            }
+
+            return new ImportOutcome { Added = intAdded, Skipped = lstIncoming.Count - intAdded, Total = _dicMatches.Count };
         }
     }
 

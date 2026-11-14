@@ -40,6 +40,14 @@ one and restarts; the page reconnects by itself. Your matches and settings live 
 The **What's new** button in the header opens what went into each version, with its date and a
 short summary. While there is something you have not read, the button carries a gold dot.
 
+## Your data
+
+Fortnite deletes its replays within a few days, so a match that is only in this program is gone
+for good if its folder is lost. The program keeps a copy of your matches a day by itself, holds
+the last ten, and puts them back by itself if it ever starts and finds them missing. **Settings →
+Backup** lists those copies, saves one to a file you keep elsewhere, restores any of them, and
+can hand you a CSV to open in a spreadsheet.
+
 ## What counts as a chest
 
 - A chest you open with the interact key, or break open. Each chest counts once per match.
@@ -67,14 +75,23 @@ name into the executable.
 
 ### Publishing a new version (maintainers)
 
-First say what changed: add an entry at the top of `ARR_NEWS`, in `src/ChestTracker/ui/index.html`
-(version, date and one line per change, written out in Spanish, English and French). That list is
-what the **What's new** dialog shows.
+First say what changed, in two places:
+
+- An entry at the top of `ARR_NEWS`, in `src/ChestTracker/ui/index.html` (version, date and one
+  line per change, written out in Spanish, English and French). That is what the **What's new**
+  dialog inside the program shows.
+- `docs/releases/<tag>.md`, the text of the GitHub release itself, which can be longer. Without
+  that file the release falls back to a list of commits.
 
 Then on GitHub: **Releases → Draft a new release**, type a new tag such as `v1.2.0`, publish. Or with
 git: `git tag v1.2.0` and `git push origin v1.2.0`. Either way the **Release** workflow builds `FortniteChestCounter.exe` on Windows and attaches it to a new
 GitHub release. Installed copies pick it up within a few hours, or straight away with
 **Settings → Updates → Check for updates**.
+
+## What is next
+
+The working list of what is still to be done, and why each thing matters, is in
+[MEJORAS.md](MEJORAS.md) (in Spanish).
 
 ## Code map
 
@@ -86,6 +103,8 @@ src/ChestTracker/
   GameLogTail.cs     follows Fortnite's log: match finished, searching for a match
   Summarizer.cs      per-match figures for the dashboard
   Updater.cs         checks GitHub releases and replaces the executable
+  Export.cs          the matches as a spreadsheet, for the backup
+  Backup.cs          the daily copy of the matches, and putting it back
   TrayIcon.cs        the icon next to the clock: dashboard, read the folder, quit
   Instance.cs        one copy at a time: a second one hands over to the first
   Store.cs           settings and matches on disk

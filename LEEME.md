@@ -92,6 +92,11 @@ Paneles de equipo:
 - **Todas / Última sesión / Hoy / 7 días**: qué partidas entran en los totales y gráficos.
   Una sesión se corta cuando pasan más de tres horas entre dos partidas.
 - Pulsa una fila de la tabla o una barra de un gráfico para ver esa partida arriba.
+- **¿Vas mejorando?**: compara los últimos 7 días con los 7 anteriores (o las últimas 24 horas,
+  o los últimos 30 días) en cofres por partida, cofres por minuto, minuto del primer cofre,
+  kills, puesto y victorias. El color dice si el cambio es a mejor, no si el número sube: tardar
+  más en el primer cofre sale en rojo aunque la cifra suba. Tiene sus propias ventanas de tiempo,
+  así que los botones «Todas / Última sesión / Hoy / 7 días» no le afectan.
 - **Minimizar**: cada bloque se puede plegar a su título.
 - **Tabla de partidas**: filtra por modo y por puesto, elige cuántas filas ver (10, 25, 50 o todas)
   y qué columnas. Los filtros de la tabla no cambian los totales ni los gráficos.
@@ -173,6 +178,15 @@ probabilidades por cofre que publicó Epic el 7 de noviembre de 2026.
   | Reintentar las que fallaron | Además reintenta las que dieron error |
   | Volver a leer todas | Lee de nuevo todas las de la carpeta y sustituye sus datos |
 
+- **Copia de seguridad**: Fortnite borra sus repeticiones a los pocos días, así que una partida
+  que solo esté aquí se pierde si se pierde la carpeta de datos. El programa **guarda una copia al
+  día por su cuenta** en `copias\`, conserva las diez últimas y, si algún día las partidas no
+  están, las recupera solo de la más reciente (borrarlas a propósito no se deshace). Ahí mismo ves
+  las copias con su fecha y puedes recuperar cualquiera. «Guardar copia de las partidas»
+  descarga un archivo con todas; «Restaurar una copia» las vuelve a meter, dejando como están
+  las que ya tengas (restaurar dos veces no duplica nada). «Descargar tabla (CSV)» da una fila
+  por partida para una hoja de cálculo, pero no sirve para restaurar.
+
 - **Borrar datos** (pide confirmación; no toca los archivos de Fortnite):
 
   | Botón | Qué hace |
@@ -211,6 +225,11 @@ start.cmd --no-browser           no abrir el navegador
 start.cmd --dump partida.replay  volcar lo que se extrae de una repetición, en JSON
 ```
 
+## Qué falta por hacer
+
+La lista de trabajo pendiente, con el estado de cada cosa y por qué importa, está en
+[MEJORAS.md](MEJORAS.md).
+
 ## Código
 
 ```
@@ -221,6 +240,7 @@ src/ChestTracker/
   ParseProcess.cs    lee cada repetición en un proceso aparte, con límite de tiempo
   Store.cs           ajustes y partidas en JSON
   Program.cs         servidor local y API
+  Export.cs          las partidas en CSV, para la copia de seguridad
   TrayIcon.cs        el icono de al lado del reloj: panel, lectura y salida
   Instance.cs        una sola copia: la segunda abre el panel de la primera y se cierra
   ui/index.html      el panel (un solo archivo, va dentro del ejecutable)

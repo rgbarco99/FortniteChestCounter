@@ -37,8 +37,6 @@ public sealed class MatchRecord
     public List<PlayerInfo> Players { get; set; } = new();
     public List<Opening> Openings { get; set; } = new();
     public List<Elimination> Eliminations { get; set; } = new();
-
-        public string PlayerId { get; set; } = "";
 }
 
 public sealed class MatchStats
@@ -77,6 +75,14 @@ public sealed class Opening
 
     /// <summary>"search" (interact key), "destroy" (broken open) or "collapse" (broken without a direct hit).</summary>
     public string Method { get; set; } = "search";
+
+    /// <summary>
+    /// Where the container stood, in metres of the game's own world (the replay counts in
+    /// centimetres; so do the season's published points of interest, which divide by 100 into
+    /// these same coordinates). Null when nothing in the replay placed it.
+    /// </summary>
+    public double? X { get; set; }
+    public double? Y { get; set; }
 }
 
 public sealed class Elimination
@@ -184,6 +190,25 @@ public sealed class ScanStatus
     /// <summary>Replay still being written by the game (a match in progress).</summary>
     public string? LiveFile { get; set; }
     public List<ScanError> Errors { get; set; } = new();
+}
+
+/// <summary>One of the copies the program keeps of the saved matches.</summary>
+public sealed class BackupInfo
+{
+    public string Name { get; set; } = "";
+    public long Bytes { get; set; }
+    public DateTime WrittenUtc { get; set; }
+}
+
+/// <summary>What came of restoring a backup.</summary>
+public sealed class ImportOutcome
+{
+    public int Added { get; set; }
+
+    /// <summary>Matches of the file that were already here, so they were left alone.</summary>
+    public int Skipped { get; set; }
+
+    public int Total { get; set; }
 }
 
 public sealed class ScanError

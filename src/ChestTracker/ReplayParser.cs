@@ -62,9 +62,13 @@ public sealed class TrackerReplayReader : FortniteReplayReader.ReplayReader
         public bool IsOpened;
         public string? Identity;
         public int? LootTier;
+
+        /// <summary>Where it stands, in centimetres. Kept from whenever the replay last said so.</summary>
+        public float? X;
+        public float? Y;
     }
 
-    public sealed record RawOpening(double Time, string ContainerClass, uint PawnGuid, string Method);
+    public sealed record RawOpening(double Time, string ContainerClass, uint PawnGuid, string Method, float? X, float? Y);
 
     /// <summary>A property that arrived before the replay said what it is called: handle and raw bits.</summary>
     private readonly record struct RawProperty(uint Handle, ulong Bits);
@@ -77,7 +81,7 @@ public sealed class TrackerReplayReader : FortniteReplayReader.ReplayReader
         List<RawProperty>? Unnamed, bool? Searched, bool? Destroyed, uint? Pawn);
 
     /// <summary>A container that broke with nobody credited by the game.</summary>
-    private sealed record Orphan(double Time, string ContainerClass, string Identity);
+    private sealed record Orphan(double Time, string ContainerClass, string Identity, float? X, float? Y);
 
     private readonly record struct Position(float Time, float X, float Y, float Z);
 
@@ -391,6 +395,14 @@ public sealed class TrackerReplayReader : FortniteReplayReader.ReplayReader
             _dicContainers[lngKey] = objState;
         }
 
+        // Where it stands. The replay only says so when the actor comes into view, so it is kept
+        // on the container: by the time it is opened the update may carry no location at all.
+        if (objActor?.Location is { } objWhere)
+        {
+            objState.X = (float)objWhere.X;
+            objState.Y = (float)objWhere.Y;
+        }
+
         if (intLootTier != null)
         {
             objState.LootTier = intLootTier;
@@ -447,12 +459,12 @@ public sealed class TrackerReplayReader : FortniteReplayReader.ReplayReader
         if (objState.SearchingPawn != 0)
         {
             _dicOpeningByIdentity[objState.Identity] = Openings.Count;
-            Openings.Add(new RawOpening(_fltFrameTime, strClass, objState.SearchingPawn, bBroken ? METHOD_DESTROY : METHOD_SEARCH));
+            Openings.Add(new RawOpening(_fltFrameTime, strClass, objState.SearchingPawn, bBroken ? METHOD_DESTROY : METHOD_SEARCH, objState.X, objState.Y));
         }
         else if (bBroken)
         {
             // Nobody credited: decided at the end, from where its loot landed
-            _lstOrphans.Add(new Orphan(_fltFrameTime, strClass, objState.Identity));
+            _lstOrphans.Add(new Orphan(_fltFrameTime, strClass, objState.Identity, objState.X, objState.Y));
         }
     }
 
@@ -535,7 +547,7 @@ public sealed class TrackerReplayReader : FortniteReplayReader.ReplayReader
                 // Already counted from a later sighting: this one says when it really happened
                 if (intPawn != 0 && Openings[intIndex].Time > objPending.Time)
                 {
-                    Openings[intIndex] = new RawOpening(objPending.Time, strClass, intPawn, bBroken ? METHOD_DESTROY : METHOD_SEARCH);
+                    Openings[intIndex] = new RawOpening(objPending.Time, strClass, intPawn, bBroken ? METHOD_DESTROY : METHOD_SEARCH, objState?.X ?? Openings[intIndex].X, objState?.Y ?? Openings[intIndex].Y);
                 }
                 continue;
             }
@@ -546,11 +558,11 @@ public sealed class TrackerReplayReader : FortniteReplayReader.ReplayReader
             if (intPawn != 0)
             {
                 _dicOpeningByIdentity[strIdentity] = Openings.Count;
-                Openings.Add(new RawOpening(objPending.Time, strClass, intPawn, bBroken ? METHOD_DESTROY : METHOD_SEARCH));
+                Openings.Add(new RawOpening(objPending.Time, strClass, intPawn, bBroken ? METHOD_DESTROY : METHOD_SEARCH, objState?.X, objState?.Y));
             }
             else if (bBroken)
             {
-                _lstOrphans.Add(new Orphan(objPending.Time, strClass, strIdentity));
+                _lstOrphans.Add(new Orphan(objPending.Time, strClass, strIdentity, objState?.X, objState?.Y));
             }
         }
 
@@ -582,9 +594,11 @@ public sealed class TrackerReplayReader : FortniteReplayReader.ReplayReader
 
             if (intNearestPawn != 0 && dblNearest <= COLLAPSE_MAX_DISTANCE_CM)
             {
-                Openings.Add(new RawOpening(objOrphan.Time, objOrphan.ContainerClass, intNearestPawn, METHOD_COLLAPSE));
+                Openings.Add(new RawOpening(objOrphan.Time, objOrphan.ContainerClass, intNearestPawn, METHOD_COLLAPSE, objOrphan.X ?? lstLoot[0].X, objOrphan.Y ?? lstLoot[0].Y));
             }
         }
+
+        PlaceOpenings();
 
         Openings.Sort((objLeft, objRight) => objLeft.Time.CompareTo(objRight.Time));
         _dicOpeningByIdentity.Clear();
@@ -596,6 +610,48 @@ public sealed class TrackerReplayReader : FortniteReplayReader.ReplayReader
 
     /// <summary>How many updates had to wait for the end of the replay (diagnostics).</summary>
     public int DeferredCount { get; private set; }
+
+    /// <summary>
+    /// Where each opened container stood. A container placed in the map never says: the replay
+    /// knows it by name, and only containers spawned during the match carry a location. So it is
+    /// taken from the loot it throws in that same frame, which lands where the container is, and
+    /// failing that from the player who opened it, who is standing right next to it.
+    /// </summary>
+    private void PlaceOpenings()
+    {
+        for (var intIndex = 0; intIndex < Openings.Count; intIndex++)
+        {
+            var objOpening = Openings[intIndex];
+            if (objOpening.X != null)
+            {
+                continue;
+            }
+
+            var objPawn = _dicPawnTracks.TryGetValue(objOpening.PawnGuid, out var lstTrack)
+                ? FindPosition(lstTrack, objOpening.Time)
+                : null;
+
+            // Several containers can be emptied in the same frame, so the loot that counts is the
+            // one by the player. Too far from them and it belongs to somebody else's container.
+            Position? objWhere = null;
+            if (objPawn is { } objPlayer)
+            {
+                objWhere = _lstLootSpawns
+                    .Where(objLoot => Math.Abs(objLoot.Time - objOpening.Time) <= LOOT_SAME_FRAME_SEC)
+                    .Select(objLoot => (Loot: objLoot, Distance: Math.Sqrt(Math.Pow(objLoot.X - objPlayer.X, 2) + Math.Pow(objLoot.Y - objPlayer.Y, 2))))
+                    .Where(objPair => objPair.Distance <= COLLAPSE_MAX_DISTANCE_CM)
+                    .OrderBy(objPair => objPair.Distance)
+                    .Select(objPair => (Position?)objPair.Loot)
+                    .FirstOrDefault();
+            }
+
+            objWhere ??= objPawn;
+            if (objWhere is { } objFound)
+            {
+                Openings[intIndex] = objOpening with { X = objFound.X, Y = objFound.Y };
+            }
+        }
+    }
 
     /// <summary>The sample of a pawn's track closest in time, if it is recent enough to trust.</summary>
     private static Position? FindPosition(List<Position> lstTrack, double dblTime)
@@ -869,7 +925,7 @@ public static class ReplayParser
     }
 
     /// <summary>Bump when the extracted data changes, so cached matches are parsed again.</summary>
-    public const int PARSER_VERSION = 6;
+    public const int PARSER_VERSION = 7;
 
     public static MatchRecord ParseFile(string strPath)
     {
@@ -978,7 +1034,10 @@ public static class ReplayParser
                     Time = double.IsFinite(objOpening.Time) ? Math.Round(objOpening.Time, 2) : 0,
                     ContainerClass = objOpening.ContainerClass,
                     PlayerId = strPlayerId,
-                    Method = objOpening.Method
+                    Method = objOpening.Method,
+                    // The replay counts in centimetres; a metre is far more than a map needs
+                    X = objOpening.X is { } fltX && float.IsFinite(fltX) ? Math.Round(fltX / 100.0) : null,
+                    Y = objOpening.Y is { } fltY && float.IsFinite(fltY) ? Math.Round(fltY / 100.0) : null
                 });
             }
         }

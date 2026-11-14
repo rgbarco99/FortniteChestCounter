@@ -241,6 +241,14 @@ td .win { color: var(--ink); font-weight: 700; }
 .table-more { margin-top: 10px; display: flex; gap: 10px; align-items: center; color: var(--ink-3); font-size: 13px; }
 .columns-pick label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
 
+/* ------------------------------------------------------------------ are you getting better */
+table.progress td.now { font-weight: 700; color: var(--ink); }
+table.progress td.before { color: var(--ink-3); }
+table.progress td.change { font-variant-numeric: tabular-nums; color: var(--ink-2); white-space: nowrap; }
+table.progress td.change.good { color: var(--good); }
+table.progress td.change.bad { color: var(--danger); }
+table.progress tbody tr:hover { background: var(--card-raised); }
+
 /* ------------------------------------------------------------------ treasure tab */
 .segmented.tabs button[aria-pressed="true"] { background: var(--gold); color: #241a00; font-weight: 600; }
 body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEditToggle, body:not([data-tab="partidas"]) .tray { display: none; }
@@ -1024,6 +1032,51 @@ const ARR_I18N = [
     ["Mejorado", "Improved", "Amélioré"],
     ["Arreglado", "Fixed", "Corrigé"],
 
+    // Are you getting better
+    ["¿Vas mejorando?", "Are you getting better?", "Tu progresses ?"],
+    ["Esta semana", "This week", "Cette semaine"],
+    ["la anterior", "the one before", "la précédente"],
+    ["Hoy", "Today", "Aujourd'hui"],
+    ["ayer", "yesterday", "hier"],
+    ["Este mes", "This month", "Ce mois-ci"],
+    ["el anterior", "the one before", "le précédent"],
+    ["Cambio", "Change", "Évolution"],
+    ["Victorias", "Wins", "Victoires"],
+    ["Cofres por partida", "Chests per match", "Coffres par partie"],
+    ["Kills por partida", "Kills per match", "Éliminations par partie"],
+    ["Minutos por partida", "Minutes per match", "Minutes par partie"],
+    ["Primer cofre (min)", "First chest (min)", "Premier coffre (min)"],
+    ["Todavía no hay partidas en este periodo ni en el anterior.", "There are no matches in this period or the one before it yet.", "Il n'y a encore aucune partie sur cette période ni sur la précédente."],
+    ["Compara {0}. ", "Compares {0}. ", "Compare {0}. "],
+    ["los últimos 7 días con los 7 anteriores", "the last 7 days with the 7 before them", "les 7 derniers jours avec les 7 précédents"],
+    ["las últimas 24 horas con las 24 anteriores", "the last 24 hours with the 24 before them", "les dernières 24 heures avec les 24 précédentes"],
+    ["los últimos 30 días con los 30 anteriores", "the last 30 days with the 30 before them", "les 30 derniers jours avec les 30 précédents"],
+    ["Todavía no hay partidas en el periodo anterior, así que aún no hay con qué comparar. ", "There are no matches in the earlier period yet, so there is nothing to compare against. ", "Il n'y a pas encore de parties sur la période précédente, donc rien à comparer. "],
+    ["El color dice si el cambio es a mejor, no si el número sube. Las cifras son medias por partida, para que un periodo con más partidas no parezca mejor solo por ser más largo.", "The colour says whether the change is for the better, not whether the number went up. The figures are averages per match, so a period with more matches does not look better just for being longer.", "La couleur dit si l'évolution est favorable, pas si le nombre monte. Les chiffres sont des moyennes par partie, pour qu'une période avec plus de parties ne paraisse pas meilleure juste parce qu'elle est plus longue."],
+
+    // Backup
+    ["Copia de seguridad", "Backup", "Sauvegarde"],
+    ["Fortnite borra sus repeticiones a los pocos días, así que una partida que solo esté aquí se pierde si se pierde esta carpeta. El programa guarda una copia al día por su cuenta; llévate una fuera del PC de vez en cuando.", "Fortnite deletes its replays within days, so a match that is only here is gone if this folder is lost. The program keeps a copy a day by itself; take one off this PC from time to time.", "Fortnite supprime ses rediffusions au bout de quelques jours : une partie qui n'est plus qu'ici est perdue si ce dossier l'est. Le programme garde une copie par jour tout seul ; emporte-en une hors du PC de temps en temps."],
+    ["Copias que guarda el programa", "Copies the program keeps", "Copies gardées par le programme"],
+    ["Una al día, en la carpeta de datos, con las últimas 10. Si algún día las partidas no están, se recuperan solas de la más reciente.", "One a day, in the data folder, keeping the last 10. If the matches are ever missing, they come back by themselves from the newest one.", "Une par jour, dans le dossier de données, en gardant les 10 dernières. Si les parties venaient à manquer, elles reviennent seules depuis la plus récente."],
+    ["Recuperar esta", "Restore this one", "Restaurer celle-ci"],
+    ["Todavía no hay ninguna. La primera se guarda en cuanto termine una partida.", "There are none yet. The first is saved as soon as a match ends.", "Il n'y en a pas encore. La première est enregistrée dès qu'une partie se termine."],
+    ["Guardar una copia ahora", "Save a copy now", "Enregistrer une copie maintenant"],
+    ["Copia guardada", "Copy saved", "Copie enregistrée"],
+    ["No se pudo guardar la copia", "Could not save the copy", "Impossible d'enregistrer la copie"],
+    ["Guardar copia de las partidas", "Save a copy of the matches", "Enregistrer une copie des parties"],
+    ["Descarga las {0} en un archivo. Es el archivo que hace falta para restaurarlas.", "Downloads the {0} into one file. This is the file you need to restore them.", "Télécharge les {0} dans un fichier. C'est ce fichier qui permet de les restaurer."],
+    ["Descargar tabla (CSV)", "Download table (CSV)", "Télécharger le tableau (CSV)"],
+    ["Una fila por partida con sus cifras, para abrirla en una hoja de cálculo. Sirve para mirar los datos, no para restaurarlos.", "One row per match with its figures, to open in a spreadsheet. It is for looking at the data, not for restoring it.", "Une ligne par partie avec ses chiffres, à ouvrir dans un tableur. C'est pour consulter les données, pas pour les restaurer."],
+    ["Restaurar una copia", "Restore a copy", "Restaurer une copie"],
+    ["Vuelve a meter las partidas de una copia. Las que ya estén aquí se quedan como están, así que no hay riesgo en restaurar dos veces.", "Puts the matches of a copy back. The ones already here are left as they are, so restoring twice does no harm.", "Remet les parties d'une copie. Celles déjà présentes sont laissées telles quelles : restaurer deux fois ne risque rien."],
+    ["partida recuperada", "match restored", "partie restaurée"],
+    ["partidas recuperadas", "matches restored", "parties restaurées"],
+    ["No había nada que recuperar", "There was nothing to restore", "Il n'y avait rien à restaurer"],
+    ["Las demás partidas de la copia ya estaban aquí.", "The other matches in the copy were already here.", "Les autres parties de la copie étaient déjà ici."],
+    ["No se pudo restaurar", "Could not restore", "Restauration impossible"],
+    ["Comprueba que es un archivo de copia de este programa.", "Check that it is a backup file from this program.", "Vérifie qu'il s'agit d'un fichier de sauvegarde de ce programme."],
+
     // Failed replays and the game's log
     ["Repeticiones con error", "Replays with errors", "Rediffusions en erreur"],
     ["{0} repeticiones no se pudieron leer", "{0} replays could not be read", "{0} rediffusions n'ont pas pu être lues"],
@@ -1235,6 +1288,36 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // so there is nothing to look up in ARR_I18N.
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
+    {
+        strVersion: "1.1.0",
+        strDate: "2026-11-14",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Tus partidas ya no dependen de un solo archivo. El programa guarda una copia al día por su cuenta y conserva las diez últimas; si algún día las partidas no están, las recupera él solo. Borrarlas a propósito sigue borrándolas, eso no se deshace.",
+                en: "Your matches no longer hang on a single file. The program keeps a copy a day by itself and holds the last ten; if the matches are ever missing, it puts them back on its own. Deleting them on purpose still deletes them — that is never undone.",
+                fr: "Tes parties ne dépendent plus d'un seul fichier. Le programme garde une copie par jour tout seul et conserve les dix dernières ; si un jour les parties manquent, il les remet lui-même. Les supprimer exprès les supprime bel et bien : cela n'est jamais annulé."
+            },
+            {
+                strTag: "nuevo",
+                es: "En Ajustes → Copia de seguridad están esas copias con su fecha, para recuperar la que quieras. También puedes guardarte un archivo con todas tus partidas para llevártelo fuera del PC, y descargar una tabla CSV para abrirla en una hoja de cálculo.",
+                en: "Settings → Backup lists those copies with their dates, to restore whichever you like. You can also save a file with all your matches to keep off this PC, and download a CSV table to open in a spreadsheet.",
+                fr: "Paramètres → Sauvegarde liste ces copies avec leur date, pour restaurer celle que tu veux. Tu peux aussi enregistrer un fichier avec toutes tes parties pour le garder hors du PC, et télécharger un tableau CSV à ouvrir dans un tableur."
+            },
+            {
+                strTag: "nuevo",
+                es: "Bloque «¿Vas mejorando?»: compara los últimos 7 días con los 7 anteriores, o las últimas 24 horas, o los últimos 30 días, en cofres por partida, ritmo, kills y puesto. El color dice si el cambio es a mejor, no si el número sube: tardar más en el primer cofre sale en rojo aunque la cifra suba.",
+                en: "An “Are you getting better?” block: it compares the last 7 days with the 7 before them, or the last 24 hours, or the last 30 days, on chests per match, pace, kills and place. The colour says whether the change is for the better, not whether the number went up: taking longer to the first chest shows red even though the figure rises.",
+                fr: "Un bloc « Tu progresses ? » : il compare les 7 derniers jours avec les 7 précédents, ou les dernières 24 heures, ou les 30 derniers jours, sur les coffres par partie, le rythme, les éliminations et la place. La couleur dit si l'évolution est favorable, pas si le nombre monte : mettre plus longtemps à ouvrir le premier coffre s'affiche en rouge même si le chiffre augmente."
+            },
+            {
+                strTag: "mejorado",
+                es: "Ahora se guarda en qué punto del mapa abriste cada cofre. Todavía no se ve en ninguna parte: es la base del mapa de cofres que viene. Al actualizar, las repeticiones que sigan en tu carpeta se vuelven a leer solas para rescatar ese dato antes de que Fortnite las borre.",
+                en: "Where on the map you opened each chest is now saved. It is not shown anywhere yet: it is the groundwork for the chest map to come. On updating, the replays still in your folder are read again by themselves to rescue that, before Fortnite deletes them.",
+                fr: "L'endroit de la carte où tu as ouvert chaque coffre est désormais enregistré. Ce n'est encore visible nulle part : c'est la base de la carte des coffres à venir. À la mise à jour, les rediffusions encore dans ton dossier sont relues toutes seules pour récupérer cette donnée avant que Fortnite ne les supprime."
+            }
+        ]
+    },
     {
         strVersion: "1.0.3",
         strDate: "2026-11-14",
@@ -1465,6 +1548,8 @@ const objApp = {
     bConnected: true,
     strServerError: null,
     strDrawerNote: null,
+    // Copias que guarda el programa; solo se consultan con los ajustes abiertos
+    arrBackups: null,
     strTab: { "#tesoros": "tesoros", "#vivo": "vivo" }[location.hash] ?? "partidas",
     objLiveSeen: { strFile: null, intChests: 0 },
     objDrawerOpen: {},
@@ -2047,6 +2132,100 @@ ARR_WIDGETS.push({
             `«Tus cofres en esas partidas» es tu media de cofres cuando jugáis juntos; tu media general en este periodo es ${fmtNumber(dblOverall)}.`,
             intOneOff ? ` No se muestran ${intOneOff} ${intOneOff === 1 ? "compañero" : "compañeros"} de una sola partida.` : null,
             intSolo ? ` ${intSolo} ${intSolo === 1 ? "partida la jugaste" : "partidas las jugaste"} sin compañeros.` : null
+        ]));
+    }
+});
+
+// Whether you are getting better. Its own windows of time, so the range buttons at the top
+// never change what it compares: a period against the one right before it, like for like.
+const ARR_PROGRESS_SPANS = [
+    { strId: "semana", strLabel: "Esta semana", strBefore: "la anterior", intDays: 7, strWindow: "los últimos 7 días con los 7 anteriores" },
+    { strId: "dia", strLabel: "Hoy", strBefore: "ayer", intDays: 1, strWindow: "las últimas 24 horas con las 24 anteriores" },
+    { strId: "mes", strLabel: "Este mes", strBefore: "el anterior", intDays: 30, strWindow: "los últimos 30 días con los 30 anteriores" }
+];
+
+// Matches of the window that ends now and goes intDays back, and of the one just before it
+const splitForProgress = (arrMatches, intDays) => {
+    const dblNow = Date.now();
+    const dblSpan = intDays * 86400000;
+    const inWindow = (objMatch, dblFrom, dblTo) => {
+        const dblWhen = new Date(objMatch.startedAt).getTime();
+        return dblWhen >= dblFrom && dblWhen < dblTo;
+    };
+    return {
+        arrNow: arrMatches.filter((objMatch) => inWindow(objMatch, dblNow - dblSpan, dblNow + 1)),
+        arrBefore: arrMatches.filter((objMatch) => inWindow(objMatch, dblNow - 2 * dblSpan, dblNow - dblSpan))
+    };
+};
+
+ARR_WIDGETS.push({
+    strId: "progreso", strTitle: "¿Vas mejorando?", strKind: "panel", intSize: 6, bHidden: false,
+    fnRender: (elBody) => {
+        const arrAll = getNumberedMatches();
+        const strSpan = objApp.objLayout.strProgressSpan ?? "semana";
+        const objSpan = ARR_PROGRESS_SPANS.find((objItem) => objItem.strId === strSpan) ?? ARR_PROGRESS_SPANS[0];
+
+        elBody.append(el("div", { class: "segmented", style: { marginBottom: "12px" } }, ARR_PROGRESS_SPANS.map((objItem) => el("button", {
+            text: objItem.strLabel, "aria-pressed": String(objItem.strId === objSpan.strId),
+            onclick: () => { objApp.objLayout.strProgressSpan = objItem.strId; saveLayout(); renderBoard(); }
+        }))));
+
+        const { arrNow, arrBefore } = splitForProgress(arrAll, objSpan.intDays);
+        if (!arrNow.length && !arrBefore.length) {
+            elBody.append(el("p", { class: "hint", text: "Todavía no hay partidas en este periodo ni en el anterior." }));
+            return;
+        }
+
+        // Average per match, so a period with more matches does not look better just for being longer
+        const per = (arrMatches, fnValue) => arrMatches.length ? sum(arrMatches, fnValue) / arrMatches.length : null;
+        const arrRows = [
+            { strLabel: "Partidas", fnNow: (arrMatches) => arrMatches.length, bMoreIsBetter: null, intDecimals: 0 },
+            { strLabel: "Cofres por partida", fnNow: (arrMatches) => per(arrMatches, (objMatch) => objMatch.chestsTotal), bMoreIsBetter: true },
+            { strLabel: "Cofres por minuto", fnNow: (arrMatches) => per(arrMatches, (objMatch) => objMatch.chestsPerMin), bMoreIsBetter: true, intDecimals: 2 },
+            { strLabel: "Primer cofre (min)", fnNow: (arrMatches) => per(arrMatches.filter((objMatch) => objMatch.firstChestSec != null), (objMatch) => objMatch.firstChestSec / 60), bMoreIsBetter: false },
+            { strLabel: "Kills por partida", fnNow: (arrMatches) => per(arrMatches, (objMatch) => objMatch.kills ?? 0), bMoreIsBetter: true },
+            { strLabel: "Puesto medio", fnNow: (arrMatches) => per(arrMatches.filter((objMatch) => objMatch.position != null), (objMatch) => objMatch.position), bMoreIsBetter: false },
+            { strLabel: "Victorias", fnNow: (arrMatches) => arrMatches.filter((objMatch) => objMatch.position === 1).length, bMoreIsBetter: true, intDecimals: 0 },
+            { strLabel: "Minutos por partida", fnNow: (arrMatches) => per(arrMatches, (objMatch) => objMatch.aliveSec / 60), bMoreIsBetter: null }
+        ];
+
+        // Chests per minute move in hundredths: rounded to one, two periods look equal and still differ
+        const fmtCell = (dblValue, intDecimals) =>
+            dblValue == null ? "–"
+                : intDecimals === 0 ? String(Math.round(dblValue))
+                : intDecimals ? dblValue.toLocaleString(STR_LOCALE, { minimumFractionDigits: intDecimals, maximumFractionDigits: intDecimals })
+                : fmtNumber(dblValue);
+
+        elBody.append(el("div", { class: "table-wrap" }, el("table", { class: "progress" }, [
+            el("thead", {}, el("tr", {}, [
+                el("th", { class: "left", text: "", style: { cursor: "default" } }),
+                el("th", { text: objSpan.strLabel, style: { cursor: "default" } }),
+                el("th", { text: objSpan.strBefore, style: { cursor: "default" } }),
+                el("th", { text: "Cambio", style: { cursor: "default" } })
+            ])),
+            el("tbody", {}, arrRows.map((objRow) => {
+                const dblNow = objRow.fnNow(arrNow);
+                const dblBefore = objRow.fnNow(arrBefore);
+                const bComparable = dblNow != null && dblBefore != null && dblBefore !== 0;
+                const dblChange = bComparable ? (dblNow - dblBefore) / Math.abs(dblBefore) : null;
+                const bUp = dblNow != null && dblBefore != null && dblNow > dblBefore;
+                const bSame = dblNow != null && dblBefore != null && dblNow === dblBefore;
+                // Fewer minutes to the first chest, or a lower place, is better
+                const strTone = objRow.bMoreIsBetter == null || bSame || dblChange == null ? ""
+                    : bUp === objRow.bMoreIsBetter ? "good" : "bad";
+                return el("tr", { style: { cursor: "default" } }, [
+                    el("td", { class: "left", text: objRow.strLabel }),
+                    el("td", { class: "now", text: fmtCell(dblNow, objRow.intDecimals) }),
+                    el("td", { class: "before", text: fmtCell(dblBefore, objRow.intDecimals) }),
+                    el("td", { class: `change ${strTone}`, text: dblChange == null ? "–" : `${bSame ? "=" : bUp ? "▲" : "▼"} ${fmtNumber(Math.abs(dblChange) * 100)} %` })
+                ]);
+            }))
+        ])));
+
+        elBody.append(el("p", { class: "hint" }, [
+            `Compara ${objSpan.strWindow}. `,
+            arrBefore.length ? null : el("b", { text: "Todavía no hay partidas en el periodo anterior, así que aún no hay con qué comparar. " }),
+            "El color dice si el cambio es a mejor, no si el número sube. Las cifras son medias por partida, para que un periodo con más partidas no parezca mejor solo por ser más largo."
         ]));
     }
 });
@@ -3355,6 +3534,81 @@ const renderDrawer = () => {
             objState.update?.checkedUtc && !objState.update.available ? el("p", { text: "Tienes la última versión" }) : null
         ], `Versión ${objState.update?.currentVersion ?? "?"}`),
 
+        section("copia", "folder", "Copia de seguridad", "Fortnite borra sus repeticiones a los pocos días, así que una partida que solo esté aquí se pierde si se pierde esta carpeta. El programa guarda una copia al día por su cuenta; llévate una fuera del PC de vez en cuando.", [
+            el("div", { class: "action", style: { display: "block" } }, [
+                el("p", { style: { margin: "0 0 8px" } }, [
+                    el("b", { text: "Copias que guarda el programa" }),
+                    el("br"),
+                    "Una al día, en la carpeta de datos, con las últimas 10. Si algún día las partidas no están, se recuperan solas de la más reciente."
+                ]),
+                objApp.arrBackups?.length
+                    ? el("div", { class: "table-wrap" }, el("table", {}, el("tbody", {}, objApp.arrBackups.map((objCopy) => el("tr", { style: { cursor: "default" } }, [
+                        el("td", { class: "left", text: fmtDate(objCopy.writtenUtc) }),
+                        el("td", { text: fmtMegabytes(objCopy.bytes) }),
+                        el("td", { class: "left" }, el("button", {
+                            class: "btn small",
+                            text: "Recuperar esta",
+                            onclick: async (objEvent) => {
+                                objEvent.target.classList.add("working");
+                                try {
+                                    const objOutcome = await api("POST", `/api/backups/restore?name=${encodeURIComponent(objCopy.name)}`);
+                                    showToast(objOutcome.added ? plural(objOutcome.added, "partida recuperada", "partidas recuperadas") : "No había nada que recuperar",
+                                        objOutcome.skipped ? "Las demás partidas de la copia ya estaban aquí." : null, "good", 9000);
+                                } catch (objError) {
+                                    showToast("No se pudo restaurar", "Comprueba que es un archivo de copia de este programa.", "warn", 9000);
+                                }
+                                await refresh(true);
+                                renderDrawer();
+                            }
+                        }))
+                    ])))))
+                    : el("p", { class: "hint", text: "Todavía no hay ninguna. La primera se guarda en cuanto termine una partida." }),
+                el("div", { class: "row", style: { marginTop: "8px" } }, [
+                    el("button", {
+                        class: "btn small", text: "Guardar una copia ahora",
+                        onclick: async (objEvent) => {
+                            objEvent.target.classList.add("working");
+                            try { await api("POST", "/api/backups/now"); showToast("Copia guardada", null, "good"); }
+                            catch (objError) { showToast("No se pudo guardar la copia", null, "warn"); }
+                            await loadBackups();
+                            renderDrawer();
+                        }
+                    })
+                ])
+            ]),
+            action(
+                el("button", { class: "btn primary", text: "Guardar copia de las partidas", onclick: () => download("/api/export/matches.json") }),
+                `Descarga las ${plural(intSaved, "partida guardada", "partidas guardadas")} en un archivo. Es el archivo que hace falta para restaurarlas.`
+            ),
+            action(
+                el("button", { class: "btn", text: "Descargar tabla (CSV)", onclick: () => download("/api/export/matches.csv") }),
+                "Una fila por partida con sus cifras, para abrirla en una hoja de cálculo. Sirve para mirar los datos, no para restaurarlos."
+            ),
+            action(
+                el("label", { class: "btn" }, [
+                    "Restaurar una copia",
+                    el("input", {
+                        type: "file", accept: ".json,application/json", style: { display: "none" },
+                        onchange: async (objEvent) => {
+                            const objFile = objEvent.target.files?.[0];
+                            objEvent.target.value = "";
+                            if (!objFile) return;
+                            try {
+                                const objOutcome = await api("POST", "/api/import", JSON.parse(await objFile.text()));
+                                showToast(objOutcome.added ? plural(objOutcome.added, "partida recuperada", "partidas recuperadas") : "No había nada que recuperar",
+                                    objOutcome.skipped ? "Las demás partidas de la copia ya estaban aquí." : null, "good", 9000);
+                                await refresh(true);
+                                renderDrawer();
+                            } catch (objError) {
+                                showToast("No se pudo restaurar", "Comprueba que es un archivo de copia de este programa.", "warn", 9000);
+                            }
+                        }
+                    })
+                ]),
+                "Vuelve a meter las partidas de una copia. Las que ya estén aquí se quedan como están, así que no hay riesgo en restaurar dos veces."
+            )
+        ], `${intSaved}`),
+
         section("borrar", "danger", "Borrar datos", "Esto no toca los archivos de Fortnite, solo lo que guarda este programa.", [
             action(
                 dangerButton("Borrar las partidas", `Sí, borrar las ${intSaved}`, async () => {
@@ -3384,7 +3638,7 @@ const renderDrawer = () => {
     elDrawer.scrollTop = dblDrawerScroll;
 };
 
-document.getElementById("elSettingsOpen").addEventListener("click", () => { renderDrawer(); elDrawer.classList.add("open"); });
+document.getElementById("elSettingsOpen").addEventListener("click", () => { renderDrawer(); elDrawer.classList.add("open"); loadBackups().then(renderDrawer); });
 document.getElementById("elEditToggle").addEventListener("click", () => { objApp.bEditing = !objApp.bEditing; renderBoard(); });
 document.addEventListener("keydown", (objEvent) => { if (objEvent.key === "Escape") elDrawer.classList.remove("open"); });
 
@@ -3644,6 +3898,19 @@ const plural = (intCount, strOne, strMany) => `${intCount} ${intCount === 1 ? st
 // ---------------------------------------------------------------------------
 // Server
 // ---------------------------------------------------------------------------
+
+// A file the reader keeps: the browser does the saving, with the name the server gives it
+const download = (strUrl) => {
+    const elLink = el("a", { href: strUrl, download: "" });
+    document.body.append(elLink);
+    elLink.click();
+    elLink.remove();
+};
+
+const loadBackups = async () => {
+    try { objApp.arrBackups = await api("GET", "/api/backups"); }
+    catch (objError) { objApp.arrBackups = []; }
+};
 
 const api = async (strMethod, strUrl, objBody) => {
     const objResponse = await fetch(strUrl, {
