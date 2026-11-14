@@ -120,11 +120,29 @@ archivo que vuelve dañado se arreglan solos en la siguiente escritura, sin guar
 se envió. Una firma (número de tarjetas, cofres totales y la última partida) evita reescribir
 cuando la revisión se movió por otra cosa. Medido: **308 bytes por partida**, 45 KB con 148.
 
-**Lo que queda:**
+**Pasos 3 y 4 hechos** (`SquadReader.cs`). Lee las fichas de todas las carpetas cada 6 s a un
+diccionario `sessionId -> jugador -> ficha`, en un almacén aparte que **nunca** toca
+`_dicMatches`: lo que comparte el squad es dato de solo lectura de otros PCs y se enseña **al
+lado** de tus cifras, nunca sumado a ellas. `/api/revision` devuelve la suma de las dos
+revisiones, así que la página se refresca también cuando publica un compañero. Verificado con
+fichas de los 4 compañeros reales sobre 152 partidas: el cruce por `sessionId` acierta.
 
-- **Paso 3 — Leer a los demás.** Diccionario `sessionId -> [tarjetas]`, en un almacén aparte que
-  **nunca** toque `_dicMatches`.
-- **Paso 4 — Enseñarlo.** El panel *Escuadra* ya tiene el guion donde deberían ir sus cofres.
+Dónde se ve: columna **Cofres** en *Tu squad en la partida*, columna **Sus cofres contigo** en
+*Amigos*, y la tarjeta **Cofres del squad en esta partida** en *En vivo* al terminar, con barras
+y la corona animada.
+
+**Tres reglas de la corona, decididas sobre el uso real:**
+
+- Se corona **en cuanto publique un compañero**, no cuando publiquen todos: esperar a los cuatro
+  puede ser esperar para siempre, y la tarjeta se quedaba muda.
+- Una **estimación nunca gana**. Si alguien no comparte, se recurre a lo que tu propia repetición
+  le vio abrir cerca de ti (unos 300 m): es un **suelo**, no un total, y se marca `≥` y «estimado».
+  Coronar un suelo sería inventárselo.
+- Una estimación de **cero** no es una estimación: es que no se le vio nunca. Se muestra «Sin
+  datos», sin barra y sin `≥0`.
+
+El suelo por cercanía sale de `MatchRecord.Openings`, que graba a cualquiera que abra cerca de ti,
+no solo a ti. Se usa **únicamente** cuando no hay ficha compartida.
 - **C — Servidor propio.** Sincronización de verdad, pero trae hosting, cuentas, privacidad y
   mantenimiento permanente. Solo si esto llega a tener usuarios que no se conozcan entre ellos.
 
@@ -166,6 +184,32 @@ PC. Nunca por defecto, nunca sin que se vea.
   las observadas de verdad. Esto enlaza directo con «suerte real» de la sección siguiente.
 
 ---
+
+### 1.1 Qué hay en el registro de Fortnite — *comprobado el 14/11/2026*
+
+Repasado el `FortniteGame.log` real (621.480 líneas) buscando algo que mejore **En vivo**:
+
+- **Útil y sin usar: `LogParty`.** `New party member state for [CHEESCA_97] Id [MCP:973e5...c656d]`
+  da **quién está en tu grupo ahora mismo**, con el nick en claro y el id de Epic abreviado
+  (5 primeros y 5 últimos). Contra los 4 ids de tu escuadrón eso es inequívoco. Permitiría que
+  En vivo diga con quién juegas antes de empezar y quién de ellos comparte datos. **Pendiente.**
+- **No existe: la muerte de un compañero en vivo.** Buscados `DBNO`, `Downed`, `Revive`,
+  `Eliminat`, `PlayersLeft` y los marcadores de mundo: todo es ruido de assets, de UI o de
+  marcadores que colocas tú. El estado del squad dentro de la partida **no se escribe al log**.
+  Solo llega con la repetición, al terminar. No merece la pena volver a buscarlo.
+- Ya se usan: inicio/fin de grabación, fin de partida y búsqueda de partida.
+
+### 1.2 El minuto óptimo de salida — *hecho*
+
+El «minuto 10» era una regla del pulgar. Ahora se calcula con el **teorema del valor marginal**:
+una partida es un parche que se agota y conviene saltar a otro cuando su rendimiento cae por
+debajo de la media de todo el ciclo, reinicio incluido. Se maximiza `cofres(T) / (T + C)`, donde
+`C` es el hueco real entre partidas, medido de tus propios `startedAt` + `durationSec` (mediana
+de los huecos menores de 10 min; los mayores son descansos, no cola).
+
+Con 152 partidas sale `C = 0,20 min` y **minuto óptimo 8**. Hace falta un mínimo de 8 partidas;
+por debajo se usa el 10 de siempre. Al llegar al minuto suena un aviso de dos notas generadas con
+WebAudio (sin archivo de audio, funciona sin conexión) y sale un toast. Una vez por partida.
 
 ## 2. Tesoros
 
@@ -398,6 +442,27 @@ salida de `--dump` contra él. Barato y desactiva el miedo. **Hacerlo antes del 
 del parser, no después.**
 
 ---
+
+## Arranque: que nunca se cierre en silencio — *hecho*
+
+**.NET no hace falta instalarlo, y comprobado sobre el binario publicado** (14/11/2026): el
+`.exe` de la release contiene `coreclr`, `hostpolicy`, `System.Private.CoreLib` y
+`Microsoft.AspNetCore`, y **no** contiene la cadena `You must install .NET` que llevaría si
+dependiera de un .NET externo. La diferencia de tamaño lo confirma: 0,6 MB el `.dll` de solo
+código frente a 58,7 MB el `.exe` publicado.
+
+**Un aviso nuestro de «falta .NET» no puede existir**, y conviene no volver a intentarlo: si el
+runtime faltara, nuestro código en C# nunca llegaría a ejecutarse para avisar. Lo único que puede
+hablar en ese caso es el arrancador nativo, que es de Microsoft. Por eso la protección se puso
+donde sí sirve: un `Target` en `ChestTracker.csproj` **falla la publicación** si alguien publica
+en modo single-file sin `--self-contained`. Probado en los tres casos: publicación mala rechazada,
+publicación buena a 58,7 MB, y el build de desarrollo intacto.
+
+Lo que sí era un agujero real: al ser `WinExe` **no hay consola**, así que cualquier excepción al
+arrancar (puerto tomado, permisos, antivirus, datos corruptos) cerraba el programa **sin ventana
+ni mensaje**. Desde fuera es idéntico a hacer doble clic y que no pase nada. Ahora `objApp.Run()`
+va dentro de un `try` que lo apunta en el registro y enseña un `MessageBox` en los tres idiomas
+con el error y la ruta del log (`Native.ShowStartupFailure`).
 
 ## Pendientes menores y sospechas
 

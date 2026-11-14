@@ -23,6 +23,9 @@ works the same, minus the map.
 1. In Fortnite, turn on **Settings → Game → Replays → Record Replays**.
 2. Download `FortniteChestCounter.exe` from the latest release on the **Releases** page and put it
    in a folder of your own (Desktop, Documents…), not in Program Files.
+
+   There is nothing to install: it is one file and it carries everything it needs, .NET included.
+   That is why it weighs around 60 MB.
 3. Open it. The first time Windows may show “Windows protected your PC” because the program is not
    signed: click **More info → Run anyway**.
 4. The dashboard opens in your browser at `http://127.0.0.1:5380`. There is no window to keep

@@ -165,6 +165,26 @@ public sealed class StateResponse
 
     /// <summary>Version running now and whether a newer one is published.</summary>
     public UpdateInfo Update { get; set; } = new();
+
+    /// <summary>What the squad has shared, added up over the matches you played together.</summary>
+    public List<SharedPlayer> Shared { get; set; } = new();
+}
+
+/// <summary>One squadmate, totalled over the matches of yours they also played.</summary>
+public sealed class SharedPlayer
+{
+    public string Id { get; set; } = "";
+    public string? Name { get; set; }
+
+    /// <summary>Matches of yours they shared a card for.</summary>
+    public int Matches { get; set; }
+
+    /// <summary>Chests they opened in those matches: the figure your own replay could never see.</summary>
+    public int Chests { get; set; }
+    public int Kills { get; set; }
+
+    /// <summary>Your own chests in those same matches, so the two can be compared fairly.</summary>
+    public int YourChests { get; set; }
 }
 
 public sealed class LiveView
@@ -291,6 +311,10 @@ public sealed class MatchSummary
     public string? Playlist { get; set; }
     public string ModeLabel { get; set; } = "";
 
+    /// <summary>Fortnite's own id for the match, the same for everybody in it: the key that
+    /// joins your figures to the ones your squad shared.</summary>
+    public string? SessionId { get; set; }
+
     public string? OwnerId { get; set; }
     public string? OwnerName { get; set; }
 
@@ -363,6 +387,23 @@ public sealed class SquadMember
     public int? DamageTaken { get; set; }
     public int? Assists { get; set; }
     public int? Revives { get; set; }
+
+    /// <summary>
+    /// Chests they opened in this match, from the card they shared. Null means nobody published
+    /// it: either they are not in a squad folder, or their copy has not synced yet. A replay
+    /// cannot answer this, which is the whole reason squads exist.
+    /// </summary>
+    public int? SharedChests { get; set; }
+
+    /// <summary>They publish into one of the folders this player is in.</summary>
+    public bool Sharing { get; set; }
+
+    /// <summary>
+    /// Chests of theirs that your own replay happened to record, because they were opened within
+    /// its range (about 300 m of you). A floor, never a total: everything they opened on the far
+    /// side of the map is missing. Only worth showing when they share nothing.
+    /// </summary>
+    public int? NearbyChests { get; set; }
 }
 
 // ---------------------------------------------------------------------------

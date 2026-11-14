@@ -978,6 +978,10 @@ public class BitReader : FBitArchive
         var setPosition = Position + size;
         if (setPosition > LastBit)
         {
+            // ChestCounter patch: remember the current end even when the size does not fit.
+            // Without it, RestoreTempEnd brings back an end saved for an earlier block, the
+            // position jumps backwards and the packet loop reads the same bits forever.
+            _tempLastBit[(int)index] = LastBit;
             IsError = true;
             return;
         }

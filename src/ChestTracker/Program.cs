@@ -87,6 +87,8 @@ objBuilder.Services.AddSingleton<Updater>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<Updater>());
 objBuilder.Services.AddSingleton<SquadPublisher>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<SquadPublisher>());
+objBuilder.Services.AddSingleton<SquadReader>();
+objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<SquadReader>());
 objBuilder.Services.AddSingleton<SeasonMap>();
 objBuilder.Services.AddSingleton<TrayIcon>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<TrayIcon>());
@@ -112,16 +114,61 @@ objApp.MapGet("/", () =>
 });
 
 // Cheap call the page polls to know whether anything changed
-objApp.MapGet("/api/revision", () => new { revision = objStore.Revision });
+var objSquadReader = objApp.Services.GetRequiredService<SquadReader>();
+
+// Both counters only ever go up, so their sum is a revision too: the page refreshes when your
+// own matches change and also when a squadmate publishes something new.
+objApp.MapGet("/api/revision", () => new { revision = objStore.Revision + objSquadReader.Revision });
 
 objApp.MapGet("/api/state", () =>
 {
     var objSettings = objStore.Settings;
     var lstRecords = objStore.GetMatches();
 
+    var lstMatches = lstRecords
+        .Select(objRecord =>
+        {
+            try { return Summarizer.Summarize(objRecord, objSettings, objSettings.DemosPath); }
+            catch (Exception objError) { objStore.Log($"No se pudo resumir {objRecord.File}: {objError.Message}"); return null; }
+        })
+        .Where(objMatch => objMatch != null)
+        .Select(objMatch => objMatch!)
+        .OrderBy(objMatch => objMatch.StartedAt)
+        .ToList();
+
+    // What the squad shared, joined to your matches by session id. Their figures sit beside
+    // yours and are never added into them.
+    var dicTotals = new Dictionary<string, SharedPlayer>(StringComparer.OrdinalIgnoreCase);
+    foreach (var objMatch in lstMatches)
+    {
+        var dicCards = objSquadReader.ForSession(objMatch.SessionId);
+        foreach (var objMate in objMatch.Squad)
+        {
+            if (objMate.IsYou || !dicCards.TryGetValue(objMate.Id, out var objCard))
+            {
+                continue;
+            }
+
+            objMate.SharedChests = objCard.Chests + objCard.Special + objCard.Spirit;
+            objMate.Sharing = true;
+
+            if (!dicTotals.TryGetValue(objMate.Id, out var objTotal))
+            {
+                objTotal = new SharedPlayer { Id = objMate.Id, Name = objMate.Name ?? objSquadReader.Names.GetValueOrDefault(objMate.Id) };
+                dicTotals[objMate.Id] = objTotal;
+            }
+
+            objTotal.Matches++;
+            objTotal.Chests += objMate.SharedChests.Value;
+            objTotal.Kills += objCard.Kills;
+            objTotal.YourChests += objMatch.ChestsTotal;
+        }
+    }
+
     return new StateResponse
     {
-        Revision = objStore.Revision,
+        Shared = dicTotals.Values.OrderByDescending(objPlayer => objPlayer.Matches).ToList(),
+        Revision = objStore.Revision + objSquadReader.Revision,
         Status = objStore.Status,
         Game = objStore.Game,
         Update = objUpdater.Info,
@@ -137,16 +184,7 @@ objApp.MapGet("/api/state", () =>
         },
         Categories = Summarizer.Categories,
         Classes = Summarizer.ListClasses(lstRecords, objSettings),
-        Matches = lstRecords
-            .Select(objRecord =>
-            {
-                try { return Summarizer.Summarize(objRecord, objSettings, objSettings.DemosPath); }
-                catch (Exception objError) { objStore.Log($"No se pudo resumir {objRecord.File}: {objError.Message}"); return null; }
-            })
-            .Where(objMatch => objMatch != null)
-            .Select(objMatch => objMatch!)
-            .OrderBy(objMatch => objMatch.StartedAt)
-            .ToList(),
+        Matches = lstMatches,
         Layout = objSettings.Layout,
         Treasure = objStore.Treasure,
         Live = objStore.LiveMatch is { } objLive
@@ -624,7 +662,21 @@ if (!args.Contains("--no-browser"))
     objApp.Lifetime.ApplicationStarted.Register(() => OpenInBrowser(strUrl));
 }
 
-objApp.Run();
+// A WinExe has no console, so an exception here would kill the program with no window, no
+// message and nothing on screen: the reader would double-click the icon and see nothing happen
+// at all. Whatever goes wrong, it gets said out loud and written down.
+try
+{
+    objApp.Run();
+}
+catch (Exception objError)
+{
+    objStore.Log($"El programa no pudo arrancar: {objError}");
+    Native.ShowStartupFailure(objError.Message, Path.Combine(strDataFolder, "chestcounter.log"));
+    return 1;
+}
+
+return 0;
 return 0;
 
 static void OpenInBrowser(string strAddress)

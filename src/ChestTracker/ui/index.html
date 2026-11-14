@@ -288,6 +288,31 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 .l-pill i { width: 10px; height: 10px; border-radius: 50%; background: var(--ink-3); }
 .l-pill.on { border-color: var(--spirit); color: var(--ink); }
 .l-pill.on i { background: var(--spirit); animation: l-blink 1.2s ease-in-out infinite; }
+/* How the squad finished, one bar each */
+.l-squad .l-score { display: grid; gap: 8px; margin-top: 10px; }
+.l-row { display: flex; align-items: center; gap: 10px; }
+.l-row .who { min-width: 130px; font-weight: 600; font-stretch: 75%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.l-row .tag { background: var(--card-raised); border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--ink-2); }
+.l-row .track { flex: 1; height: 12px; background: var(--card-raised); border-radius: 999px; overflow: hidden; }
+.l-row .track i { display: block; height: 100%; background: var(--ink-3); border-radius: 999px; transition: width 0.5s ease; }
+.l-row.you .track i { background: var(--chest); }
+.l-row.winner .track i { background: var(--gold); }
+.l-row.guess .track i { background: var(--ink-3); opacity: 0.55; }
+.l-row.guess .who, .l-row.guess b { color: var(--ink-2); }
+.l-row b { min-width: 42px; text-align: right; font-size: 19px; }
+.l-row.winner b { color: var(--gold); }
+/* The crown lands once, rather than being there from the start */
+.crown.pop { animation: crown-pop 0.7s cubic-bezier(0.2, 1.5, 0.4, 1) both; transform-origin: 50% 80%; }
+@keyframes crown-pop {
+    0% { transform: scale(0) rotate(-35deg); opacity: 0; }
+    55% { transform: scale(1.45) rotate(8deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .crown.pop { animation: none; } .l-row .track i { transition: none; } }
+.t-scope { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.t-scope .hint { color: var(--ink-2); font-size: 12.5px; }
+.l-pill.treasure { border-color: var(--gold); color: var(--gold); font-size: 15px; }
+.l-pill.treasure i { background: var(--gold); animation: l-blink 1.2s ease-in-out infinite; }
 .l-pill.done { border-color: var(--ink-2); color: var(--ink); }
 .l-pill.done i { background: var(--ink-2); }
 .l-pill.search { border-color: var(--gold); color: var(--ink); }
@@ -487,6 +512,12 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 .drawer .section.classes { --accent: var(--chest); }
 .drawer .section.reading { --accent: #9085e9; }
 .drawer .section.danger { --accent: var(--danger); }
+/* Figures that came from the squad's shared folder, and the gap where they would be */
+.shared { color: var(--good); font-weight: 600; white-space: nowrap; }
+.nodata { color: var(--danger); font-size: 12.5px; white-space: nowrap; }
+/* A floor taken from your own replay, not a figure anybody published */
+.guess { color: var(--ink-2); font-weight: 600; white-space: nowrap; border-bottom: 1px dotted var(--ink-3); cursor: help; }
+.crown { color: var(--gold); margin-left: 6px; font-size: 15px; }
 .drawer .section.group { --accent: var(--good); }
 .drawer .quiet { color: var(--ink-2); font-size: 13px; }
 .drawer .warnbox { background: var(--card-raised); border-left: 3px solid var(--gold); border-radius: 6px; padding: 10px 12px; margin: 10px 0; }
@@ -928,7 +959,7 @@ const ARR_I18N = [
     ["Tu ritmo habitual, minuto a minuto", "Your usual pace, minute by minute", "Ton rythme habituel, minute par minute"],
     ["Partida terminada", "Match finished", "Partie terminée"],
     ["Fortnite sigue grabando mientras miras a tu squad o esperas la siguiente partida, y no escribe la clave de la repetición hasta cerrarla.", "Fortnite keeps recording while you spectate your squad or wait for the next match, and only writes the replay key when it closes it.", "Fortnite continue d'enregistrer pendant que tu regardes ton escouade ou attends la partie suivante, et n'écrit la clé de la rediffusion qu'en la fermant."],
-    ["Cuando la cierre, el resumen aparecerá aquí y se quedará hasta 30 segundos después de que empiece la siguiente partida.", "When it does, the summary appears here and stays until 30 seconds after the next match starts.", "À ce moment-là, le résumé apparaît ici et reste jusqu'à 30 secondes après le début de la partie suivante."],
+    ["Cuando la cierre, el resumen aparecerá aquí y se quedará hasta 45 segundos después de que empiece la siguiente partida.", "When it does, the summary appears here and stays until 45 seconds after the next match starts.", "À ce moment-là, le résumé apparaît ici et reste jusqu'à 45 secondes après le début de la partie suivante."],
     ["Por qué no hay contador en directo", "Why there is no live count", "Pourquoi pas de décompte en direct"],
     ["Fortnite cifra la repetición mientras juegas y no escribe la clave hasta que la partida termina. Hasta entonces solo se puede saber cuándo empezó.", "Fortnite encrypts the replay while you play and only writes the key when the match ends. Until then all that can be known is when it started.", "Fortnite chiffre la rediffusion pendant que tu joues et n'écrit la clé qu'à la fin de la partie. D'ici là, on sait seulement quand elle a commencé."],
     ["En cuanto salgas de la partida, en unos segundos aparecerán aquí los cofres, las eliminaciones y el puesto.", "A few seconds after you leave the match, chests, eliminations and place show up here.", "Quelques secondes après avoir quitté la partie, les coffres, éliminations et la place apparaissent ici."],
@@ -1111,7 +1142,7 @@ const ARR_I18N = [
     ["Partida finalizada", "Match finished", "Partie terminée"],
     ["El recuento aparece en cuanto Fortnite cierre la repetición.", "The count appears as soon as Fortnite closes the replay.", "Le décompte apparaît dès que Fortnite ferme la rediffusion."],
     ["Buscando partida…", "Searching for a match…", "Recherche d'une partie…"],
-    ["El resumen de la anterior se queda hasta 30 segundos después de que empiece la nueva.", "The previous summary stays until 30 seconds after the new match starts.", "Le résumé précédent reste jusqu'à 30 secondes après le début de la nouvelle partie."],
+    ["El resumen de la anterior se queda hasta 45 segundos después de que empiece la nueva.", "The previous summary stays until 45 seconds after the new match starts.", "Le résumé précédent reste jusqu'à 45 secondes après le début de la nouvelle partie."],
     ["Una repetición no se pudo leer", "A replay could not be read", "Une rediffusion n'a pas pu être lue"],
     ["El motivo está en Ajustes.", "The reason is in Settings.", "La raison est dans les Paramètres."],
     ["código {0}", "code {0}", "code {0}"],
@@ -1255,6 +1286,41 @@ const ARR_I18N = [
     ["Por defecto: %LOCALAPPDATA%\\FortniteGame\\Saved\\Logs\\FortniteGame.log. Sin él todo funciona, pero la pestaña En vivo no sabe cuándo terminas ni cuándo buscas partida.", "Default: %LOCALAPPDATA%\\FortniteGame\\Saved\\Logs\\FortniteGame.log. Everything works without it, but the Live tab will not know when you finish or search for a match.", "Par défaut : %LOCALAPPDATA%\\FortniteGame\\Saved\\Logs\\FortniteGame.log. Tout fonctionne sans lui, mais l'onglet En direct ne saura pas quand tu termines ou cherches une partie."],
     ["Leyendo", "Reading", "Lecture"],
     ["El lector terminó con el código {0}. Segundo intento: {1}", "The reader ended with code {0}. Second try: {1}", "Le lecteur s'est terminé avec le code {0}. Deuxième essai : {1}"],
+
+    // What the squad shares, where it shows up outside the settings
+    ["Cofres", "Chests", "Coffres"],
+    ["Sin datos", "No data", "Pas de données"],
+    ["Más cofres de la partida", "Most chests of the match", "Le plus de coffres de la partie"],
+    ["Cofres del squad en esta partida", "Squad chests in this match", "Coffres de l'escouade dans cette partie"],
+    ["estimado", "estimate", "estimation"],
+    ["No está en tu escuadrón: es lo que tu repetición le vio abrir cerca de ti", "Not in your squad: this is what your replay saw them open near you", "Pas dans ton escouade : c'est ce que ta rediffusion lui a vu ouvrir près de toi"],
+    ["No está en tu escuadrón: es lo que tus repeticiones le vieron abrir cerca de ti", "Not in your squad: this is what your replays saw them open near you", "Pas dans ton escouade : c'est ce que tes rediffusions lui ont vu ouvrir près de toi"],
+    ["{0} cofres entre los {1}. Los marcados «estimado» no están en tu escuadrón: es solo lo que tu repetición les vio abrir cerca de ti, así que abrieron eso o más.", "{0} chests between the {1} of you. The ones marked «estimate» are not in your squad: it is only what your replay saw them open near you, so they opened that or more.", "{0} coffres à {1}. Ceux marqués « estimation » ne sont pas dans ton escouade : c'est seulement ce que ta rediffusion leur a vu ouvrir près de toi, donc ils en ont ouvert autant ou plus."],
+    ["Los cofres de tus compañeros vienen de lo que han publicado en vuestra carpeta compartida. Un «≥» es alguien que no comparte: es solo lo que tu repetición le vio abrir cerca de ti, así que abrió eso o más, y nunca gana la corona.", "Your squadmates' chests come from what they published in your shared folder. A «≥» is somebody not sharing: it is only what your replay saw them open near you, so they opened that or more, and it never wins the crown.", "Les coffres de tes coéquipiers viennent de ce qu'ils ont publié dans votre dossier partagé. Un « ≥ » est quelqu'un qui ne partage pas : c'est seulement ce que ta rediffusion lui a vu ouvrir près de toi, donc il en a ouvert autant ou plus, et cela ne gagne jamais la couronne."],
+    ["{0} cofres entre los {1}. Los de tus compañeros vienen de vuestra carpeta compartida.", "{0} chests between the {1} of you. Your squadmates' come from your shared folder.", "{0} coffres à {1}. Ceux de tes coéquipiers viennent de votre dossier partagé."],
+    ["Tú", "You", "Toi"],
+    ["Kills y derribos salen del registro de bajas de la partida, que es completo para todos.", "Kills and knocks come from the match's own elimination log, which is complete for everybody.", "Éliminations et mises à terre viennent du journal des éliminations de la partie, complet pour tout le monde."],
+    ["Sus cofres contigo", "Their chests with you", "Leurs coffres avec toi"],
+    ["{0} en {1}", "{0} in {1}", "{0} en {1}"],
+    ["♛ {0} cofres: ganas la partida", "♛ {0} chests: you win the match", "♛ {0} coffres : tu gagnes la partie"],
+    ["{0} más que {1}, que llevó {2}.", "{0} more than {1}, who got {2}.", "{0} de plus que {1}, qui en a eu {2}."],
+    ["{0} más que el segundo, que llevó {1}.", "{0} more than the runner-up, who got {1}.", "{0} de plus que le second, qui en a eu {1}."],
+
+    // The best minute to leave, and Treasure Hours in the live tab
+    ["Minuto {0}: hora de salir", "Minute {0}: time to leave", "Minute {0} : il est temps de partir"],
+    ["A partir de aquí rinde más una partida nueva que seguir en esta. Sale de tus propias cifras.", "From here a fresh match pays better than staying in this one. It comes from your own figures.", "À partir d'ici, une nouvelle partie rapporte plus que de rester. Cela vient de tes propres chiffres."],
+    ["Los cofres valen más ahora mismo", "Chests are worth more right now", "Les coffres valent plus en ce moment"],
+    ["HORA DEL TESORO · HASTA ×{0} · {1} min", "TREASURE HOUR · UP TO ×{0} · {1} min", "HEURE DU TRÉSOR · JUSQU'À ×{0} · {1} min"],
+    ["cofres que sueles llevar en el minuto {0}", "chests you usually have by minute {0}", "coffres que tu as d'habitude à la minute {0}"],
+    ["Cofres antes del minuto {0}", "Chests before minute {0}", "Coffres avant la minute {0}"],
+
+    // Treasure tab: whose chests the odds are counted over
+    ["Probabilidad total", "Total chance", "Probabilité totale"],
+    ["Mi probabilidad", "My chance", "Ma probabilité"],
+    ["Cuenta tus cofres y los de {0} en vuestras partidas juntos.", "Counts your chests and those of {0} in the matches you played together.", "Compte tes coffres et ceux de {0} dans vos parties jouées ensemble."],
+    ["Cuenta solo los cofres que has abierto tú.", "Counts only the chests you opened yourself.", "Compte uniquement les coffres que tu as ouverts."],
+    ["compañero", "squadmate", "coéquipier"],
+    ["compañeros", "squadmates", "coéquipiers"],
 
     // Squads: the shared folder and everything the settings say about it
     ["Escuadrones", "Squads", "Escouades"],
@@ -1509,6 +1575,54 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // so there is nothing to look up in ARR_I18N.
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
+    {
+        strVersion: "1.4.0",
+        strDate: "2026-11-15",
+        arrItems: [
+            {
+                strTag: "arreglado",
+                es: "Algunas partidas dejaban el programa leyendo sin parar, con el ordenador al máximo y sin llegar nunca a aparecer. Era un bucle infinito en la biblioteca que abre las repeticiones. Ya se leen en un par de segundos, y las que se quedaron atrás se recuperan solas.",
+                en: "Some matches left the program reading forever, with the computer at full tilt and nothing ever showing up. It was an infinite loop in the library that opens replays. They now read in a couple of seconds, and the ones left behind come back by themselves.",
+                fr: "Certaines parties laissaient le programme lire sans fin, l'ordinateur à fond et rien qui n'apparaisse jamais. C'était une boucle infinie dans la bibliothèque qui ouvre les rediffusions. Elles se lisent maintenant en deux secondes, et celles restées en arrière reviennent toutes seules."
+            },
+            {
+                strTag: "nuevo",
+                es: "Ya ves los cofres de tus compañeros. Al terminar la partida, En vivo enseña una barra por cada uno y una corona para quien más abrió. También están en «Tu squad en la partida» y en «Amigos», con su total contigo.",
+                en: "You can now see your squadmates' chests. When the match ends, Live shows a bar for each of them and a crown for whoever opened the most. They are also in “Your squad in the match” and in “Friends”, with their total alongside you.",
+                fr: "Tu vois maintenant les coffres de tes coéquipiers. À la fin de la partie, En direct affiche une barre pour chacun et une couronne pour celui qui en a ouvert le plus. Ils sont aussi dans « Ton squad dans la partie » et dans « Amis », avec leur total avec toi."
+            },
+            {
+                strTag: "nuevo",
+                es: "De quien no esté en tu escuadrón se enseña una estimación: los cofres que tu repetición le vio abrir cerca de ti, marcados con «≥» porque abrió eso o más. Nunca gana la corona, que para eso haría falta su cifra de verdad.",
+                en: "For somebody not in your squad there is an estimate: the chests your replay saw them open near you, marked with “≥” because they opened that or more. It never wins the crown, which would need their real figure.",
+                fr: "Pour quelqu'un qui n'est pas dans ton escouade, une estimation s'affiche : les coffres que ta rediffusion lui a vu ouvrir près de toi, marqués « ≥ » car il en a ouvert autant ou plus. Cela ne gagne jamais la couronne, qui exige son vrai chiffre."
+            },
+            {
+                strTag: "nuevo",
+                es: "El minuto de salir ya no es el 10 fijo: se calcula con tus propias partidas y con lo que tardas de verdad en entrar en la siguiente. Cuando llega, suena un aviso. Con las partidas de prueba salía el minuto 8.",
+                en: "The minute to leave is no longer a fixed ten: it is worked out from your own matches and from how long you really take to get into the next one. A sound tells you when it arrives. On the test data it came out at minute 8.",
+                fr: "La minute pour partir n'est plus un 10 fixe : elle se calcule à partir de tes propres parties et du temps que tu mets vraiment à entrer dans la suivante. Un son te prévient quand elle arrive. Sur les données de test, c'était la minute 8."
+            },
+            {
+                strTag: "nuevo",
+                es: "En Tesoros puedes elegir entre «Probabilidad total», que suma los cofres de todo tu escuadrón en vuestras partidas juntos, y «Mi probabilidad», solo los tuyos. Y durante una Hora del tesoro sale un distintivo en En vivo con lo que queda.",
+                en: "In Treasures you can choose between “Total chance”, which adds up your whole squad's chests in the matches you played together, and “My chance”, only your own. And during a Treasure Hour a badge in Live shows how long is left.",
+                fr: "Dans Trésors, tu peux choisir entre « Probabilité totale », qui additionne les coffres de toute ton escouade dans vos parties communes, et « Ma probabilité », seulement les tiens. Et pendant une Heure du trésor, un badge dans En direct indique le temps restant."
+            },
+            {
+                strTag: "arreglado",
+                es: "La primera Hora del tesoro del 14 de noviembre duró cuatro horas, no dos: Fortnite tuvo problemas y la alargó hasta las 24:00. Corregido, así que ahora cuentan los cofres de esas dos horas de más.",
+                en: "The first Treasure Hour of 14 November lasted four hours, not two: Fortnite had trouble and extended it to midnight. Fixed, so the chests from those two extra hours now count.",
+                fr: "La première Heure du trésor du 14 novembre a duré quatre heures, pas deux : Fortnite a eu des problèmes et l'a prolongée jusqu'à minuit. Corrigé, donc les coffres de ces deux heures supplémentaires comptent désormais."
+            },
+            {
+                strTag: "mejorado",
+                es: "Si el programa no consigue arrancar, ahora lo dice con una ventana en vez de cerrarse sin más, que por fuera parecía que no hubieras hecho doble clic. Y el resumen de la partida anterior se queda 45 segundos en vez de 30.",
+                en: "If the program cannot start, it now says so in a window instead of just closing, which from the outside looked like the double-click had not registered. And the previous match summary stays for 45 seconds instead of 30.",
+                fr: "Si le programme n'arrive pas à démarrer, il le dit désormais dans une fenêtre au lieu de se fermer sans rien, ce qui de l'extérieur ressemblait à un double-clic raté. Et le résumé de la partie précédente reste 45 secondes au lieu de 30."
+            }
+        ]
+    },
     {
         strVersion: "1.3.0",
         strDate: "2026-11-14",
@@ -1871,6 +1985,10 @@ const objApp = {
     objSquad: null,
     // Qué pantalla del escuadrón se está viendo: null (la lista), "join" o "create"
     strSquadView: null,
+    // La repetición en la que ya se ha avisado de que toca salir
+    strLeaveCalled: null,
+    // La partida cuya corona ya se ha animado, para que no rebote en cada redibujado
+    strCrownShown: null,
     // El mapa de la temporada, pedido al abrir la pestaña
     objMap: null,
     strTab: { "#tesoros": "tesoros", "#vivo": "vivo", "#mapa": "mapa" }[location.hash] ?? "partidas",
@@ -2386,24 +2504,50 @@ const ARR_WIDGETS = [
                 elBody.append(el("p", { class: "hint", text: "Esta repetición no trae datos de equipo." }));
                 return;
             }
-            const fmtOptional = (varValue) => varValue == null ? "–" : fmtNumber(varValue);
+            // Chests are the one figure a replay cannot hold for anybody but its owner: these
+            // come from what each squadmate published into the shared folder.
+            const chestsOf = (objMate) => objMate.isYou ? objSelected.chestsTotal : objMate.sharedChests;
+            // Only a published figure can win: an estimate is a floor, not a total
+            const intMost = Math.max(...objSelected.squad.map((objMate) => chestsOf(objMate) ?? -1));
+            const bAnyShared = objSelected.squad.some((objMate) => !objMate.isYou && objMate.sharedChests != null);
+
             const arrColumns = [
-                ["Jugador", (objMate) => `${objMate.name ?? objMate.id.slice(0, 8)}${objMate.isYou ? " (tú)" : ""}`, "left"],
+                // The nick and the marker are separate pieces: glued together the whole string
+                // carries a name, so it matches nothing in ARR_I18N and "(tú)" stays Spanish
+                ["Jugador", (objMate) => el("span", {}, [
+                    el("span", { "data-notr": true, text: objMate.name ?? objMate.id.slice(0, 8) }),
+                    objMate.isYou ? el("span", { text: " (tú)" }) : null
+                ]), "left"],
+                ["Cofres", (objMate) => {
+                    const intChests = chestsOf(objMate);
+                    if (intChests == null) {
+                        // Nothing shared: fall back to what your replay saw them open near you
+                        return objMate.nearbyChests
+                            ? el("span", { class: "guess", title: "No está en tu escuadrón: es lo que tu repetición le vio abrir cerca de ti", text: `≥${objMate.nearbyChests}` })
+                            : el("span", { class: "nodata", text: "Sin datos" });
+                    }
+                    const bWinner = bAnyShared && intChests === intMost && objSelected.squad.length > 1;
+                    return el("span", { class: "shared" }, [String(intChests), bWinner ? el("span", { class: "crown", title: "Más cofres de la partida", text: "♛" }) : null]);
+                }],
                 ["Kills", (objMate) => objMate.kills ?? "–"],
                 ["Derribos", (objMate) => objMate.knocks],
                 ["Derribado", (objMate) => objMate.timesKnocked],
-                ["Daño hecho", (objMate) => fmtOptional(objMate.damageDealt)],
-                ["Daño recibido", (objMate) => fmtOptional(objMate.damageTaken)],
-                ["Cayó en", (objMate) => objMate.eliminatedAt == null ? "No cayó" : fmtClock(objMate.eliminatedAt)],
                 ["Plataforma", (objMate) => OBJ_PLATFORMS[objMate.platform] ?? objMate.platform ?? "–", "left"],
                 ["Gracias al bus", (objMate) => objMate.thankedBusDriver ? "Sí" : "No", "left"]
             ];
             elBody.append(el("div", { class: "table-wrap" }, el("table", {}, [
                 el("thead", {}, el("tr", {}, arrColumns.map(([strHead, , strAlign]) => el("th", { class: strAlign ?? null, text: strHead, style: { cursor: "default" } })))),
                 el("tbody", {}, objSelected.squad.map((objMate) => el("tr", { style: { cursor: "default" }, title: objMate.eliminatedBy ? `Eliminado por ${objMate.eliminatedBy}` : null },
-                    arrColumns.map(([, fnValue, strAlign]) => el("td", { class: strAlign ?? null, text: fnValue(objMate) })))))
+                    arrColumns.map(([, fnValue, strAlign]) => {
+                        // A column may give a plain value or a piece of its own (the chest cell does)
+                        const varValue = fnValue(objMate);
+                        return varValue instanceof Node
+                            ? el("td", { class: strAlign ?? null }, varValue)
+                            : el("td", { class: strAlign ?? null, text: varValue });
+                    }))))
             ])));
-            elBody.append(el("p", { class: "hint", text: "Kills, derribos y minuto de eliminación salen del registro de bajas de la partida, que es completo para todos. El daño solo lo escribe Fortnite para quien graba la repetición, por eso el de tus compañeros no aparece." }));
+            elBody.append(el("p", { class: "hint", text: "Kills y derribos salen del registro de bajas de la partida, que es completo para todos." }));
+            elBody.append(el("p", { class: "hint", text: "Los cofres de tus compañeros vienen de lo que han publicado en vuestra carpeta compartida. Un «≥» es alguien que no comparte: es solo lo que tu repetición le vio abrir cerca de ti, así que abrió eso o más, y nunca gana la corona." }));
         }
     }
 ];
@@ -2411,6 +2555,8 @@ const ARR_WIDGETS = [
 ARR_WIDGETS.push({
     strId: "amigos", strTitle: "Amigos con los que más juegas", strKind: "panel", intSize: 8, bHidden: false,
     fnRender: (elBody, { arrMatches }) => {
+        // What each of them published, totalled over the matches you played together
+        const dicShared = new Map((objApp.objState?.shared ?? []).map((objPlayer) => [objPlayer.id, objPlayer]));
         // One row per teammate, over the matches of the selected range
         const dicFriends = new Map();
         for (const objMatch of arrMatches) {
@@ -2446,12 +2592,28 @@ ARR_WIDGETS.push({
             ["Puesto medio", (objFriend) => objFriend.arrPositions.length ? fmtNumber(sum(objFriend.arrPositions, (intPosition) => intPosition) / objFriend.arrPositions.length) : "–"],
             ["Mejor puesto", (objFriend) => objFriend.arrPositions.length ? fmtPosition(Math.min(...objFriend.arrPositions)) : "–"],
             ["Tus cofres en esas partidas", (objFriend) => fmtNumber(objFriend.intYourChests / objFriend.intMatches)],
+            // Their own chests exist only if they share them: a replay never holds anyone else's
+            ["Sus cofres contigo", (objFriend) => {
+                const objShared = dicShared.get(objFriend.strId);
+                if (objShared) return el("span", { class: "shared", "data-notr": true, text: fmtWhole(objShared.chests) });
+                // Not sharing: add up what your own replays saw them open nearby
+                const intNear = sum(arrMatches, (objMatch) =>
+                    objMatch.squad.find((objMate) => objMate.id === objFriend.strId)?.nearbyChests ?? 0);
+                return intNear
+                    ? el("span", { class: "guess", title: "No está en tu escuadrón: es lo que tus repeticiones le vieron abrir cerca de ti", "data-notr": true, text: `≥${fmtWhole(intNear)}` })
+                    : el("span", { class: "nodata", text: "Sin datos" });
+            }],
             ["Última vez", (objFriend) => new Date(objFriend.strLast).toLocaleDateString(STR_LOCALE, { day: "numeric", month: "short" })]
         ];
         elBody.append(el("div", { class: "table-wrap scroll-y" }, el("table", {}, [
             el("thead", {}, el("tr", {}, arrColumns.map(([strHead, , strAlign]) => el("th", { class: strAlign ?? null, text: strHead, style: { cursor: "default" } })))),
             el("tbody", {}, arrFriends.slice(0, 25).map((objFriend) => el("tr", { style: { cursor: "default" } },
-                arrColumns.map(([, fnValue, strAlign]) => el("td", { class: strAlign ?? null, text: fnValue(objFriend) })))))
+                arrColumns.map(([, fnValue, strAlign]) => {
+                    const varValue = fnValue(objFriend);
+                    return varValue instanceof Node
+                        ? el("td", { class: strAlign ?? null }, varValue)
+                        : el("td", { class: strAlign ?? null, text: varValue });
+                }))))
         ])));
         elBody.append(el("p", { class: "hint" }, [
             `«Tus cofres en esas partidas» es tu media de cofres cuando jugáis juntos; tu media general en este periodo es ${fmtNumber(dblOverall)}.`,
@@ -2730,7 +2892,7 @@ const renderTable = (elBody, { arrMatches, objSelected }) => {
 // Everything here can be edited from the tab, so a new season only needs new numbers.
 // Bumped when this file brings data an older copy cannot have: on loading, normalizeTreasure
 // folds in what is new (today's Treasure Hours) without touching what the player edited.
-const INT_TREASURE_VERSION = 4;
+const INT_TREASURE_VERSION = 5;
 
 const defaultTreasure = () => ({
     intVersion: INT_TREASURE_VERSION,
@@ -2759,10 +2921,11 @@ const defaultTreasure = () => ({
     arrWindows: [
         { strStart: "2026-11-07T19:00:00Z", strEnd: "2026-11-07T21:00:00Z", objMultipliers: { token: 1.5, gold: 7.5, vehicle: 10 } },
         { strStart: "2026-11-08T02:00:00Z", strEnd: "2026-11-08T04:00:00Z", objMultipliers: { token: 2, gold: 10 } },
-        // 14 Nov, the "Cursed" ones. Epic gave the hours (19:00 UTC, and 02:00 UTC the day after,
-        // two hours each); the multipliers below are what the press reported, and the second
-        // window's 2x is last week's pattern rather than a figure Epic confirmed. Editable.
-        { strStart: "2026-11-14T19:00:00Z", strEnd: "2026-11-14T21:00:00Z", objMultipliers: { token: 1.5, gold: 7.5, vehicle: 10 } },
+        // 14 Nov, the "Cursed" ones. Epic gave the starting hours (19:00 UTC, and 02:00 UTC the
+        // day after). The first one ran four hours, not two: Fortnite had trouble and extended
+        // it to 23:00 UTC. The multipliers are what the press reported, and the second window's
+        // 2x is last week's pattern rather than a figure Epic confirmed. Editable.
+        { strStart: "2026-11-14T19:00:00Z", strEnd: "2026-11-14T23:00:00Z", objMultipliers: { token: 1.5, gold: 7.5, vehicle: 10 } },
         { strStart: "2026-11-15T02:00:00Z", strEnd: "2026-11-15T04:00:00Z", objMultipliers: { token: 2, gold: 10 } }
     ]
 });
@@ -2823,6 +2986,16 @@ const normalizeTreasure = (objSaved) => {
     if (intSaved < 4) {
         for (const [strKey, objOfficial] of Object.entries(OBJ_WEEK_ITEMS)) {
             if (objOfficial.strImage) delete objOut.objItems[strKey];
+        }
+    }
+    // The first Treasure Hour of 14 Nov was extended to four hours while it was running, so a
+    // copy that saved the announced end has it wrong. Only that one window is corrected, and
+    // only when it still holds the old end: an end edited by hand stays as it was.
+    if (intSaved < 5) {
+        for (const objWindow of objOut.arrWindows) {
+            if (objWindow.strStart === "2026-11-14T19:00:00Z" && objWindow.strEnd === "2026-11-14T21:00:00Z") {
+                objWindow.strEnd = "2026-11-14T23:00:00Z";
+            }
         }
     }
     if (intSaved < INT_TREASURE_VERSION) objOut.intVersion = INT_TREASURE_VERSION;
@@ -2900,17 +3073,43 @@ const getSelectedWeek = () => {
     return arrWeeks[intWanted];
 };
 
-// Every chest of the matches that count, with the real moment it was opened
-const getChestMoments = () => {
+// Every chest of the matches that count, with the real moment it was opened. With "squad" it
+// also counts what your squadmates opened in those same matches: a treasure that drops for any
+// of you is a treasure the group got, so the odds that matter are the ones over all your chests.
+//
+// Their cards carry counts, not timestamps, so their chests are placed at the start of the match.
+// A match lasts about ten minutes and a Treasure Hour two, so this only shifts a chest across a
+// window's edge in the few minutes either side of it.
+const getChestMoments = (strScope) => {
     const arrMoments = [];
+    const bSquad = strScope === "squad";
+
     for (const objMatch of (objApp.objState?.matches ?? [])) {
         if (objMatch.excluded) continue;
         const dblStart = new Date(objMatch.startedAt).getTime();
         for (const objOpening of objMatch.openings) {
             if (ARR_CHEST_CATEGORIES.includes(objOpening.category)) arrMoments.push(dblStart + objOpening.t * 1000);
         }
+        if (!bSquad) continue;
+        for (const objMate of (objMatch.squad ?? [])) {
+            if (objMate.isYou || objMate.sharedChests == null) continue;
+            for (let intChest = 0; intChest < objMate.sharedChests; intChest++) arrMoments.push(dblStart);
+        }
     }
+
     return arrMoments;
+};
+
+// How many squads' worth of chests the treasure tab is counting
+const getTreasureScope = () => {
+    if (!(objApp.objState?.shared ?? []).length) return "mine";     // nothing shared: no choice to make
+    try { return localStorage.getItem("contador-cofres-tesoro-ambito") === "mine" ? "mine" : "squad"; }
+    catch (objError) { return "squad"; }
+};
+
+const setTreasureScope = (strScope) => {
+    try { localStorage.setItem("contador-cofres-tesoro-ambito", strScope); } catch (objError) { /* storage unavailable */ }
+    renderTreasure();
 };
 
 // The reward week a given moment falls in. A match from outside the event keeps its own plain
@@ -3363,7 +3562,9 @@ const renderTreasure = () => {
     if (!objApp.objState || !objApp.objTreasure) return;
     const objTreasure = objApp.objTreasure;
     const objWeek = getSelectedWeek();
-    const arrMoments = getChestMoments();
+    const strScope = getTreasureScope();
+    const arrMoments = getChestMoments(strScope);
+    const arrShared = objApp.objState?.shared ?? [];
     const dblScroll = window.scrollY;
 
     const intWeekChests = arrMoments.filter((dblMoment) => dblMoment >= objWeek.dtStart.getTime() && dblMoment < objWeek.dtEnd.getTime()).length + (Number(objTreasure.objExtraWeek[objWeek.strKey]) || 0);
@@ -3393,6 +3594,13 @@ const renderTreasure = () => {
             el("span", { class: "grow" }),
             el("button", { class: `btn${objApp.bTreasureEditing ? " primary" : ""}`, text: objApp.bTreasureEditing ? "Terminar de editar" : "Editar tesoros", onclick: () => { objApp.bTreasureEditing = !objApp.bTreasureEditing; objApp.strPasteTarget = null; objApp.objFind = null; if (objApp.bTreasureEditing) loadCatalogues(); renderTreasure(); } })
         ]),
+        arrShared.length ? el("div", { class: "t-scope" }, [
+            el("button", { class: `btn small${strScope === "squad" ? " primary" : ""}`, text: "Probabilidad total", onclick: () => setTreasureScope("squad") }),
+            el("button", { class: `btn small${strScope === "mine" ? " primary" : ""}`, text: "Mi probabilidad", onclick: () => setTreasureScope("mine") }),
+            el("span", { class: "hint", text: strScope === "squad"
+                ? `Cuenta tus cofres y los de ${plural(arrShared.length, "compañero", "compañeros")} en vuestras partidas juntos.`
+                : "Cuenta solo los cofres que has abierto tú." })
+        ]) : null,
         el("div", { class: "t-top" }, [
             el("div", { class: "t-facts" }, [
                 el("div", {}, [el("div", { class: "value figure", text: fmtWhole(intWeekChests) }), el("div", { class: "label", text: "cofres abiertos esta semana" })]),
@@ -3598,10 +3806,86 @@ const renderMap = () => {
 
 const elLive = document.getElementById("elLive");
 const elMap = document.getElementById("elMap");
-const INT_RUSH_SECONDS = 600;   // the first ten minutes are where the chests are
+// Fallback for when there are not enough saved matches to work the best minute out: the first
+// ten minutes used to be the rule of thumb. getBestMinute() replaces it once there is data.
+const INT_RUSH_SECONDS = 600;
 
 // Seconds the summary of the last match stays after the next one starts (loading screen, bus)
-const INT_HOLD_SECONDS = 30;
+const INT_HOLD_SECONDS = 45;
+
+// How the squad finished, once the match is over and everybody has published. While a match is
+// running nobody has published anything yet, so this only appears afterwards; and until the last
+// card syncs it says who is missing rather than crowning somebody on half the figures.
+const squadScoreCard = (objMatch, bLive) => {
+    if (bLive || !objMatch.squad?.length) return null;
+
+    const arrMates = objMatch.squad.filter((objMate) => !objMate.isYou);
+    if (!arrMates.length) return null;
+
+    // Nobody sharing at all means there is nothing to compare: the card stays away
+    if (!arrMates.some((objMate) => objMate.sharedChests != null)) return null;
+
+    const arrRows = [
+        { strName: objMatch.ownerName ?? "Tú", intChests: objMatch.chestsTotal, bYou: true, bGuess: false },
+        ...arrMates.map((objMate) => ({
+            strName: objMate.name ?? objMate.id.slice(0, 8),
+            // What they shared, or failing that what your own replay saw them open nearby
+            intChests: objMate.sharedChests ?? objMate.nearbyChests ?? 0,
+            bYou: false,
+            bGuess: objMate.sharedChests == null,
+            // Never seen opening anything near you: no figure at all, rather than a hollow "≥0"
+            bNone: objMate.sharedChests == null && !objMate.nearbyChests
+        }))
+    ].sort((objLeft, objRight) => objRight.intChests - objLeft.intChests);
+
+    const intTop = arrRows[0].intChests;
+    const intTotal = arrRows.reduce((intSum, objRow) => intSum + objRow.intChests, 0);
+    const arrGuessed = arrRows.filter((objRow) => objRow.bGuess && !objRow.bNone);
+
+    // The live tab redraws often; the crown should land once and then just sit there
+    const strKey = objMatch.sessionId ?? objMatch.file;
+    const bFirstTime = objApp.strCrownShown !== strKey;
+    if (bFirstTime) objApp.strCrownShown = strKey;
+
+    return el("div", { class: "l-card full l-squad" }, [
+        el("h2", { text: "Cofres del squad en esta partida" }),
+        el("div", { class: "l-score" }, arrRows.map((objRow) => {
+            // An estimate can never win: it is a floor, and crowning it would be made up
+            const bWinner = objRow.intChests === intTop && arrRows.length > 1 && !objRow.bGuess;
+            return el("div", { class: `l-row${objRow.bYou ? " you" : ""}${bWinner ? " winner" : ""}${objRow.bGuess ? " guess" : ""}` }, [
+                el("span", { class: "who", "data-notr": true, text: objRow.strName }),
+                objRow.bYou ? el("span", { class: "tag", text: "tú" }) : null,
+                objRow.bGuess && !objRow.bNone ? el("span", { class: "tag", text: "estimado" }) : null,
+                el("span", { class: "track" }, el("i", { style: { width: `${intTop && !objRow.bNone ? (objRow.intChests / intTop) * 100 : 0}%` } })),
+                objRow.bNone
+                    ? el("span", { class: "nodata", text: "Sin datos" })
+                    : el("b", { class: "figure", "data-notr": true, text: `${objRow.bGuess ? "≥" : ""}${objRow.intChests}` }),
+                bWinner ? el("span", { class: `crown${bFirstTime ? " pop" : ""}`, title: "Más cofres de la partida", text: "♛" }) : null
+            ]);
+        })),
+        el("p", { class: "hint", text: arrGuessed.length
+            ? `${intTotal} cofres entre los ${arrRows.length}. Los marcados «estimado» no están en tu escuadrón: es solo lo que tu repetición les vio abrir cerca de ti, así que abrieron eso o más.`
+            : `${intTotal} cofres entre los ${arrRows.length}. Los de tus compañeros vienen de vuestra carpeta compartida.` })
+    ]);
+};
+
+// A Treasure Hour running right now, as a badge for the live tab: it is the one moment where
+// opening a chest is worth several, and it ends on a clock, so it belongs next to the timer.
+const treasureHourPill = () => {
+    const dblNow = Date.now();
+    const objWindow = (objApp.objTreasure?.arrWindows ?? []).find((objItem) =>
+        dblNow >= new Date(objItem.strStart).getTime() && dblNow < new Date(objItem.strEnd).getTime());
+    if (!objWindow) return null;
+
+    // Each treasure gets its own multiplier, and they differ a lot: the golden outfit can be at
+    // ten while the token is at two. "Up to" is what keeps the biggest one from promising the rest.
+    const dblBest = Math.max(1, ...Object.values(objWindow.objMultipliers ?? {}).map(Number).filter((dblValue) => dblValue > 0));
+    const intLeft = Math.round((new Date(objWindow.strEnd).getTime() - dblNow) / 60000);
+    return el("span", { class: "l-pill treasure", title: "Los cofres valen más ahora mismo" }, [
+        el("i"),
+        `HORA DEL TESORO · HASTA ×${fmtNumber(dblBest)} · ${intLeft} min`
+    ]);
+};
 
 // What the live tab shows. The game's log (when it can be read) says when the match ends for you
 // and whether you are already searching for the next one; the replay files say what happened.
@@ -3673,9 +3957,38 @@ const getHabits = (strExceptFile) => {
     }
     const arrAverage = arrReached.map((intMatches, intMinute) => (arrPerMinute[intMinute] ?? 0) / intMatches);
     const rate = (intFrom, intTo) => { const arrSlice = arrAverage.slice(intFrom, intTo); return arrSlice.length ? sum(arrSlice, (dblValue) => dblValue) / arrSlice.length : null; };
+
+    // Minutes lost between leaving one match and the next one starting: menu, queue and lobby.
+    // Measured from your own matches, because it is what decides whether restarting pays.
+    const arrGaps = [];
+    for (let intIndex = 1; intIndex < arrHistory.length; intIndex++) {
+        const objBefore = arrHistory[intIndex - 1];
+        const dblEnded = new Date(objBefore.startedAt).getTime() + objBefore.durationSec * 1000;
+        const dblGap = (new Date(arrHistory[intIndex].startedAt).getTime() - dblEnded) / 60000;
+        if (dblGap > 0 && dblGap < 10) arrGaps.push(dblGap);     // longer than that is a break, not a queue
+    }
+    arrGaps.sort((dblLeft, dblRight) => dblLeft - dblRight);
+    const dblOverhead = arrGaps.length ? arrGaps[Math.floor(arrGaps.length / 2)] : 0.5;
+
+    // The best minute to leave, by the marginal value theorem: a match is a patch that runs dry,
+    // and the moment to jump to a fresh one is when its yield falls below what the whole cycle
+    // averages, restart included. Maximising chests/(minutes + overhead) finds exactly that.
+    let intBestMinute = null;
+    if (arrHistory.length >= 8) {
+        let dblBestRate = 0, dblRunning = 0;
+        for (let intMinute = 0; intMinute < arrAverage.length; intMinute++) {
+            dblRunning += arrAverage[intMinute];
+            const dblRate = dblRunning / (intMinute + 1 + dblOverhead);
+            if (dblRate > dblBestRate) { dblBestRate = dblRate; intBestMinute = intMinute + 1; }
+        }
+    }
+
     return {
         intMatches: arrHistory.length,
         arrAverage,
+        dblOverhead,
+        // Null until there are enough matches to mean anything; callers fall back to ten minutes
+        intBestMinute,
         // Average running total at a given second, counting only matches that lasted that long
         totalAt: (dblSeconds) => { let dblTotal = 0; for (let intMinute = 0; intMinute < arrAverage.length && intMinute * 60 < dblSeconds; intMinute++) dblTotal += arrAverage[intMinute] * Math.min(1, (dblSeconds - intMinute * 60) / 60); return dblTotal; },
         bestAt: (dblSeconds) => Math.max(0, ...arrHistory.map((objMatch) => objMatch.openings.filter((objOpening) => ARR_CHEST_CATEGORIES.includes(objOpening.category) && objOpening.t <= dblSeconds).length)),
@@ -3795,17 +4108,21 @@ const renderLive = () => {
         el("div", { class: "label", text: strLabel }),
         strSub ? el("div", { class: "sub" }, [OBJ_TREND_MARKS[strTone] ? el("span", { class: "trend", text: OBJ_TREND_MARKS[strTone] }) : null, strSub]) : null
     ]);
-    const bInRush = bLive && dblNow < INT_RUSH_SECONDS;
+    // The minute your own figures say is the best to leave, worked out by the marginal value
+    // theorem. Ten minutes was a rule of thumb; this is the real answer for how you play.
+    const intBestMinute = objHabits.intBestMinute;
+    const dblLeaveSeconds = (intBestMinute ?? INT_RUSH_SECONDS / 60) * 60;
+    const bInRush = bLive && dblNow < dblLeaveSeconds;
 
-    // Rush hour: the message changes at minute ten, with your own numbers
+    // Rush hour: the message changes at the best minute, with your own numbers
     let elRush;
-    if (bLive && dblNow < INT_RUSH_SECONDS) {
+    if (bLive && dblNow < dblLeaveSeconds) {
         elRush = el("div", { class: "l-card full l-rush rush" }, [
-            el("span", {}, ["Hora punta: quedan ", el("b", { id: "elRushLeft", class: "figure", text: fmtClock(INT_RUSH_SECONDS - dblNow) }), ` hasta el minuto 10. ${objHabits.dblRushRate != null && objHabits.dblLateRate != null ? `Ahora sueles abrir ${fmtNumber(objHabits.dblRushRate)} cofres por minuto; después, ${fmtNumber(objHabits.dblLateRate)}.` : "Es cuando más cofres caen."}`]),
-            el("div", { class: "bar" }, el("i", { id: "elRushBar", style: { width: `${(dblNow / INT_RUSH_SECONDS) * 100}%` } }))
+            el("span", {}, ["Hora punta: quedan ", el("b", { id: "elRushLeft", class: "figure", text: fmtClock(dblLeaveSeconds - dblNow) }), ` hasta el minuto ${Math.round(dblLeaveSeconds / 60)}. ${objHabits.dblRushRate != null && objHabits.dblLateRate != null ? `Ahora sueles abrir ${fmtNumber(objHabits.dblRushRate)} cofres por minuto; después, ${fmtNumber(objHabits.dblLateRate)}.` : "Es cuando más cofres caen."}`]),
+            el("div", { class: "bar" }, el("i", { id: "elRushBar", style: { width: `${(dblNow / dblLeaveSeconds) * 100}%` } }))
         ]);
     } else if (bLive) {
-        elRush = el("div", { class: "l-card full l-rush" }, el("span", { text: `Minuto 10 superado. ${objHabits.dblRushRate != null && objHabits.dblLateRate != null ? `Aquí tu media baja de ${fmtNumber(objHabits.dblRushRate)} a ${fmtNumber(objHabits.dblLateRate)} cofres por minuto: cada cofre de ahora vale doble de mérito.` : "A partir de aquí cada cofre cuesta más."}` }));
+        elRush = el("div", { class: "l-card full l-rush" }, el("span", { text: `Minuto ${Math.round(dblLeaveSeconds / 60)} superado: a partir de aquí rinde más una partida nueva. ${objHabits.dblRushRate != null && objHabits.dblLateRate != null ? `Tu media baja de ${fmtNumber(objHabits.dblRushRate)} a ${fmtNumber(objHabits.dblLateRate)} cofres por minuto.` : "Cada cofre cuesta más."}` }));
     } else if (objContext.bEnding) {
         elRush = el("div", { class: "l-card full l-rush rush" }, el("span", { text: `Partida terminada a los ${fmtClock(dblNow)}. El recuento aparece en cuanto Fortnite cierre la repetición.` }));
     } else {
@@ -3825,6 +4142,7 @@ const renderLive = () => {
         elLive.replaceChildren(
             el("div", { class: "l-top" }, [
                 el("span", { class: `l-pill ${objContext.strPillClass}` }, [el("i"), objContext.strPill]),
+                treasureHourPill(),
                 el("div", { class: "l-meta" }, [el("b", { text: `Partida de las ${new Date(objMatch.startedAt).toLocaleTimeString(STR_LOCALE, { hour: "2-digit", minute: "2-digit" })}` }), objContext.bEnding ? "Recuento en camino" : "El recuento sale al terminar"]),
                 el("span", { class: "grow" }),
                 el("div", { class: `l-timer figure${bInRush ? " rush" : ""}` }, [el("span", { id: "elLiveTimer", text: fmtClock(dblNow) }), el("small", { text: objContext.bEnding ? "duración de tu partida" : "minuto de partida" })])
@@ -3843,8 +4161,8 @@ const renderLive = () => {
                 tile(objHabits.intMatches ? String(objHabits.intRecord) : "–", "tu récord de cofres", "El número a batir", objHabits.intMatches ? "gold" : null),
                 tile(objLast ? String(objLast.chestsTotal) : "–", "cofres en tu última partida", objLast?.position ? `Puesto ${fmtPosition(objLast.position)}` : null),
                 tile(String(objHabits.intMatches), objHabits.intMatches === 1 ? "partida guardada" : "partidas guardadas", "De ahí salen las medias"),
-                tile(objHabits.intMatches ? fmtNumber(objHabits.totalAt(INT_RUSH_SECONDS)) : "–", "cofres que sueles llevar en el minuto 10", null),
-                tile(objHabits.intMatches ? String(objHabits.bestAt(INT_RUSH_SECONDS)) : "–", "tu mejor hora punta", "Cofres antes del minuto 10"),
+                tile(objHabits.intMatches ? fmtNumber(objHabits.totalAt(dblLeaveSeconds)) : "–", `cofres que sueles llevar en el minuto ${Math.round(dblLeaveSeconds / 60)}`, null),
+                tile(objHabits.intMatches ? String(objHabits.bestAt(dblLeaveSeconds)) : "–", "tu mejor hora punta", `Cofres antes del minuto ${Math.round(dblLeaveSeconds / 60)}`),
                 tile(objHabits.intMatches ? fmtNumber(objHabits.dblMeanTotal) : "–", "cofres de media por partida", null),
                 tile(arrMissing.length ? fmtPercent(1 - arrMissing.reduce((dblNone, objReward) => dblNone * (1 - chanceAt(objReward, Date.now())), 1)) : "–", "de tesoro nuevo en cada cofre", strMissingNote),
                 elRush,
@@ -3852,7 +4170,7 @@ const renderLive = () => {
                 objContext.bEnding ? el("div", { class: "l-card side" }, [
                     el("h2", { text: "Partida terminada" }),
                     el("p", { class: "hint", text: "Fortnite sigue grabando mientras miras a tu squad o esperas la siguiente partida, y no escribe la clave de la repetición hasta cerrarla." }),
-                    el("p", { class: "hint", text: "Cuando la cierre, el resumen aparecerá aquí y se quedará hasta 30 segundos después de que empiece la siguiente partida." })
+                    el("p", { class: "hint", text: "Cuando la cierre, el resumen aparecerá aquí y se quedará hasta 45 segundos después de que empiece la siguiente partida." })
                 ]) : el("div", { class: "l-card side" }, [
                     el("h2", { text: "Por qué no hay contador en directo" }),
                     el("p", { class: "hint", text: "Fortnite cifra la repetición mientras juegas y no escribe la clave hasta que la partida termina. Hasta entonces solo se puede saber cuándo empezó." }),
@@ -3882,7 +4200,7 @@ const renderLive = () => {
             el("div", { class: "l-card hero" }, [
                 el("div", { class: `value figure${bBump ? " bump" : ""}`, text: intChests }),
                 el("div", { class: "label", text: intChests === 1 ? "cofre abierto" : "cofres abiertos" }),
-                el("div", { class: "sub", text: `${objMatch.counts.cofre} normales, ${objMatch.counts.especial} especiales, ${objMatch.counts.espiritu} de espíritu${objMatch.chestsBroken ? `; ${objMatch.chestsBroken} rotos` : ""}` })
+                el("div", { class: "sub", text: `${objMatch.counts.cofre} normales, ${objMatch.counts.especial} especiales, ${objMatch.counts.espiritu} de espíritu` })
             ]),
             tile(dblAhead == null ? "–" : `${dblAhead >= 0 ? "+" : "−"}${fmtNumber(Math.abs(dblAhead))}`, "frente a tu media a estas alturas", dblUsualNow != null ? `Sueles llevar ${fmtNumber(dblUsualNow)}` : "Hace falta alguna partida guardada", getTone(intChests, dblUsualNow)),
             tile(objNumberFormat2.format(dblPace), "cofres por minuto", objHabits.dblMeanPace != null ? `Tu media: ${objNumberFormat2.format(objHabits.dblMeanPace)}` : null, getTone(dblPace, objHabits.dblMeanPace)),
@@ -3893,6 +4211,7 @@ const renderLive = () => {
             tile(bLive ? "–" : fmtPosition(objMatch.position), "puesto", bLive ? "Se sabe al terminar" : `${objMatch.totalPlayers ? `de ${objMatch.totalPlayers}` : ""}${objHabits.dblMeanPosition != null ? `${objMatch.totalPlayers ? "; " : ""}tu media, ${fmtNumber(objHabits.dblMeanPosition)}` : ""}` || null, bLive ? null : (objMatch.position === 1 ? "gold" : getTone(objMatch.position, objHabits.dblMeanPosition, true))),
             tile(objMatch.firstChestSec != null ? fmtClock(objMatch.firstChestSec) : "–", "primer cofre", objMatch.firstChestSec != null ? (objHabits.dblMeanFirstChest != null ? `Tu media: ${fmtClock(objHabits.dblMeanFirstChest)}` : "Minuto en que cayó") : "Todavía ninguno", getTone(objMatch.firstChestSec, objHabits.dblMeanFirstChest, true)),
             elRush,
+            squadScoreCard(objMatch, bLive),
             el("div", { class: "l-card full" }, [el("h2", { text: "Cofres minuto a minuto" }), elPace])
         ].filter(Boolean)),
         el("p", { class: "t-note", text: bLive ? "Fortnite escribe la repetición cada 20 segundos: lo que ves llega con ese retraso. El puesto y las estadísticas oficiales se cierran al terminar la partida." : null })
@@ -3917,11 +4236,12 @@ setInterval(() => {
     }
     if (!objContext.bLive) return;
     const dblNow = getLiveSeconds(objContext);
-    if (document.getElementById("elRushBar") && dblNow >= INT_RUSH_SECONDS) { renderLive(); return; }
+    const dblLeave = (getHabits(objApp.objState?.live?.match?.file).intBestMinute ?? INT_RUSH_SECONDS / 60) * 60;
+    if (document.getElementById("elRushBar") && dblNow >= dblLeave) { renderLive(); return; }
     setText("elLiveTimer", fmtClock(dblNow));
-    setText("elRushLeft", fmtClock(Math.max(0, INT_RUSH_SECONDS - dblNow)));
+    setText("elRushLeft", fmtClock(Math.max(0, dblLeave - dblNow)));
     const elBar = document.getElementById("elRushBar");
-    if (elBar) elBar.style.width = `${Math.min(100, (dblNow / INT_RUSH_SECONDS) * 100)}%`;
+    if (elBar) elBar.style.width = `${Math.min(100, (dblNow / dblLeave) * 100)}%`;
     const elNow = document.getElementById("elPaceNow");
     if (elNow) { const dblX = Number(elNow.dataset.left) + Number(elNow.dataset.band) * Math.min(Number(elNow.dataset.max), dblNow / 60); elNow.setAttribute("x1", dblX); elNow.setAttribute("x2", dblX); }
     if (objContext.bLocked && document.getElementById("elLiveTarget")) {
@@ -4781,6 +5101,92 @@ document.addEventListener("keydown", (objEvent) => { if (objEvent.key === "Escap
 // What the program is doing: toasts, top bar, progress chip
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Winning the chest count. Only worth saying once everybody in the squad has published:
+// until then the figures are incomplete and a crown would be a lie. Celebrated matches are
+// remembered so the news does not come round again on every refresh or restart.
+// ---------------------------------------------------------------------------
+const STR_CROWNED_KEY = "contador-cofres-coronas";
+
+const loadCrowned = () => {
+    try { return new Set(JSON.parse(localStorage.getItem(STR_CROWNED_KEY)) ?? []); }
+    catch (objError) { return new Set(); }
+};
+
+const rememberCrowned = (setDone) => {
+    // Only the recent ones are worth keeping: this is a reminder, not a record
+    try { localStorage.setItem(STR_CROWNED_KEY, JSON.stringify([...setDone].slice(-40))); }
+    catch (objError) { /* storage unavailable */ }
+};
+
+const celebrateChestWin = () => {
+    const objMatch = getNumberedMatches().at(-1);
+    if (!objMatch?.sessionId || !objMatch.squad?.length) return;
+
+    // Enough that one of them published: waiting for all four can mean waiting forever
+    const arrShared = objMatch.squad.filter((objMate) => !objMate.isYou && objMate.sharedChests != null);
+    if (!arrShared.length) return;
+
+    const intBest = Math.max(...arrShared.map((objMate) => objMate.sharedChests));
+    if (objMatch.chestsTotal <= intBest) return;
+
+    const setDone = loadCrowned();
+    if (setDone.has(objMatch.sessionId)) return;
+    setDone.add(objMatch.sessionId);
+    rememberCrowned(setDone);
+
+    const objRunnerUp = arrShared.find((objMate) => objMate.sharedChests === intBest);
+    showToast(
+        `♛ ${objMatch.chestsTotal} cofres: ganas la partida`,
+        `${objMatch.chestsTotal - intBest} más que ${objRunnerUp?.name ?? "el segundo"}, que llevó ${intBest}.`,
+        "gold", 9000
+    );
+};
+
+// ---------------------------------------------------------------------------
+// The best minute to leave. Two short notes, made on the spot rather than loaded from a file,
+// so the program carries no audio and works offline. Browsers refuse to make a sound before
+// the page has been clicked once, so a failure here is normal and silent.
+// ---------------------------------------------------------------------------
+let objAudio = null;
+
+const playLeaveCue = () => {
+    try {
+        objAudio ??= new (window.AudioContext ?? window.webkitAudioContext)();
+        if (objAudio.state === "suspended") objAudio.resume();
+        [0, 0.18].forEach((dblWhen, intIndex) => {
+            const objOsc = objAudio.createOscillator();
+            const objGain = objAudio.createGain();
+            objOsc.type = "sine";
+            objOsc.frequency.value = intIndex ? 1046.5 : 784;       // sol, luego do
+            const dblStart = objAudio.currentTime + dblWhen;
+            objGain.gain.setValueAtTime(0.0001, dblStart);
+            objGain.gain.exponentialRampToValueAtTime(0.22, dblStart + 0.02);
+            objGain.gain.exponentialRampToValueAtTime(0.0001, dblStart + 0.16);
+            objOsc.connect(objGain).connect(objAudio.destination);
+            objOsc.start(dblStart);
+            objOsc.stop(dblStart + 0.18);
+        });
+    } catch (objError) { /* No audio allowed yet, or none at all: the notice still shows */ }
+};
+
+// Fires once per match, when the live clock passes the minute the figures say is the best to go
+const callLeaveTime = (objLive, intBestMinute) => {
+    if (!objLive || intBestMinute == null) return;
+    const strFile = objLive.match.file;
+    const dblMinutes = (Date.now() - new Date(objLive.match.startedAt).getTime()) / 60000;
+    if (dblMinutes < intBestMinute || dblMinutes > intBestMinute + 3) return;   // too late to be news
+    if (objApp.strLeaveCalled === strFile) return;
+
+    objApp.strLeaveCalled = strFile;
+    playLeaveCue();
+    showToast(
+        `Minuto ${intBestMinute}: hora de salir`,
+        "A partir de aquí rinde más una partida nueva que seguir en esta. Sale de tus propias cifras.",
+        "gold", 10000
+    );
+};
+
 const OBJ_TOAST_ICONS = { good: "✓", gold: "★", warn: "!", info: "●" };
 const showToast = (strTitle, strText = null, strKind = "info", intMs = 6000) => {
     const elToasts = document.getElementById("elToasts");
@@ -5021,7 +5427,7 @@ const announceChanges = (objBefore, objAfter) => {
     if (!objBefore.live && objAfter.live) showToast("Partida en curso", "La pestaña En vivo ya la está siguiendo.", "info");
     const objGameBefore = objBefore.game ?? {}, objGameAfter = objAfter.game ?? {};
     if (objGameAfter.matchFinishedUtc && objGameAfter.matchFinishedUtc !== objGameBefore.matchFinishedUtc) showToast("Partida finalizada", "El recuento aparece en cuanto Fortnite cierre la repetición.", "info");
-    if (objGameAfter.searchingSinceUtc && objGameAfter.searchingSinceUtc !== objGameBefore.searchingSinceUtc) showToast("Buscando partida…", "El resumen de la anterior se queda hasta 30 segundos después de que empiece la nueva.", "info");
+    if (objGameAfter.searchingSinceUtc && objGameAfter.searchingSinceUtc !== objGameBefore.searchingSinceUtc) showToast("Buscando partida…", "El resumen de la anterior se queda hasta 45 segundos después de que empiece la nueva.", "info");
     if (objStatusAfter.errors.length > objStatusBefore.errors.length) showToast("Una repetición no se pudo leer", "El motivo está en Ajustes.", "warn", 9000);
     const objUpdateBefore = objBefore.update ?? {}, objUpdateAfter = objAfter.update ?? {};
     if (objUpdateAfter.currentVersion && objUpdateBefore.currentVersion && objUpdateAfter.currentVersion !== objUpdateBefore.currentVersion) showToast(`Actualizado a la versión ${objUpdateAfter.currentVersion}`, null, "good", 9000);
@@ -5109,6 +5515,8 @@ const refresh = async (bForce = false) => {
             objApp.bFollowLatest = true;
         }
         showTab(true);
+        celebrateChestWin();
+        callLeaveTime(objApp.objState?.live, getHabits(objApp.objState?.live?.match?.file).intBestMinute);
         const bDrawerBusy = elDrawer.contains(document.activeElement) && ["INPUT", "SELECT"].includes(document.activeElement.tagName) || elDrawer.querySelector(".btn.danger.solid");
         if (elDrawer.classList.contains("open") && !bDrawerBusy && !bForce) renderDrawer();
     } catch (objError) {

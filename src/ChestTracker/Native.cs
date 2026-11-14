@@ -29,6 +29,42 @@ internal static class Native
     }
 
     /// <summary>
+    /// Says out loud that the program could not start, in the three languages, and offers to
+    /// open the log. A WinExe that throws on startup closes with no window at all, which from
+    /// the outside looks exactly like double-clicking the icon and nothing happening.
+    /// </summary>
+    public static void ShowStartupFailure(string strMessage, string strLogPath)
+    {
+        var intLang = GetLanguageColumn();
+        var strTitle = new[] { "Fortnite Chest Counter no pudo arrancar", "Fortnite Chest Counter could not start", "Fortnite Chest Counter n'a pas pu démarrer" }[intLang];
+        var strWhat = new[]
+        {
+            "El programa se ha cerrado nada más empezar. Esto es lo que dijo Windows:",
+            "The program closed as soon as it started. This is what Windows said:",
+            "Le programme s'est fermé dès son démarrage. Voici ce qu'a dit Windows :"
+        }[intLang];
+        var strWhere = new[]
+        {
+            "Se ha apuntado en el registro, por si hace falta:",
+            "It has been written to the log, in case it helps:",
+            "Cela a été noté dans le journal, au cas où :"
+        }[intLang];
+
+        try
+        {
+            System.Windows.Forms.MessageBox.Show(
+                $"{strWhat}\n\n{strMessage}\n\n{strWhere}\n{strLogPath}",
+                strTitle,
+                System.Windows.Forms.MessageBoxButtons.OK,
+                System.Windows.Forms.MessageBoxIcon.Error);
+        }
+        catch (Exception)
+        {
+            // No desktop to show it on (a service, a locked session): the log already has it
+        }
+    }
+
+    /// <summary>
     /// Which of the three languages Windows is set to, as a column of the [Spanish, English,
     /// French] lists the program carries: 0, 1 or 2. The dashboard has its own switch; this is
     /// only for the little that lives outside the browser, the tray icon and its menu.

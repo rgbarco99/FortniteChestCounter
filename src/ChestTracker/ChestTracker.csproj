@@ -38,4 +38,16 @@
     <ProjectReference Include="..\..\vendor\FortniteReplayDecompressor\src\FortniteReplayReader\FortniteReplayReader.csproj" />
   </ItemGroup>
 
+  <!--
+    The published .exe has to carry .NET inside it. Nobody downloading it should have to install
+    anything, and this is the only place that can be guaranteed: if the runtime were missing,
+    the program would never get far enough to say so, because saying so is itself .NET code.
+    A framework-dependent publish would hand that job to Microsoft's launcher instead of us.
+    So a release that forgot the self-contained flag fails here rather than reaching anybody.
+  -->
+  <Target Name="EnsureSelfContained" BeforeTargets="PrepareForPublish" Condition="'$(PublishSingleFile)' == 'true'">
+    <Error Condition="'$(SelfContained)' != 'true'"
+           Text="La publicación tiene que ser --self-contained: si no, el .exe exige que el usuario instale .NET y nosotros no podemos ni avisarle. Añade --self-contained true." />
+  </Target>
+
 </Project>

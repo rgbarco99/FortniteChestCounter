@@ -10,6 +10,9 @@ No usa IA ni toca el juego: solo lee los archivos `.replay` del disco.
 
 1. Descarga `FortniteChestCounter.exe` de la última versión en la página **Releases** del
    repositorio y ponlo en una carpeta tuya (Escritorio, Documentos…), no en Archivos de programa.
+
+   No hay nada que instalar: es un único archivo y lleva dentro todo lo que necesita, .NET
+   incluido. Por eso ocupa unos 60 MB.
 2. Ábrelo. La primera vez Windows puede avisar con «Windows protegió tu PC», porque el programa no
    está firmado: pulsa «Más información» y «Ejecutar de todas formas».
 3. Se abre el panel en el navegador (`http://127.0.0.1:5380`). No hay ninguna ventana que dejar

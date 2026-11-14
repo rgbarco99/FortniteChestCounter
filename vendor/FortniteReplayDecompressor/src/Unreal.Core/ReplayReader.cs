@@ -2013,8 +2013,17 @@ public abstract class ReplayReader<T> where T : Replay, new()
         bool bHasPartialCustomExportsFinalBit = !(bitReader.EngineNetworkVersion < EngineNetworkVersionHistory.CustomExports);
 
         //var rejectedChannels = new Dictionary<uint, uint>();
+        var intBunchStart = -1;
         while (!bitReader.AtEnd())
         {
+            // ChestCounter patch: a bunch that does not move the reader forward would repeat forever
+            if (bitReader.Position <= intBunchStart)
+            {
+                _logger?.LogWarning("ReceivedPacket: no progress in packet {packetIndex}, aborting packet.", packetIndex);
+                break;
+            }
+            intBunchStart = bitReader.Position;
+
             // For demo backwards compatibility, old replays still have this bit
             if (bitReader.EngineNetworkVersion < EngineNetworkVersionHistory.HISTORY_ACKS_INCLUDED_IN_HEADER)
             {

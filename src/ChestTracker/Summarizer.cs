@@ -82,6 +82,7 @@ public static class Summarizer
             Build = objMatch.Build,
             Playlist = objMatch.Playlist,
             ModeLabel = DescribePlaylist(objMatch.Playlist),
+            SessionId = objMatch.SessionId,
             OwnerId = strOwnerId,
             OwnerName = objOwner?.Name,
             Position = objMatch.Position,
@@ -168,6 +169,11 @@ public static class Summarizer
                     Level = objMate.Level,
                     ThankedBusDriver = objMate.ThankedBusDriver,
                     Reboots = objMate.Reboots,
+                    // A replay records containers opened near its owner whoever opened them, so
+                    // a squadmate who stayed close leaves a trail here. It is a floor and never
+                    // a total, which is why it is only ever shown when they share nothing.
+                    NearbyChests = bIsYou ? null : objMatch.Openings.Count(objOpening =>
+                        objOpening.PlayerId == objMate.Id && arrChestCategories.Contains(GetCategory(objOpening.ContainerClass, objSettings))),
                     DamageDealt = bIsYou ? objMatch.Stats?.DamageDealt : null,
                     DamageTaken = bIsYou ? objMatch.Stats?.DamageTaken : null,
                     Assists = bIsYou ? objMatch.Stats?.Assists : null,

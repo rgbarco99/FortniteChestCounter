@@ -323,6 +323,40 @@ public static class Squad
         WriteAtomic(Path.Combine(strFolder, $"{objFile.PlayerId}.json"), JsonSerializer.Serialize(objFile, objJson));
     }
 
+    /// <summary>
+    /// Every believable file in the folder, cards and all. Same trust rule as ReadMembers: the
+    /// name has to be an Epic id and the contents have to claim that same id.
+    /// </summary>
+    public static List<SquadFile> ReadFiles(string strFolder)
+    {
+        var lstFiles = new List<SquadFile>();
+
+        try
+        {
+            foreach (var strPath in Directory.EnumerateFiles(strFolder, "*.json"))
+            {
+                var strName = Path.GetFileNameWithoutExtension(strPath);
+                if (!IsEpicId(strName))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var objFile = JsonSerializer.Deserialize<SquadFile>(File.ReadAllText(strPath), objJson);
+                    if (objFile != null && string.Equals(objFile.PlayerId, strName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        lstFiles.Add(objFile);
+                    }
+                }
+                catch (Exception) { /* Half synchronised or damaged: skipped now, read again next pass */ }
+            }
+        }
+        catch (Exception) { /* The folder went away mid-read */ }
+
+        return lstFiles;
+    }
+
     /// <summary>This player's own file as it stands, for adding to without losing what is there.</summary>
     public static SquadFile? ReadMine(string strFolder, string strEpicId)
     {
