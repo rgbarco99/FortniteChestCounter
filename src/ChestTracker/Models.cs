@@ -115,6 +115,24 @@ public sealed class TrackerSettings
     /// <summary>Fortnite's log file chosen by the user; empty means next to the replay folder.</summary>
     public string LogPath { get; set; } = "";
 
+    /// <summary>
+    /// Shared folders of the squads this player is in, up to <see cref="MAX_SQUADS"/>. Empty is
+    /// how every copy starts: nothing leaves this PC until somebody joins a squad on purpose.
+    /// </summary>
+    public List<string> SquadPaths { get; set; } = new();
+
+    /// <summary>
+    /// The single folder of the versions before squads could be several. Read once on start and
+    /// folded into <see cref="SquadPaths"/>, so an update never drops somebody out of their squad.
+    /// </summary>
+    public string SquadPath { get; set; } = "";
+
+    /// <summary>
+    /// Four folders syncing at once is already a real cost in disk and in writes, and nobody
+    /// plays with more than four groups of people often enough to be worth it.
+    /// </summary>
+    public const int MAX_SQUADS = 4;
+
     /// <summary>The tray icon has already said once where the program lives.</summary>
     public bool TrayNoticeShown { get; set; }
 
@@ -345,6 +363,125 @@ public sealed class SquadMember
     public int? DamageTaken { get; set; }
     public int? Assists { get; set; }
     public int? Revives { get; set; }
+}
+
+// ---------------------------------------------------------------------------
+// The squad group: a folder shared through OneDrive, Drive or Dropbox.
+// SquadMember above is the squad of one match, read from your own replay;
+// these are the players who share the folder, which is a different thing.
+// ---------------------------------------------------------------------------
+
+/// <summary>A cloud folder of this PC, offered as somewhere to put a group.</summary>
+public sealed class CloudRoot
+{
+    public string Provider { get; set; } = "";
+    public string Path { get; set; } = "";
+}
+
+/// <summary>What one player writes into the shared folder, in their own file.</summary>
+public sealed class SquadFile
+{
+    public string PlayerId { get; set; } = "";
+    public string? Name { get; set; }
+    public DateTime UpdatedUtc { get; set; }
+
+    /// <summary>One card per match, oldest first.</summary>
+    public List<SquadCard> Cards { get; set; } = new();
+}
+
+/// <summary>
+/// One match as the rest of the squad sees it: about 250 bytes, and the whole of what leaves
+/// this PC. The settings list these fields one by one, so sharing can be read before it is
+/// agreed to; anything added here has to be added there too.
+///
+/// SessionId is the key that joins the four files: Fortnite writes the same one for everybody
+/// in the match.
+/// </summary>
+public sealed class SquadCard
+{
+    public string SessionId { get; set; } = "";
+    public DateTime StartedAt { get; set; }
+
+    /// <summary>Seconds this player lasted, and how long the replay ran.</summary>
+    public double AliveSec { get; set; }
+    public double DurationSec { get; set; }
+
+    /// <summary>Chests opened, by the three categories the dashboard counts.</summary>
+    public int Chests { get; set; }
+    public int Special { get; set; }
+    public int Spirit { get; set; }
+
+    public int Kills { get; set; }
+    public int? Position { get; set; }
+    public double? FirstChestSec { get; set; }
+}
+
+/// <summary>A player with a file in the shared folder.</summary>
+public sealed class SquadMate
+{
+    public string Id { get; set; } = "";
+    public string? Name { get; set; }
+    public bool IsYou { get; set; }
+
+    /// <summary>They are in your own replays as a regular squadmate: that is what makes a group recognisable.</summary>
+    public bool PlayedWithYou { get; set; }
+
+    public DateTime? UpdatedUtc { get; set; }
+
+    /// <summary>Matches they share, for a member of the group.</summary>
+    public int Matches { get; set; }
+
+    /// <summary>Recent matches played together, for one of your own squadmates.</summary>
+    public int Together { get; set; }
+}
+
+/// <summary>A group found sitting in this PC's cloud folders.</summary>
+public sealed class GroupFound
+{
+    public string Path { get; set; } = "";
+    public string Provider { get; set; } = "";
+    public List<SquadMate> Members { get; set; } = new();
+
+    /// <summary>How many of its members you have actually played with.</summary>
+    public int KnownMates { get; set; }
+}
+
+/// <summary>One squad this player is in: its folder, how it is doing and who is in it.</summary>
+public sealed class SquadGroup
+{
+    public string Path { get; set; } = "";
+
+    /// <summary>Shown instead of the whole path, which is long and means nothing to the reader.</summary>
+    public string Name { get; set; } = "";
+
+    /// <summary>"ok", "missing", "readonly" or "error".</summary>
+    public string Status { get; set; } = "ok";
+
+    public List<SquadMate> Members { get; set; } = new();
+}
+
+/// <summary>Everything the squad section of the settings needs (GET /api/squad).</summary>
+public sealed class SquadView
+{
+    /// <summary>The squads in use, in the order they were joined. Empty means none.</summary>
+    public List<SquadGroup> Squads { get; set; } = new();
+
+    /// <summary>"ok", or "noepic" when the Epic id is not known yet and nothing can be done.</summary>
+    public string Status { get; set; } = "ok";
+
+    public int Max { get; set; } = TrackerSettings.MAX_SQUADS;
+
+    /// <summary>Cloud folders where a squad could be created.</summary>
+    public List<CloudRoot> Roots { get; set; } = new();
+
+    /// <summary>Squads sitting in the cloud folders that this player has not joined, best first.</summary>
+    public List<GroupFound> Found { get; set; } = new();
+
+    /// <summary>The squadmates of your recent matches, whether or not they are in a squad here.</summary>
+    public List<SquadMate> RecentMates { get; set; } = new();
+
+    public string EpicId { get; set; } = "";
+    public string? YourName { get; set; }
 }
 
 // Request bodies

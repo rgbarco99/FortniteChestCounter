@@ -42,6 +42,20 @@ public sealed class Store
         Settings.ExcludedFiles = new HashSet<string>(Settings.ExcludedFiles ?? new(), StringComparer.OrdinalIgnoreCase);
         Settings.IgnoredFiles = new HashSet<string>(Settings.IgnoredFiles ?? new(), StringComparer.OrdinalIgnoreCase);
         Settings.LogPath ??= "";
+        Settings.SquadPaths ??= new List<string>();
+
+        // Before squads could be several there was one folder in SquadPath: fold it in, so
+        // updating never quietly drops somebody out of the squad they were already sharing with
+        if (!string.IsNullOrWhiteSpace(Settings.SquadPath))
+        {
+            if (!Settings.SquadPaths.Contains(Settings.SquadPath, StringComparer.OrdinalIgnoreCase))
+            {
+                Settings.SquadPaths.Insert(0, Settings.SquadPath);
+            }
+
+            Settings.SquadPath = "";
+            WriteJson(_strSettingsFile, Settings);
+        }
 
         if (!string.IsNullOrWhiteSpace(strDemosPathOverride))
         {
@@ -283,7 +297,15 @@ public sealed class Store
     {
         lock (_objLock)
         {
-            Settings = new TrackerSettings { DemosPath = Settings.DemosPath, LogPath = Settings.LogPath, TrayNoticeShown = Settings.TrayNoticeShown };
+            // The group is kept: it is shared with other people, not a preference of this PC,
+            // so leaving it stays an explicit act with its own button.
+            Settings = new TrackerSettings
+            {
+                DemosPath = Settings.DemosPath,
+                LogPath = Settings.LogPath,
+                TrayNoticeShown = Settings.TrayNoticeShown,
+                SquadPaths = Settings.SquadPaths
+            };
             _lngRevision++;
             WriteJson(_strSettingsFile, Settings);
         }

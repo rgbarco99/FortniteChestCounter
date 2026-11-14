@@ -28,6 +28,7 @@ cofre tiene una recompensa visible al momento.
 | 7 | Imágenes y nombres desde la API (2.1) | **Hecho** · buscador sobre los cuatro catálogos |
 | 8 | Semanas cortadas al final del evento | **Hecho** · cinco semanas, la última acaba el 5 de diciembre |
 | 9 | Tesoros oficiales de cada semana por defecto | **Hecho** · semanas 1 y 2, editables, con «Volver al oficial» |
+| 10 | Escuadrones: crear, entrar, gestionar hasta 4 y publicar | **Hecho** · carpeta compartida detectada sola |
 
 ---
 
@@ -48,18 +49,109 @@ ambigüedad. Ya se guarda; hoy no se usa para nada.
 unos cientos de bytes por jugador: id de Epic, nick, `SessionId`, hora de inicio, cofres por
 categoría, kills, puesto, minutos y minuto del primer cofre.
 
-**Cómo, por orden de dificultad:**
+**Por qué no se comparte el backup.** Era tentador: ocupa poco y la fontanería ya existe. Pero
+`ImportMatches` indexa por `objMatch.File`, el nombre del `.replay`, y de una misma partida cada
+jugador tiene un archivo con nombre distinto. Importar el backup de un compañero no fusionaría
+nada: metería sus partidas como **tuyas** (136 pasarían a más de 500, con sus cofres contados como
+propios). Hace falta una ruta de fusión aparte de todos modos, así que la ventaja de reaprovechar
+desaparece y quedan solo los inconvenientes: 952 KB hoy y ~5,5 MB a fin de temporada (~7 KB
+comprimidos por partida), frente a ~250 bytes de una tarjeta; y de cada partida arrastra los 80
+jugadores con id, nick, plataforma y nivel (unos 11.000 desconocidos en una semana), todas las
+eliminaciones del lobby y la x/y de cada cofre. *Comprobado el 14/11/2026.*
 
-- **A — Archivo suelto (empezar por aquí).** Exportar las tarjetas, mandarlas por Discord e
-  importarlas. Cero infraestructura: la fontanería de importar y exportar ya está hecha en el
-  punto 2, solo hay que añadir el formato tarjeta y que al importar se fusione por `SessionId`
-  en vez de ignorarse. Fricción: manual.
-- **B — Carpeta compartida (el objetivo real).** Cada uno apunta el programa a una carpeta de
-  OneDrive, Drive o Dropbox. Cada copia escribe `squad/<id-de-epic>.json` y lee las de los demás.
-  Automático, sin servidor, sin cuentas, sin coste, y se configura una vez. Es la opción que da
-  el 90 % del valor por el 10 % del trabajo.
+**La arquitectura: una carpeta compartida, un escritor por archivo.** Cada uno escribe solo
+`<su-id-de-epic>.json` y no toca el de nadie. Ese invariante es lo que permite no tener servidor,
+ni cuentas, ni bloqueos, y esquiva lo único que OneDrive y Drive hacen mal: dos personas editando
+el mismo archivo. El cruce se hace por `SessionId`, que es idéntico en los cuatro.
+
+**Por qué no hay «URL y contraseña».** Se valoró y no se puede: el problema no es la contraseña,
+es **escribir**. Cada miembro tiene que escribir su propio `<id>.json`, y en Drive, OneDrive y
+Dropbox **no existe la escritura anónima** — escribir siempre exige estar autenticado. Una URL
+pública, con o sin contraseña, da como mucho lectura, así que el grupo tendría a cuatro personas
+mirando y a ninguna publicando. (Y Google Drive no ofrece contraseñas de enlace en absoluto.)
+Lo que sí daría URL + token es un repo privado o un jsonbin, y eso es el plan C con otro nombre.
+El enlace de compartir hace de URL, y la lista de permisos del proveedor hace de contraseña: va
+por persona, se revoca de una en una y no hay un secreto suelto en un chat.
+
+**Qué se automatiza.** El objetivo es que sean dos clics para quien crea el grupo y uno para el
+resto, sin que nadie escriba una ruta:
+
+- Las raíces de nube se detectan solas: `%OneDrive%` y sus variantes, Dropbox desde
+  `%APPDATA%\Dropbox\info.json`, y Google Drive por la etiqueta del volumen.
+- Un marcador `grupo.json` hace el grupo encontrable: se busca `grupo.json` hasta dos niveles bajo
+  cada raíz, con tope de 600 carpetas. **Cuando OneDrive comparte una carpeta, aparece en la raíz
+  del invitado con el mismo nombre**, así que la ruta es predecible sin comunicarla.
+- Las propias repeticiones confirman quién es quién: los compañeros de equipo de las últimas 40
+  partidas se cruzan con los miembros del grupo, para decir «has jugado con 2 de ellos hace poco».
+  Y al revés: avisa de a quién juegas y aún no has invitado.
+
+**Lo que no se automatiza:** compartir la carpeta en OneDrive, y que el invitado acepte el enlace.
+Exige la UI del proveedor o su API con OAuth, que es el plan C. Aceptar es justo lo que pone la
+carpeta en el disco del invitado, y hasta que no está en el disco el programa no la puede ver.
+Por eso la pantalla de entrar **pide el enlace pero no lee datos de él**: solo lo abre en el
+navegador, y después busca en el disco.
+
+**La pantalla, en tres vistas** (`objApp.strSquadView`):
+
+- **Elección** — «¿Te han invitado?» y «¿Lo montas tú?», los dos botones **al mismo peso**. Esto
+  no es estética: antes el botón grande era «Crear», y los tres invitados que aún no habían
+  aceptado el enlace lo habrían pulsado, creando cuatro grupos distintos que no se ven entre sí.
+- **Invitado** — pega el enlace → se abre en el navegador → «Ya lo he aceptado, búscalo».
+- **Creador** — pasos numerados, crear la carpeta y compartirla con permiso de edición.
+
+**Estado: pasos 1 y 2 hechos** (`Squad.cs`, `SquadPublisher.cs`, `/api/squad*`, sección
+«Escuadrones» en los ajustes). Crear, encontrar, entrar, salir y publicar funcionan, con **hasta
+4 escuadrones a la vez**. Verificado con nubes falsas y Chrome headless el 14/11/2026: detección,
+lectura, archivo intruso ignorado, normalización de rutas, publicación de 152 partidas reales en
+dos carpetas, el tope de 4, salir sin borrar nada, enlaces inválidos rechazados y los tres
+idiomas.
+
+**Varios escuadrones.** `SquadPaths` es una lista; `SquadPath`, el ajuste antiguo de una sola
+carpeta, se funde en ella al arrancar para no echar a nadie de su grupo al actualizar. El
+publicador escribe tu misma ficha en cada carpeta y lleva la cuenta por carpeta, así que una que
+esté sin conexión no impide publicar en las demás, y solo da la revisión por hecha cuando han
+entrado todas.
+
+**Cómo publica (`SquadPublisher`).** Vigila `Store.Revision` cada 5 s en vez de colgarse de cada
+`SaveMatch`: así una relectura en bloque de 200 repeticiones cuesta **una** escritura y no 200.
+Reescribe la lista **entera** cada vez en lugar de añadir al final, y eso es lo que la hace
+auto-reparable: una partida leída tarde, una pasada perdida con la carpeta sin conexión o un
+archivo que vuelve dañado se arreglan solos en la siguiente escritura, sin guardar estado de qué
+se envió. Una firma (número de tarjetas, cofres totales y la última partida) evita reescribir
+cuando la revisión se movió por otra cosa. Medido: **308 bytes por partida**, 45 KB con 148.
+
+**Lo que queda:**
+
+- **Paso 3 — Leer a los demás.** Diccionario `sessionId -> [tarjetas]`, en un almacén aparte que
+  **nunca** toque `_dicMatches`.
+- **Paso 4 — Enseñarlo.** El panel *Escuadra* ya tiene el guion donde deberían ir sus cofres.
 - **C — Servidor propio.** Sincronización de verdad, pero trae hosting, cuentas, privacidad y
   mantenimiento permanente. Solo si esto llega a tener usuarios que no se conozcan entre ellos.
+
+**Decisiones tomadas que conviene no deshacer:**
+
+- Un archivo del grupo solo se cree si su nombre es un id de Epic y el contenido declara ese mismo
+  id. Eso filtra las copias de conflicto que OneDrive deja con el nombre del equipo pegado detrás.
+- El estado «ok» se deduce de que tu propio archivo esté en la carpeta, sin sondear el disco: la
+  sección se refresca cada pocos segundos y sondear significaría escribir en una carpeta
+  sincronizada, con el ruido llegando a los cuatro. Solo se sondea si tu archivo no está.
+- `ResetSettings` **conserva** `SquadPath`: el grupo es estado compartido con otras personas, no
+  una preferencia de este PC. Salir tiene su propio botón.
+- Un compañero cuenta como «de tu squad» solo si aparece en **3 o más** de las últimas 40
+  partidas. Medido sobre datos reales: el squad fijo sale en 29-39 de 40, y cada desconocido que
+  mete un relleno sale exactamente en 1. Sin el umbral, el aviso de a quién falta invitar listaba
+  nueve nombres, y un random dentro de un grupo ajeno lo habría avalado como «el tuyo».
+- Las tarjetas usan las categorías del propio jugador (`ClassOverrides`), para que lo que comparte
+  cuadre con lo que ve en su panel. Las partidas excluidas de sus estadísticas no se comparten.
+- La sección de ajustes enumera los nueve campos que salen del PC, y **también lo que no sale**.
+  Si se añade un campo a `SquadCard`, hay que añadirlo ahí y en los tres idiomas.
+- Cada escuadrón se titula **por quién está dentro**, no por la carpeta: todas se llaman
+  `FortniteChestCounter`, así que con dos escuadrones el path no distingue nada y los nombres sí.
+- Toda ruta que llega de la página pasa por `TidyPath` antes de compararse, guardarse o
+  mostrarse. Sin eso, la misma carpeta escrita con la otra barra cuenta como un escuadrón
+  distinto, y salir de uno no encontraba cuál era.
+- Salir no borra nada. Tu archivo se queda y el escaneo vuelve a encontrar el grupo, así que
+  volver a entrar es un clic.
 
 **Privacidad, innegociable.** Compartir tiene que ser opt-in y decir exactamente qué sale de tu
 PC. Nunca por defecto, nunca sin que se vea.

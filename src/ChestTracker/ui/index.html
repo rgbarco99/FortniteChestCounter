@@ -487,6 +487,36 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 .drawer .section.classes { --accent: var(--chest); }
 .drawer .section.reading { --accent: #9085e9; }
 .drawer .section.danger { --accent: var(--danger); }
+.drawer .section.group { --accent: var(--good); }
+.drawer .quiet { color: var(--ink-2); font-size: 13px; }
+.drawer .warnbox { background: var(--card-raised); border-left: 3px solid var(--gold); border-radius: 6px; padding: 10px 12px; margin: 10px 0; }
+.drawer .found { background: var(--card-raised); border-radius: 10px; padding: 12px 14px; margin-top: 10px; display: grid; gap: 8px; justify-items: stretch; }
+.drawer .found > b { font-size: 15px; }
+.drawer .found p { margin: 0; }
+.drawer .mates { display: grid; gap: 6px; margin: 10px 0; }
+.drawer .mate { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--card); border-radius: 8px; padding: 7px 10px; }
+.drawer .found .mate { background: var(--card); }
+.drawer .mate b { font-stretch: 75%; }
+.drawer .mate small { margin-left: auto; color: var(--ink-2); font-size: 12px; }
+.drawer .mate .tag { background: var(--card-raised); border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; }
+.drawer .mate .tag.you { color: var(--gold); }
+.drawer .steps { margin: 12px 0 0; padding-left: 20px; color: var(--ink-2); font-size: 13px; display: grid; gap: 4px; }
+.drawer .shared { background: var(--card-raised); border-radius: 8px; padding: 8px 12px; margin: 10px 0; }
+.drawer .shared summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.drawer .shared p { margin: 8px 0 0; font-size: 13px; color: var(--ink-2); }
+.drawer .steps.big { color: var(--ink); font-size: 14px; gap: 14px; margin-top: 14px; }
+.drawer .steps.big li::marker { font-weight: 700; color: var(--gold); }
+.drawer .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+@media (max-width: 560px) { .drawer .paths { grid-template-columns: 1fr; } }
+.drawer .path { background: var(--card-raised); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; }
+.drawer .path p { margin: 0; }
+.drawer .path .btn { width: 100%; margin-top: 4px; }
+.drawer .group { background: var(--card-raised); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
+.drawer .grouphead { display: flex; align-items: center; gap: 8px; }
+.drawer .grouphead b { font-size: 15px; font-stretch: 75%; }
+.drawer .grouphead .tag { background: var(--card); border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--ink-2); }
+.drawer .group .mate { background: var(--card); }
+.drawer .group .confirm { display: inline-flex; flex-direction: column; gap: 6px; }
 .drawer .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
 .drawer .facts div { background: var(--card-raised); border-radius: 8px; padding: 8px 10px; }
 .drawer .facts b { display: block; font-size: 24px; font-stretch: 75%; line-height: 1.1; }
@@ -562,6 +592,7 @@ const ARR_I18N = [
     ["partidas", "matches", "parties"],
     ["partida guardada", "saved match", "partie enregistrée"],
     ["partidas guardadas", "saved matches", "parties enregistrées"],
+    [" y {0} más", " and {0} more", " et {0} de plus"],
     ["repetición", "replay", "rediffusion"],
     ["repeticiones", "replays", "rediffusions"],
     ["eliminación", "elimination", "élimination"],
@@ -1225,7 +1256,100 @@ const ARR_I18N = [
     ["Leyendo", "Reading", "Lecture"],
     ["El lector terminó con el código {0}. Segundo intento: {1}", "The reader ended with code {0}. Second try: {1}", "Le lecteur s'est terminé avec le code {0}. Deuxième essai : {1}"],
 
+    // Squads: the shared folder and everything the settings say about it
+    ["Escuadrones", "Squads", "Escouades"],
+    ["Tu repetición solo graba los cofres que se abren cerca de ti, así que los de tus compañeros no están en tu archivo: están en el suyo. Una carpeta compartida junta lo que ha visto cada uno. Nada sale de tu PC hasta que entres en un escuadrón.", "Your replay only records the chests opened near you, so your squadmates' chests are not in your file: they are in theirs. A shared folder puts together what each of you saw. Nothing leaves your PC until you join a squad.", "Ta rediffusion n'enregistre que les coffres ouverts près de toi : ceux de tes coéquipiers ne sont pas dans ton fichier, ils sont dans le leur. Un dossier partagé réunit ce que chacun a vu. Rien ne quitte ton PC tant que tu n'as pas rejoint une escouade."],
+    ["Buscando…", "Looking…", "Recherche…"],
+    ["Todavía no se sabe tu ID de Epic, y es el nombre que lleva tu archivo dentro del escuadrón. Juega una partida y vuelve aquí.", "Your Epic id is not known yet, and it is the name your file carries inside the squad. Play a match and come back here.", "Ton ID Epic n'est pas encore connu, et c'est le nom que porte ton fichier dans l'escouade. Joue une partie et reviens ici."],
+
+    // What is shared
+    ["Qué se comparte exactamente", "Exactly what is shared", "Ce qui est partagé, exactement"],
+    ["De cada partida sale una ficha de unos 250 bytes con nueve datos: el código de la partida, cuándo empezó, cuánto duraste, los cofres que abriste (normales, especiales y de espíritu), tus kills, tu puesto y el minuto de tu primer cofre.", "Each match sends a card of about 250 bytes with nine things: the match code, when it started, how long you lasted, the chests you opened (normal, special and spirit), your kills, your placement and the minute of your first chest.", "Chaque partie envoie une fiche d'environ 250 octets avec neuf données : le code de la partie, son heure de début, combien de temps tu as tenu, les coffres ouverts (normaux, spéciaux et d'esprit), tes éliminations, ton classement et la minute de ton premier coffre."],
+    ["No sale nada más. Ni dónde estaban los cofres, ni los demás jugadores de la partida, ni tus repeticiones, ni el daño, ni la precisión, ni tu nombre de Windows. Las partidas que quites de tus estadísticas tampoco se comparten.", "Nothing else leaves. Not where the chests were, not the other players in the match, not your replays, not the damage, not the accuracy, not your Windows name. Matches you take out of your statistics are not shared either.", "Rien d'autre ne sort. Ni l'emplacement des coffres, ni les autres joueurs de la partie, ni tes rediffusions, ni les dégâts, ni la précision, ni ton nom Windows. Les parties que tu retires de tes statistiques ne sont pas partagées non plus."],
+    ["Si entras en varios escuadrones, cada uno recibe tu ficha completa: los de uno ven también las partidas que jugaste con el otro.", "If you join several squads, each one gets your full card: the people in one also see the matches you played with the other.", "Si tu rejoins plusieurs escouades, chacune reçoit ta fiche complète : les membres de l'une voient aussi les parties jouées avec l'autre."],
+
+    // The two ways in
+    ["¿Te han invitado?", "Were you invited?", "On t'a invité ?"],
+    ["Tu squad te ha pasado un enlace de OneDrive, Drive o Dropbox.", "Your squad sent you a OneDrive, Drive or Dropbox link.", "Ton squad t'a envoyé un lien OneDrive, Drive ou Dropbox."],
+    ["Tengo una invitación", "I have an invitation", "J'ai une invitation"],
+    ["¿Lo montas tú?", "Setting it up yourself?", "C'est toi qui la crées ?"],
+    ["Solo hace falta que lo haga uno. Los demás entrarán con tu enlace.", "Only one of you needs to. The others will join with your link.", "Un seul d'entre vous doit le faire. Les autres entreront avec ton lien."],
+    ["Crear un escuadrón", "Create a squad", "Créer une escouade"],
+    ["← Volver", "← Back", "← Retour"],
+
+    // Joining with an invitation
+    ["Tu squad te ha pasado un enlace. Aceptarlo es lo que pone la carpeta en tu PC; a partir de ahí el programa la encuentra solo.", "Your squad sent you a link. Accepting it is what puts the folder on your PC; from there the program finds it by itself.", "Ton squad t'a envoyé un lien. L'accepter est ce qui met le dossier sur ton PC ; à partir de là, le programme le trouve tout seul."],
+    ["Pega aquí el enlace que te han pasado.", "Paste the link they sent you here.", "Colle ici le lien qu'on t'a envoyé."],
+    ["Abrir el enlace", "Open the link", "Ouvrir le lien"],
+    ["Enlace de la invitación", "Invitation link", "Lien de l'invitation"],
+    ["Enlace abierto en el navegador", "Link opened in the browser", "Lien ouvert dans le navigateur"],
+    ["En la página que se abre, acepta el compartido y pulsa «Agregar acceso directo a Mis archivos». Eso es lo que lo baja a tu disco.", "On the page that opens, accept the share and click «Add shortcut to My files». That is what brings it down to your disk.", "Sur la page qui s'ouvre, accepte le partage et clique sur « Ajouter un raccourci à Mes fichiers ». C'est ce qui le télécharge sur ton disque."],
+    ["Vuelve aquí y búscalo.", "Come back here and look for it.", "Reviens ici et cherche-le."],
+    ["Ya lo he aceptado, búscalo", "I have accepted it, look for it", "Je l'ai accepté, cherche-le"],
+    ["Buscado", "Looked", "Recherche faite"],
+    ["Todavía no lo veo en tu disco. La nube puede tardar un momento en bajarlo: espera unos segundos y vuelve a buscar.", "I still cannot see it on your disk. The cloud can take a moment to bring it down: wait a few seconds and look again.", "Je ne le vois toujours pas sur ton disque. Le cloud peut mettre un moment à le télécharger : attends quelques secondes et cherche à nouveau."],
+
+    // Creating one
+    ["Esto lo hace una sola persona del squad. Los demás entran con el enlace que les pases, y no tienen que crear nada.", "Only one person in the squad does this. The others join with the link you send them, and have nothing to create.", "Une seule personne du squad fait ceci. Les autres entrent avec le lien que tu leur envoies, sans rien créer."],
+    ["Crea la carpeta del escuadrón.", "Create the squad folder.", "Crée le dossier de l'escouade."],
+    ["Crear en {0}", "Create in {0}", "Créer dans {0}"],
+    ["Escuadrón creado", "Squad created", "Escouade créée"],
+    ["Se abrirá la carpeta. Compártela con tu squad con permiso de edición (no de solo lectura, o no podrán publicar sus cofres).", "The folder will open. Share it with your squad with edit permission (not read-only, or they will not be able to publish their chests).", "Le dossier s'ouvrira. Partage-le avec ton squad avec la permission de modification (pas en lecture seule, sinon ils ne pourront pas publier leurs coffres)."],
+    ["Pásales el enlace por Discord o WhatsApp. Al aceptarlo les aparecerá solo en su programa.", "Send them the link on Discord or WhatsApp. Once accepted it shows up by itself in their program.", "Envoie-leur le lien sur Discord ou WhatsApp. Une fois accepté, il apparaîtra tout seul dans leur programme."],
+    ["No encuentro OneDrive, Google Drive ni Dropbox en este PC. Instala uno de los tres, o escribe abajo la ruta de una carpeta que ya compartas.", "I cannot find OneDrive, Google Drive or Dropbox on this PC. Install one of the three, or type below the path of a folder you already share.", "Je ne trouve ni OneDrive, ni Google Drive, ni Dropbox sur ce PC. Installe l'un des trois, ou écris ci-dessous le chemin d'un dossier que tu partages déjà."],
+    ["¿Usas otra nube, o una carpeta de red? Escribe aquí su ruta.", "Using another cloud, or a network folder? Type its path here.", "Tu utilises un autre cloud, ou un dossier réseau ? Écris son chemin ici."],
+    ["Usar esta carpeta", "Use this folder", "Utiliser ce dossier"],
+    ["Carpeta del escuadrón", "Squad folder", "Dossier de l'escouade"],
+
+    // One that was found sitting on the disk
+    ["He encontrado un escuadrón en tu {0}", "I found a squad in your {0}", "J'ai trouvé une escouade dans ton {0}"],
+    ["Has jugado con {0} de ellos hace poco, así que es el tuyo.", "You played with {0} of them recently, so this is yours.", "Tu as joué avec {0} d'entre eux récemment : c'est bien la tienne."],
+    ["Aún no has jugado con nadie de este escuadrón. Comprueba que es el de tu squad antes de entrar.", "You have not played with anyone in this squad yet. Check that it is your squad's before joining.", "Tu n'as encore joué avec personne de cette escouade. Vérifie que c'est bien celle de ton squad avant d'entrer."],
+    ["Entrar en este escuadrón", "Join this squad", "Rejoindre cette escouade"],
+    ["Ya estás en el escuadrón", "You are in the squad", "Tu es dans l'escouade"],
+    ["Hay más de un escuadrón en tus carpetas de nube. Probablemente se crearon por error: aseguraos de entrar todos en el mismo.", "There is more than one squad in your cloud folders. They were probably created by mistake: make sure you all join the same one.", "Il y a plus d'une escouade dans tes dossiers cloud. Elles ont sans doute été créées par erreur : assurez-vous de rejoindre tous la même."],
+
+    // The ones you are in
+    ["Te han compartido la carpeta en solo lectura.", "The folder was shared with you as read-only.", "Le dossier t'a été partagé en lecture seule."],
+    ["Ves a tu squad, pero tú no apareces para ellos. Pídeles que te la compartan otra vez con permiso de edición.", "You can see your squad, but you do not show up for them. Ask them to share it again with edit permission.", "Tu vois ton squad, mais tu n'apparais pas pour eux. Demande-leur de le repartager avec la permission de modification."],
+    ["La carpeta de este escuadrón ya no está donde estaba.", "This squad's folder is no longer where it was.", "Le dossier de cette escouade n'est plus là où il était."],
+    ["Si tu nube está sincronizando todavía, espera un momento. Si la has movido o borrado, sal y vuelve a entrar.", "If your cloud is still syncing, wait a moment. If you moved or deleted it, leave and join again.", "Si ton cloud synchronise encore, attends un instant. Si tu l'as déplacé ou supprimé, quitte et reviens."],
+    ["No se puede escribir en esta carpeta.", "This folder cannot be written to.", "Impossible d'écrire dans ce dossier."],
+    ["Puede estar ocupada por la nube en este momento. Si sigue así, sal y vuelve a entrar.", "The cloud may be busy with it right now. If it stays that way, leave and join again.", "Le cloud est peut-être en train de l'utiliser. Si cela persiste, quitte et reviens."],
+    ["Juegas con ellos y aún no están aquí: ", "You play with them and they are not here yet: ", "Tu joues avec eux et ils ne sont pas encore ici : "],
+    ["Todavía solo estás tú", "So far it is just you", "Pour l'instant, il n'y a que toi"],
+    ["Abrir la carpeta", "Open the folder", "Ouvrir le dossier"],
+    ["No se pudo abrir la carpeta.", "The folder could not be opened.", "Le dossier n'a pas pu être ouvert."],
+    ["Volver a comprobar", "Check again", "Vérifier à nouveau"],
+    ["Escuadrón comprobado", "Squad checked", "Escouade vérifiée"],
+    ["Salir", "Leave", "Quitter"],
+    ["Sí, salir", "Yes, leave", "Oui, quitter"],
+    ["Has salido del escuadrón", "You left the squad", "Tu as quitté l'escouade"],
+    ["Entrar en otro escuadrón", "Join another squad", "Rejoindre une autre escouade"],
+    ["Estás en los {0} escuadrones que caben. Sal de uno para entrar en otro.", "You are in all {0} squads that fit. Leave one to join another.", "Tu es dans les {0} escouades possibles. Quittes-en une pour en rejoindre une autre."],
+    ["Para que entren los demás: abre la carpeta, compártela con permiso de edición y pásales el enlace. Al aceptarlo les aparecerá solo.", "For the others to join: open the folder, share it with edit permission and send them the link. Once accepted it shows up by itself.", "Pour que les autres entrent : ouvre le dossier, partage-le avec la permission de modification et envoie-leur le lien. Une fois accepté, il apparaîtra tout seul."],
+    ["No se pudo hacer. Inténtalo otra vez.", "That did not work. Try again.", "Cela n'a pas fonctionné. Réessaie."],
+    ["tú", "you", "toi"],
+    ["de tu squad", "in your squad", "de ton squad"],
+    ["jugador", "player", "joueur"],
+    ["jugadores", "players", "joueurs"],
+    ["escuadrón", "squad", "escouade"],
+    ["escuadrones", "squads", "escouades"],
+    ["Sin ID", "No id", "Sans ID"],
+    ["Ninguno", "None", "Aucune"],
+    ["Hay uno esperando", "One is waiting", "Il y en a une qui attend"],
+    ["Con problemas", "Not working", "En panne"],
+
     // Messages from the program
+    ["Aún no se sabe tu ID de Epic: juega una partida y vuelve a intentarlo.", "Your Epic id is not known yet: play a match and try again.", "Ton ID Epic n'est pas encore connu : joue une partie et réessaie."],
+    ["Esa carpeta no existe o todavía no se ha sincronizado.", "That folder does not exist, or has not synced yet.", "Ce dossier n'existe pas, ou n'a pas encore été synchronisé."],
+    ["No se pudo crear el escuadrón en esa carpeta.", "The squad could not be created in that folder.", "L'escouade n'a pas pu être créée dans ce dossier."],
+    ["Te han compartido la carpeta en solo lectura. Pide que te la compartan con permiso de edición.", "The folder was shared with you as read-only. Ask for it to be shared with edit permission.", "Le dossier t'a été partagé en lecture seule. Demande qu'il te soit partagé avec la permission de modification."],
+    ["No se pudo entrar en ese escuadrón.", "That squad could not be joined.", "Impossible de rejoindre cette escouade."],
+    ["Ya estás en {0} escuadrones, que es el máximo. Sal de uno para entrar en otro.", "You are already in {0} squads, which is the maximum. Leave one to join another.", "Tu es déjà dans {0} escouades, c'est le maximum. Quittes-en une pour en rejoindre une autre."],
+    ["No hay ninguna carpeta de escuadrón que abrir.", "There is no squad folder to open.", "Il n'y a aucun dossier d'escouade à ouvrir."],
+    ["Eso no parece un enlace. Pega el que te ha pasado tu squad, que empieza por https://", "That does not look like a link. Paste the one your squad sent you, which starts with https://", "Cela ne ressemble pas à un lien. Colle celui que ton squad t'a envoyé, qui commence par https://"],
+
     ["Fortnite no llegó a cerrar esta repetición (el juego se cerró a mitad de partida) y quedó cifrada sin clave: no se puede leer.", "Fortnite never closed this replay (the game was closed mid-match), so it stayed encrypted without a key and cannot be read.", "Fortnite n'a jamais fermé cette rediffusion (le jeu a été fermé en pleine partie) : elle est restée chiffrée sans clé et ne peut pas être lue."],
     ["No se pudo iniciar el lector.", "The reader could not be started.", "Impossible de lancer le lecteur."],
     ["La lectura tardó más de {0} segundos y se canceló.", "Reading took more than {0} seconds and was cancelled.", "La lecture a pris plus de {0} secondes et a été annulée."],
@@ -1385,6 +1509,36 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // so there is nothing to look up in ARR_I18N.
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
+    {
+        strVersion: "1.3.0",
+        strDate: "2026-11-14",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Escuadrones. Tu repetición solo graba los cofres que se abren cerca de ti, así que los de tus compañeros nunca han estado en tu archivo: están en el suyo. Ahora podéis compartir una carpeta de OneDrive, Drive o Dropbox y que cada uno publique ahí sus partidas. Ver sus cofres partida a partida en el panel llega en la próxima.",
+                en: "Squads. Your replay only records the chests opened near you, so your squadmates' chests have never been in your file: they are in theirs. Now you can share a OneDrive, Drive or Dropbox folder and each of you publishes your matches there. Seeing their chests match by match on the dashboard is coming next.",
+                fr: "Escouades. Ta rediffusion n'enregistre que les coffres ouverts près de toi : ceux de tes coéquipiers n'ont jamais été dans ton fichier, ils sont dans le leur. Vous pouvez maintenant partager un dossier OneDrive, Drive ou Dropbox où chacun publie ses parties. Voir leurs coffres partie par partie sur le tableau arrive bientôt."
+            },
+            {
+                strTag: "nuevo",
+                es: "No hay que escribir ninguna ruta. El que monta el escuadrón lo crea con un botón y comparte la carpeta; a los demás les basta con aceptar el enlace, y el programa la encuentra sola en su disco. Además te dice con quién juegas que todavía no está dentro.",
+                en: "No paths to type. Whoever sets the squad up creates it with a button and shares the folder; the others just accept the link, and the program finds it on their disk by itself. It also tells you who you play with that is not in yet.",
+                fr: "Aucun chemin à écrire. Celui qui crée l'escouade le fait avec un bouton et partage le dossier ; les autres n'ont qu'à accepter le lien, et le programme le trouve tout seul sur leur disque. Il te dit aussi avec qui tu joues qui n'y est pas encore."
+            },
+            {
+                strTag: "nuevo",
+                es: "Puedes estar en hasta cuatro escuadrones a la vez, cada uno con su gente, y ver en cualquier momento quién está en cada uno y cuántas partidas comparte.",
+                en: "You can be in up to four squads at once, each with its own people, and see at any time who is in each one and how many matches they share.",
+                fr: "Tu peux être dans jusqu'à quatre escouades à la fois, chacune avec ses membres, et voir à tout moment qui est dans chacune et combien de parties elle partage."
+            },
+            {
+                strTag: "nuevo",
+                es: "Antes de entrar en ningún sitio puedes leer exactamente qué sale de tu PC: son nueve datos por partida, y la lista dice también lo que no sale (ni dónde estaban los cofres, ni los demás jugadores, ni tus repeticiones). Mientras no entres en un escuadrón no se comparte nada.",
+                en: "Before joining anywhere you can read exactly what leaves your PC: nine things per match, and the list also says what does not leave (not where the chests were, not the other players, not your replays). Until you join a squad, nothing is shared at all.",
+                fr: "Avant de rejoindre quoi que ce soit, tu peux lire exactement ce qui quitte ton PC : neuf données par partie, et la liste dit aussi ce qui ne sort pas (ni l'emplacement des coffres, ni les autres joueurs, ni tes rediffusions). Tant que tu ne rejoins pas une escouade, rien n'est partagé."
+            }
+        ]
+    },
     {
         strVersion: "1.2.1",
         strDate: "2026-11-14",
@@ -1713,6 +1867,10 @@ const objApp = {
     strDrawerNote: null,
     // Copias que guarda el programa; solo se consultan con los ajustes abiertos
     arrBackups: null,
+    // Los escuadrones y las carpetas de nube; se piden al abrir los ajustes
+    objSquad: null,
+    // Qué pantalla del escuadrón se está viendo: null (la lista), "join" o "create"
+    strSquadView: null,
     // El mapa de la temporada, pedido al abrir la pestaña
     objMap: null,
     strTab: { "#tesoros": "tesoros", "#vivo": "vivo", "#mapa": "mapa" }[location.hash] ?? "partidas",
@@ -4108,6 +4266,8 @@ const renderDrawer = () => {
     const elPath = el("input", { type: "text", value: objSettings.demosPath, "aria-label": "Carpeta de repeticiones", spellcheck: "false" });
     const elEpicId = el("input", { type: "text", value: objSettings.epicId, "aria-label": "ID de Epic", spellcheck: "false" });
     const elLogPath = el("input", { type: "text", value: objSettings.logPath || "", placeholder: objSettings.defaultLogPath, "aria-label": "Archivo del registro de Fortnite", spellcheck: "false" });
+    const elSquadPath = el("input", { type: "text", value: "", placeholder: "D:\\Carpeta compartida", "aria-label": "Carpeta del escuadrón", spellcheck: "false" });
+    const elSquadUrl = el("input", { type: "text", value: "", placeholder: "https://1drv.ms/...", "aria-label": "Enlace de la invitación", spellcheck: "false" });
     const elNote = el("span", { class: "saved-note", role: "status", text: objApp.strDrawerNote ?? "" });
     objApp.strDrawerNote = null;
 
@@ -4145,6 +4305,243 @@ const renderDrawer = () => {
         showButton();
         return elHolder;
     };
+
+    // ----------------------------------------------------------------------
+    // Squads. Three screens in one section: the two ways in, and the list of the
+    // ones you are in. Which one shows is kept in objApp so a refresh does not
+    // throw the reader back to the start.
+    // ----------------------------------------------------------------------
+    const objSquad = objApp.objSquad;
+    const goSquad = (strView) => { objApp.strSquadView = strView; renderDrawer(); };
+
+    // Like run(), but a refusal is explained instead of swallowed: the likely ones here
+    // (shared read-only, folder not synced yet) are things the reader has to act on.
+    const squadRun = async (fnCall, strDone, strView) => {
+        try {
+            objApp.dblExpectWorkUntil = Date.now() + 6000;
+            updateBusy();
+            await fnCall();
+            await loadSquad();
+            if (strView !== undefined) objApp.strSquadView = strView;
+            objApp.strDrawerNote = strDone;
+            showToast(strDone, null, "good");
+            await refresh(true);
+        } catch (objError) {
+            const objBody = objError.objBody ?? {};
+            showToast(objBody.error ?? "No se pudo hacer. Inténtalo otra vez.", objBody.detail ?? null, "warn", 9000);
+            await loadSquad();
+        }
+        renderDrawer();
+    };
+
+    const squadMateRow = (objMate, bInside) => el("div", { class: "mate" }, [
+        el("b", { "data-notr": true, text: objMate.name || objMate.id.slice(0, 8) }),
+        objMate.isYou ? el("span", { class: "tag you", text: "tú" }) : null,
+        objMate.playedWithYou && !objMate.isYou ? el("span", { class: "tag", text: "de tu squad" }) : null,
+        objMate.matches ? el("span", { class: "tag", text: plural(objMate.matches, "partida", "partidas") }) : null,
+        bInside && objMate.updatedUtc
+            ? el("small", { "data-notr": true, text: new Date(objMate.updatedUtc).toLocaleString(STR_LOCALE) })
+            : null
+    ]);
+
+    // What leaves this PC, field by field, readable before joining and not only after. The
+    // negatives matter as much as the list: they are what somebody worried would look for.
+    const squadDisclosure = () => el("details", { class: "shared" }, [
+        el("summary", { text: "Qué se comparte exactamente" }),
+        el("p", { text: "De cada partida sale una ficha de unos 250 bytes con nueve datos: el código de la partida, cuándo empezó, cuánto duraste, los cofres que abriste (normales, especiales y de espíritu), tus kills, tu puesto y el minuto de tu primer cofre." }),
+        el("p", { text: "No sale nada más. Ni dónde estaban los cofres, ni los demás jugadores de la partida, ni tus repeticiones, ni el daño, ni la precisión, ni tu nombre de Windows. Las partidas que quites de tus estadísticas tampoco se comparten." }),
+        el("p", { text: "Si entras en varios escuadrones, cada uno recibe tu ficha completa: los de uno ven también las partidas que jugaste con el otro." })
+    ]);
+
+    const squadBack = () => el("button", { class: "btn small", text: "← Volver", onclick: () => goSquad(null) });
+
+    // A squad found on this disk that is not joined yet: the invitation already accepted
+    const squadFoundCard = (objFound) => el("div", { class: "found" }, [
+        el("b", { text: `He encontrado un escuadrón en tu ${objFound.provider}` }),
+        el("p", { class: "quiet", style: { wordBreak: "break-all" }, "data-notr": true, text: objFound.path }),
+        objFound.members.length ? el("div", { class: "mates" }, objFound.members.map((objMate) => squadMateRow(objMate, false))) : null,
+        objFound.knownMates > 0
+            ? el("p", { text: `Has jugado con ${objFound.knownMates} de ellos hace poco, así que es el tuyo.` })
+            : el("p", { class: "quiet", text: "Aún no has jugado con nadie de este escuadrón. Comprueba que es el de tu squad antes de entrar." }),
+        el("button", {
+            class: "btn primary", text: "Entrar en este escuadrón",
+            onclick: () => squadRun(() => api("POST", `/api/squad/join?path=${encodeURIComponent(objFound.path)}`), "Ya estás en el escuadrón", null)
+        })
+    ]);
+
+    const squadManual = () => el("div", { style: { marginTop: "10px" } }, [
+        el("p", { class: "quiet", text: "¿Usas otra nube, o una carpeta de red? Escribe aquí su ruta." }),
+        el("div", { class: "row" }, [
+            elSquadPath,
+            el("button", {
+                class: "btn", text: "Usar esta carpeta",
+                onclick: () => squadRun(() => api("POST", `/api/squad/join?path=${encodeURIComponent(elSquadPath.value)}`), "Ya estás en el escuadrón", null)
+            })
+        ])
+    ]);
+
+    // ---- Screen: somebody invited me ----
+    const squadJoinView = () => [
+        squadBack(),
+        el("p", { text: "Tu squad te ha pasado un enlace. Aceptarlo es lo que pone la carpeta en tu PC; a partir de ahí el programa la encuentra solo." }),
+        el("ol", { class: "steps big" }, [
+            el("li", {}, [
+                el("div", { text: "Pega aquí el enlace que te han pasado." }),
+                el("div", { class: "row", style: { marginTop: "6px" } }, [
+                    elSquadUrl,
+                    el("button", {
+                        class: "btn", text: "Abrir el enlace",
+                        onclick: () => squadRun(() => api("POST", `/api/squad/browse?url=${encodeURIComponent(elSquadUrl.value)}`), "Enlace abierto en el navegador", "join")
+                    })
+                ])
+            ]),
+            el("li", { text: "En la página que se abre, acepta el compartido y pulsa «Agregar acceso directo a Mis archivos». Eso es lo que lo baja a tu disco." }),
+            el("li", {}, [
+                el("div", { text: "Vuelve aquí y búscalo." }),
+                el("button", {
+                    class: "btn primary", style: { marginTop: "6px" },
+                    text: "Ya lo he aceptado, búscalo",
+                    onclick: () => squadRun(async () => { }, "Buscado", "join")
+                })
+            ])
+        ]),
+        ...(objSquad?.found ?? []).map(squadFoundCard),
+        (objSquad?.found ?? []).length === 0
+            ? el("p", { class: "quiet", text: "Todavía no lo veo en tu disco. La nube puede tardar un momento en bajarlo: espera unos segundos y vuelve a buscar." })
+            : null,
+        squadManual()
+    ];
+
+    // ---- Screen: I am setting the squad up ----
+    const squadCreateView = () => {
+        const arrRoots = objSquad?.roots ?? [];
+        return [
+            squadBack(),
+            el("p", { text: "Esto lo hace una sola persona del squad. Los demás entran con el enlace que les pases, y no tienen que crear nada." }),
+            el("ol", { class: "steps big" }, [
+                el("li", {}, [
+                    el("div", { text: "Crea la carpeta del escuadrón." }),
+                    arrRoots.length
+                        ? el("div", { class: "row", style: { marginTop: "6px" } }, arrRoots.map((objRoot) => el("button", {
+                            class: "btn primary", text: `Crear en ${objRoot.provider}`,
+                            onclick: () => squadRun(() => api("POST", `/api/squad/create?root=${encodeURIComponent(objRoot.path)}`), "Escuadrón creado", null)
+                        })))
+                        : el("p", { class: "warnbox", text: "No encuentro OneDrive, Google Drive ni Dropbox en este PC. Instala uno de los tres, o escribe abajo la ruta de una carpeta que ya compartas." }),
+                    arrRoots.length ? el("p", { class: "quiet", "data-notr": true, text: `${arrRoots[0].path}\\FortniteChestCounter` }) : null
+                ]),
+                el("li", { text: "Se abrirá la carpeta. Compártela con tu squad con permiso de edición (no de solo lectura, o no podrán publicar sus cofres)." }),
+                el("li", { text: "Pásales el enlace por Discord o WhatsApp. Al aceptarlo les aparecerá solo en su programa." })
+            ]),
+            squadManual()
+        ];
+    };
+
+    // ---- Screen: the two ways in ----
+    const squadChooser = () => [
+        ...(objSquad?.found ?? []).map(squadFoundCard),
+        (objSquad?.found ?? []).length > 1
+            ? el("p", { class: "warnbox", text: "Hay más de un escuadrón en tus carpetas de nube. Probablemente se crearon por error: aseguraos de entrar todos en el mismo." })
+            : null,
+        el("div", { class: "paths" }, [
+            el("div", { class: "path" }, [
+                el("b", { text: "¿Te han invitado?" }),
+                el("p", { class: "quiet", text: "Tu squad te ha pasado un enlace de OneDrive, Drive o Dropbox." }),
+                el("button", { class: "btn", text: "Tengo una invitación", onclick: () => goSquad("join") })
+            ]),
+            el("div", { class: "path" }, [
+                el("b", { text: "¿Lo montas tú?" }),
+                el("p", { class: "quiet", text: "Solo hace falta que lo haga uno. Los demás entrarán con tu enlace." }),
+                el("button", { class: "btn", text: "Crear un escuadrón", onclick: () => goSquad("create") })
+            ])
+        ])
+    ];
+
+    // ---- Screen: the squads I am in ----
+    const squadOneGroup = (objGroup) => {
+        const arrMissing = (objSquad.recentMates ?? []).filter((objMate) =>
+            !objGroup.members.some((objMember) => objMember.id.toLowerCase() === objMate.id.toLowerCase()));
+
+        // Every squad folder is called FortniteChestCounter, so the path tells two of them
+        // apart to nobody. Who is inside does, and it is what the reader was looking for.
+        const arrOthers = objGroup.members.filter((objMate) => !objMate.isYou);
+        const strNames = arrOthers.slice(0, 2).map((objMate) => objMate.name || objMate.id.slice(0, 8)).join(" · ")
+            + (arrOthers.length > 2 ? ` +${arrOthers.length - 2}` : "");
+
+        return el("div", { class: "group" }, [
+            el("div", { class: "grouphead" }, [
+                arrOthers.length
+                    ? el("b", { "data-notr": true, text: strNames })
+                    : el("b", { text: objGroup.status === "ok" ? "Todavía solo estás tú" : (objGroup.name || objGroup.path) }),
+                objGroup.status === "ok" ? el("span", { class: "tag", text: plural(objGroup.members.length, "jugador", "jugadores") }) : null
+            ]),
+            el("p", { class: "quiet", style: { wordBreak: "break-all" }, "data-notr": true, text: objGroup.path }),
+
+            objGroup.status === "readonly" ? el("p", { class: "warnbox" }, [
+                el("b", { text: "Te han compartido la carpeta en solo lectura." }), el("br"),
+                "Ves a tu squad, pero tú no apareces para ellos. Pídeles que te la compartan otra vez con permiso de edición."
+            ]) : null,
+
+            objGroup.status === "missing" ? el("p", { class: "warnbox" }, [
+                el("b", { text: "La carpeta de este escuadrón ya no está donde estaba." }), el("br"),
+                "Si tu nube está sincronizando todavía, espera un momento. Si la has movido o borrado, sal y vuelve a entrar."
+            ]) : null,
+
+            objGroup.status === "error" ? el("p", { class: "warnbox" }, [
+                el("b", { text: "No se puede escribir en esta carpeta." }), el("br"),
+                "Puede estar ocupada por la nube en este momento. Si sigue así, sal y vuelve a entrar."
+            ]) : null,
+
+            objGroup.members.length ? el("div", { class: "mates" }, objGroup.members.map((objMate) => squadMateRow(objMate, true))) : null,
+
+            arrMissing.length ? el("p", { class: "quiet" }, [
+                el("span", { text: "Juegas con ellos y aún no están aquí: " }),
+                el("b", { "data-notr": true, text: arrMissing.slice(0, 3).map((objMate) => objMate.name || objMate.id.slice(0, 8)).join(", ") }),
+                arrMissing.length > 3 ? el("span", { text: ` y ${arrMissing.length - 3} más` }) : null
+            ]) : null,
+
+            el("div", { class: "row", style: { marginTop: "10px" } }, [
+                el("button", { class: "btn", text: "Abrir la carpeta", onclick: () => api("POST", `/api/squad/open?path=${encodeURIComponent(objGroup.path)}`).catch(() => showToast("No se pudo abrir la carpeta.", null, "warn")) }),
+                // Joining again is also the repair: it puts your file back if the folder lost it
+                el("button", {
+                    class: "btn small", text: "Volver a comprobar",
+                    onclick: () => squadRun(() => api("POST", `/api/squad/join?path=${encodeURIComponent(objGroup.path)}`), "Escuadrón comprobado", null)
+                }),
+                dangerButton("Salir", "Sí, salir", () => squadRun(() => api("POST", `/api/squad/leave?path=${encodeURIComponent(objGroup.path)}`), "Has salido del escuadrón", null))
+            ])
+        ]);
+    };
+
+    const squadManageView = () => [
+        ...objSquad.squads.map(squadOneGroup),
+        ...(objSquad.found ?? []).map(squadFoundCard),
+        objSquad.squads.length < objSquad.max
+            ? el("button", { class: "btn", style: { marginTop: "12px" }, text: "Entrar en otro escuadrón", onclick: () => goSquad(null) })
+            : el("p", { class: "quiet", text: `Estás en los ${objSquad.max} escuadrones que caben. Sal de uno para entrar en otro.` }),
+        el("p", { class: "steps", text: "Para que entren los demás: abre la carpeta, compártela con permiso de edición y pásales el enlace. Al aceptarlo les aparecerá solo." })
+    ];
+
+    const squadBody = () => {
+        if (!objSquad) {
+            return [el("p", { text: "Buscando…" })];
+        }
+
+        if (objSquad.status === "noepic") {
+            return [el("p", { text: "Todavía no se sabe tu ID de Epic, y es el nombre que lleva tu archivo dentro del escuadrón. Juega una partida y vuelve aquí." })];
+        }
+
+        if (objApp.strSquadView === "join") return squadJoinView();
+        if (objApp.strSquadView === "create") return squadCreateView();
+        return objSquad.squads.length ? squadManageView() : squadChooser();
+    };
+
+    const squadSummary = () => {
+        if (!objSquad) return null;
+        if (objSquad.status === "noepic") return "Sin ID";
+        if (!objSquad.squads.length) return (objSquad.found ?? []).length ? "Hay uno esperando" : "Ninguno";
+        if (objSquad.squads.some((objGroup) => objGroup.status !== "ok")) return "Con problemas";
+        return plural(objSquad.squads.length, "escuadrón", "escuadrones");
+    };
+
 
     const objOverrides = {};
     for (const objClass of objState.classes) if (objClass.category !== objClass.defaultCategory) objOverrides[objClass.name] = objClass.category;
@@ -4211,6 +4608,8 @@ const renderDrawer = () => {
                 el("button", { class: "btn small", text: "Usar la carpeta por defecto", onclick: () => saveSettings({ demosPath: objSettings.defaultDemosPath }, "Carpeta guardada") })
             ])
         ], objStatus.demosFolderExists ? "Encontrada" : "No encontrada"),
+
+        section("grupo", "group", "Escuadrones", "Tu repetición solo graba los cofres que se abren cerca de ti, así que los de tus compañeros no están en tu archivo: están en el suyo. Una carpeta compartida junta lo que ha visto cada uno. Nada sale de tu PC hasta que entres en un escuadrón.", [squadDisclosure(), ...squadBody()], squadSummary()),
 
         section("registro", "reading", "Registro de Fortnite", "Fortnite escribe un registro (FortniteGame.log) mientras juegas. El programa solo lo lee, para saber al momento cuándo termina tu partida y cuándo buscas otra con «Volver a jugar». Los cofres no salen de aquí.", [
             el("div", { class: "facts", style: { gridTemplateColumns: "1fr 1fr" } }, [
@@ -4374,7 +4773,7 @@ const renderDrawer = () => {
     elDrawer.scrollTop = dblDrawerScroll;
 };
 
-document.getElementById("elSettingsOpen").addEventListener("click", () => { renderDrawer(); elDrawer.classList.add("open"); loadBackups().then(renderDrawer); });
+document.getElementById("elSettingsOpen").addEventListener("click", () => { renderDrawer(); elDrawer.classList.add("open"); loadBackups().then(renderDrawer); loadSquad().then(renderDrawer); });
 document.getElementById("elEditToggle").addEventListener("click", () => { objApp.bEditing = !objApp.bEditing; renderBoard(); });
 document.addEventListener("keydown", (objEvent) => { if (objEvent.key === "Escape") elDrawer.classList.remove("open"); });
 
@@ -4654,6 +5053,13 @@ const loadBackups = async () => {
     catch (objError) { objApp.arrBackups = []; }
 };
 
+// The group looks at the cloud folders of this PC, which the main state never does: its own
+// call, made when the settings open and again after anything that changes the group.
+const loadSquad = async () => {
+    try { objApp.objSquad = await api("GET", "/api/squad"); }
+    catch (objError) { objApp.objSquad = null; }
+};
+
 const api = async (strMethod, strUrl, objBody) => {
     const objResponse = await fetch(strUrl, {
         method: strMethod,
@@ -4663,6 +5069,8 @@ const api = async (strMethod, strUrl, objBody) => {
     if (!objResponse.ok) {
         const objError = new Error(`${strMethod} ${strUrl}: ${objResponse.status}`);
         objError.intStatus = objResponse.status;
+        // The server explains a refusal in the body; without it there is nothing to show the reader
+        try { objError.objBody = JSON.parse(await objResponse.text()); } catch (objIgnored) { /* no body, or not JSON */ }
         throw objError;
     }
     const strText = await objResponse.text();

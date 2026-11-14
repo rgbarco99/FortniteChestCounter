@@ -85,6 +85,8 @@ objBuilder.Services.AddSingleton<ReplayWatcher>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<ReplayWatcher>());
 objBuilder.Services.AddSingleton<Updater>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<Updater>());
+objBuilder.Services.AddSingleton<SquadPublisher>();
+objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<SquadPublisher>());
 objBuilder.Services.AddSingleton<SeasonMap>();
 objBuilder.Services.AddSingleton<TrayIcon>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<TrayIcon>());
@@ -268,6 +270,279 @@ objApp.MapPost("/api/import", async (HttpRequest objRequest, ReplayWatcher objWa
         return Results.BadRequest(new { error = objError.Message });
     }
 }).WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(200_000_000));
+
+// ---------------------------------------------------------------------------
+// Squads: folders shared through OneDrive, Drive or Dropbox, up to four of them. Nothing
+// here runs until the player joins one on purpose; an empty SquadPaths means it is off.
+// ---------------------------------------------------------------------------
+
+// How many of the last matches are looked at, and how many of them somebody has to appear in
+// to count as one of your squad rather than a stranger a fill put there. Measured on real data:
+// the regular squad shows up in 29 to 39 of the last 40 matches, every passing stranger in one.
+const int INT_RECENT_MATCHES = 40;
+const int INT_REGULAR_MATES = 3;
+
+// Your squadmates of the last matches, read from your own replays, most played with first. They
+// are what lets the page say "these are the people you played with ten minutes ago" instead of
+// asking for a path, so a stranger from one fill must not get in: it would both clutter the
+// list of who is left to invite and vouch for a squad that is not yours.
+List<SquadMate> GetRecentMates(string strEpicId, out string? strYourName)
+{
+    var dicCounted = new Dictionary<string, SquadMate>(StringComparer.OrdinalIgnoreCase);
+    string? strFound = null;
+
+    foreach (var objRecord in objStore.GetMatches().OrderByDescending(objItem => objItem.StartedAt).Take(INT_RECENT_MATCHES))
+    {
+        var strOwner = string.IsNullOrEmpty(objRecord.DetectedOwnerId) ? strEpicId : objRecord.DetectedOwnerId;
+        var objYou = objRecord.Players.FirstOrDefault(objPlayer => string.Equals(objPlayer.Id, strOwner, StringComparison.OrdinalIgnoreCase));
+        strFound ??= objYou?.Name;
+        if (objYou?.Team == null)
+        {
+            continue;
+        }
+
+        foreach (var objPlayer in objRecord.Players)
+        {
+            if (objPlayer.Team != objYou.Team
+                || string.IsNullOrEmpty(objPlayer.Id)
+                || string.Equals(objPlayer.Id, strOwner, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (!dicCounted.TryGetValue(objPlayer.Id, out var objMate))
+            {
+                objMate = new SquadMate { Id = objPlayer.Id, PlayedWithYou = true };
+                dicCounted[objPlayer.Id] = objMate;
+            }
+
+            objMate.Together++;
+            objMate.Name ??= objPlayer.Name;
+        }
+    }
+
+    strYourName = strFound;
+    return dicCounted.Values
+        .Where(objMate => objMate.Together >= INT_REGULAR_MATES)
+        .OrderByDescending(objMate => objMate.Together)
+        .ToList();
+}
+
+SquadView BuildSquadView()
+{
+    var objSettings = objStore.Settings;
+    var strEpicId = objSettings.EpicId;
+    var lstMates = GetRecentMates(strEpicId, out var strYourName);
+    var setMates = lstMates.Select(objMate => objMate.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    var objView = new SquadView
+    {
+        EpicId = strEpicId,
+        YourName = strYourName,
+        RecentMates = lstMates
+    };
+
+    // Without an Epic id there is no file name to write: the page says so rather than guessing
+    if (string.IsNullOrEmpty(strEpicId))
+    {
+        objView.Status = "noepic";
+        return objView;
+    }
+
+    foreach (var strPath in objSettings.SquadPaths)
+    {
+        var objGroup = new SquadGroup { Path = strPath, Name = Path.GetFileName(strPath.TrimEnd(Path.DirectorySeparatorChar)) };
+
+        if (!Directory.Exists(strPath))
+        {
+            objGroup.Status = "missing";
+        }
+        else
+        {
+            objGroup.Members = Squad.ReadMembers(strPath, strEpicId, setMates);
+
+            // Our own file sitting there is proof enough that this folder is ours to write in,
+            // and this runs every few seconds while the settings are open: probing each time
+            // would mean a write into a synced folder, with the noise reaching the whole squad.
+            objGroup.Status = objGroup.Members.Any(objMember => objMember.IsYou)
+                ? "ok"
+                : Squad.Check(strPath, strEpicId) ?? "ok";
+        }
+
+        objView.Squads.Add(objGroup);
+    }
+
+    // Squads already on this disk that are not joined yet: the invitation that has arrived but
+    // has not been acted on. Looking costs disk, so it stops once there is no room for more.
+    if (objView.Squads.Count < TrackerSettings.MAX_SQUADS)
+    {
+        objView.Roots = Squad.DetectRoots();
+        objView.Found = Squad.FindGroups(objView.Roots, strEpicId, setMates)
+            .Where(objFound => !objSettings.SquadPaths.Contains(objFound.Path, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    return objView;
+}
+
+// Searching the cloud folders costs a little, and the page asks again on every refresh while
+// the settings are open: an answer is reused for a few seconds.
+SquadView? objSquadCache = null;
+var dtSquadCacheUtc = DateTime.MinValue;
+
+void ForgetSquadCache() => objSquadCache = null;
+
+objApp.MapGet("/api/squad", () =>
+{
+    if (objSquadCache != null && DateTime.UtcNow - dtSquadCacheUtc < TimeSpan.FromSeconds(8))
+    {
+        return objSquadCache;
+    }
+
+    objSquadCache = BuildSquadView();
+    dtSquadCacheUtc = DateTime.UtcNow;
+    return objSquadCache;
+});
+
+// Every path that arrives from the page is tidied the same way before it is compared, saved or
+// shown. Without this, the same folder written with the other slash counts as a different squad.
+string? TidyPath(string? strPath)
+{
+    if (string.IsNullOrWhiteSpace(strPath))
+    {
+        return null;
+    }
+
+    try { return Path.GetFullPath(strPath.Trim().Trim('"')); }
+    catch (Exception) { return null; }
+}
+
+// Adds a folder to the squads, writing this player's file into it. That write is also the only
+// honest test of access: a folder shared to view instead of to edit fails here and nowhere else.
+IResult JoinSquad(string strPath)
+{
+    var objSettings = objStore.Settings;
+    var strEpicId = objSettings.EpicId;
+
+    if (string.IsNullOrEmpty(strEpicId))
+    {
+        return Results.BadRequest(new { error = "Aún no se sabe tu ID de Epic: juega una partida y vuelve a intentarlo." });
+    }
+
+    // Typed by hand or taken from a search, the path is tidied before it is shown and saved
+    if (TidyPath(strPath) is not { } strFolder || !Directory.Exists(strFolder))
+    {
+        return Results.BadRequest(new { error = "Esa carpeta no existe o todavía no se ha sincronizado." });
+    }
+
+    if (objSettings.SquadPaths.Contains(strFolder, StringComparer.OrdinalIgnoreCase))
+    {
+        return Results.Ok(new { path = strFolder });     // Already in: nothing to do, and no error either
+    }
+
+    if (objSettings.SquadPaths.Count >= TrackerSettings.MAX_SQUADS)
+    {
+        return Results.BadRequest(new { error = $"Ya estás en {TrackerSettings.MAX_SQUADS} escuadrones, que es el máximo. Sal de uno para entrar en otro." });
+    }
+
+    try
+    {
+        GetRecentMates(strEpicId, out var strYourName);
+        Squad.Join(strFolder, strEpicId, strYourName);
+        objStore.UpdateSettings(objChange => objChange.SquadPaths.Add(strFolder));
+        objStore.Log($"Entrado en el escuadrón {strFolder}");
+        ForgetSquadCache();
+        return Results.Ok(new { path = strFolder });
+    }
+    catch (UnauthorizedAccessException)
+    {
+        // Shared to view instead of to edit: the single mistake this is most likely to meet
+        return Results.BadRequest(new { error = "Te han compartido la carpeta en solo lectura. Pide que te la compartan con permiso de edición." });
+    }
+    catch (Exception objError)
+    {
+        objStore.Log($"No se pudo entrar en el escuadrón {strFolder}: {objError.Message}");
+        return Results.BadRequest(new { error = "No se pudo entrar en ese escuadrón.", detail = objError.Message });
+    }
+}
+
+objApp.MapPost("/api/squad/join", (string path) => JoinSquad(path));
+
+objApp.MapPost("/api/squad/create", (string root) =>
+{
+    var objSettings = objStore.Settings;
+    var strEpicId = objSettings.EpicId;
+
+    if (string.IsNullOrEmpty(strEpicId))
+    {
+        return Results.BadRequest(new { error = "Aún no se sabe tu ID de Epic: juega una partida y vuelve a intentarlo." });
+    }
+
+    if (objSettings.SquadPaths.Count >= TrackerSettings.MAX_SQUADS)
+    {
+        return Results.BadRequest(new { error = $"Ya estás en {TrackerSettings.MAX_SQUADS} escuadrones, que es el máximo. Sal de uno para entrar en otro." });
+    }
+
+    try
+    {
+        GetRecentMates(strEpicId, out var strYourName);
+        var strFolder = Squad.Create(root, strEpicId, strYourName);
+        objStore.UpdateSettings(objChange =>
+        {
+            if (!objChange.SquadPaths.Contains(strFolder, StringComparer.OrdinalIgnoreCase))
+            {
+                objChange.SquadPaths.Add(strFolder);
+            }
+        });
+        objStore.Log($"Escuadrón creado en {strFolder}");
+        ForgetSquadCache();
+        return Results.Ok(new { path = strFolder });
+    }
+    catch (Exception objError)
+    {
+        objStore.Log($"No se pudo crear el escuadrón en {root}: {objError.Message}");
+        return Results.BadRequest(new { error = "No se pudo crear el escuadrón en esa carpeta.", detail = objError.Message });
+    }
+});
+
+// Leaving only stops using the folder. Nothing in it is deleted: the rest of the squad keeps
+// their copy of what was shared, and joining again later finds it untouched.
+objApp.MapPost("/api/squad/leave", (string path) =>
+{
+    var strFolder = TidyPath(path) ?? path;
+    objStore.UpdateSettings(objSettings => objSettings.SquadPaths.RemoveAll(strItem => string.Equals(strItem, strFolder, StringComparison.OrdinalIgnoreCase)));
+    objStore.Log($"Salida del escuadrón {strFolder}");
+    ForgetSquadCache();
+    return Results.Ok();
+});
+
+objApp.MapPost("/api/squad/open", (string path) =>
+{
+    if (TidyPath(path) is not { } strFolder || !Directory.Exists(strFolder))
+    {
+        return Results.BadRequest(new { error = "No hay ninguna carpeta de escuadrón que abrir." });
+    }
+
+    Squad.OpenInExplorer(strFolder);
+    return Results.Ok();
+});
+
+// Opens the invitation the squad sent, or the cloud's own website, in the reader's browser.
+// The link is never read for data: accepting it is what makes the cloud put the folder on this
+// disk, and only then does the search find it. Only http(s) is opened, because this takes a
+// string typed into the page and hands it to the shell.
+objApp.MapPost("/api/squad/browse", (string url) =>
+{
+    if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out var objUri)
+        || (objUri.Scheme != Uri.UriSchemeHttp && objUri.Scheme != Uri.UriSchemeHttps))
+    {
+        return Results.BadRequest(new { error = "Eso no parece un enlace. Pega el que te ha pasado tu squad, que empieza por https://" });
+    }
+
+    OpenInBrowser(objUri.AbsoluteUri);
+    return Results.Ok();
+});
+
 
 objApp.MapPost("/api/update/check", () => { objUpdater.RequestCheck(); return Results.Ok(); });
 objApp.MapPost("/api/update/apply", () => objUpdater.StartApply() ? Results.Ok() : Results.Conflict());
