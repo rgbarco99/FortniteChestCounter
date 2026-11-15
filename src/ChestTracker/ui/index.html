@@ -320,6 +320,31 @@ table.progress tbody tr:hover { background: var(--card-raised); }
 .sh-card.r-lava { border-top-color: #e0792c; }
 .sh-card.r-frozen { border-top-color: #8fd8f2; }
 .sh-card.r-platform { border-top-color: #4ca8c9; }
+.sh-card { cursor: pointer; }
+.sh-card:hover .pic img { transform: scale(1.04); }
+.sh-card .pic img { transition: transform 0.18s ease; }
+.sh-card:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.shop-view { display: none; width: min(560px, calc(100vw - 32px)); max-height: min(88vh, 900px); padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--ink); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); overflow: hidden; }
+.shop-view[open] { display: flex; flex-direction: column; }
+.shop-view::backdrop { background: rgba(14, 10, 32, 0.72); }
+.shop-view .head { display: flex; align-items: flex-start; gap: 12px; padding: 14px 18px; background: var(--card-raised); border-bottom: 1px solid var(--line); }
+.shop-view .head b { font-size: 18px; font-stretch: 75%; line-height: 1.2; }
+.shop-view .head .grow { flex: 1; }
+.shop-view .head .x { background: none; border: 0; color: var(--ink-3); font-size: 22px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.shop-view .head .x:hover { color: var(--ink); }
+.shop-view .body { overflow-y: auto; padding: 0 0 16px; }
+.shop-view .body:focus { outline: none; }
+.shop-view .shot { position: relative; aspect-ratio: 1 / 1; background: var(--card-raised); overflow: hidden; }
+.shop-view .shot img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.shop-view .shot .glyph { position: absolute; inset: 0; display: grid; place-items: center; font-size: 120px; font-stretch: 75%; font-weight: 700; color: var(--line); }
+.shop-view .shot .flags { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+.shop-view .what { margin: 14px 18px 0; color: var(--ink-2); font-size: 14px; }
+.shop-view .price { margin: 10px 18px 0; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 30px; font-stretch: 75%; font-weight: 700; }
+.shop-view .price img { width: 26px; height: 26px; display: block; }
+.shop-view .price s { color: var(--ink-3); font-size: 18px; font-weight: 400; font-stretch: 100%; }
+.shop-view .price .saved { font-size: 13px; font-weight: 800; font-stretch: 100%; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: var(--spirit); color: #e9fff8; }
+.shop-view .note { margin: 12px 18px 0; color: var(--ink-2); font-size: 13.5px; background: var(--card-raised); border-radius: 8px; padding: 9px 12px; }
+.shop-view .when { margin: 12px 18px 0; color: var(--ink-3); font-size: 12.5px; }
 @media (max-width: 760px) {
     .shop { padding: 0 16px 40px; }
     .sh-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
@@ -724,6 +749,7 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
     <button class="btn" id="elSettingsOpen">Ajustes</button>
 </header>
 <dialog class="news" id="elNewsDialog" aria-label="Novedades"></dialog>
+<dialog class="shop-view" id="elShopDialog" aria-label="Artículo de la tienda"></dialog>
 <div class="update-bar" id="elUpdateBar" hidden></div>
 <div class="fail-bar" id="elFailBar" role="region" aria-label="Repeticiones con error" hidden></div>
 <div class="status" id="elStatus"></div>
@@ -910,6 +936,12 @@ const ARR_I18N = [
     ["Hoy no hay ninguna canción en la tienda.", "There is no song in the shop today.", "Il n'y a aucune chanson dans la boutique aujourd'hui."],
     ["Fuera de las secciones", "Outside the sections", "Hors sections"],
     ["Buscar en la tienda", "Search the shop", "Chercher dans la boutique"],
+    ["Artículo de la tienda", "Shop item", "Article de la boutique"],
+    ["Ahorras {0}", "You save {0}", "Tu économises {0}"],
+    ["Lleva {0} cosas", "It holds {0} things", "Il contient {0} objets"],
+    ["Ha entrado hoy", "It came in today", "Arrivé aujourd'hui"],
+    ["En la tienda desde el {0}", "In the shop since {0}", "Dans la boutique depuis le {0}"],
+    ["Se va en el próximo cambio", "Leaves at the next change", "Part au prochain changement"],
     ["Ordenar por", "Sort by", "Trier par"],
     ["Ordenar la tienda", "Sort the shop", "Trier la boutique"],
     ["Precio: de más a menos", "Price: high to low", "Prix : du plus cher au moins cher"],
@@ -1796,6 +1828,18 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // so there is nothing to look up in ARR_I18N.
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
+    {
+        strVersion: "1.5.2",
+        strDate: "2026-11-15",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Pincha cualquier cosa de la tienda y se abre en grande: la foto entera y sin recortar, que en un lote es donde se ven todas las piezas, el nombre completo, lo que cuesta en pavos y, si está rebajado, el precio de antes tachado y lo que te ahorras. Debajo, de qué sección es, desde cuándo está y si se va en el próximo cambio. Se cierra con la ×, con Esc o pinchando fuera, y se abre también con el teclado.",
+                en: "Click anything in the shop and it opens big: the whole picture uncropped, which in a bundle is where all the pieces show, the full name, what it costs in V-Bucks and, when it is discounted, the old price struck through and what you save. Underneath, which section it is from, since when it has been there and whether it leaves at the next change. It closes with the ×, with Esc or by clicking outside, and it opens from the keyboard too.",
+                fr: "Clique sur n'importe quoi dans la boutique et ça s'ouvre en grand : l'image entière et non rognée, ce qui dans un lot permet de voir toutes les pièces, le nom complet, le prix en V-Bucks et, s'il est remisé, l'ancien prix barré et ce que tu économises. En dessous, de quelle section il vient, depuis quand il est là et s'il part au prochain changement. Ça se ferme avec la ×, avec Échap ou en cliquant à côté, et ça s'ouvre aussi au clavier."
+            }
+        ]
+    },
     {
         strVersion: "1.5.1",
         strDate: "2026-11-15",
@@ -5420,7 +5464,59 @@ const shopClock = (dblLeft) => {
         arrParts.flatMap((strValue, intIndex) => [el("b", { text: strValue }), el("small", { text: arrUnits[intIndex] })]));
 };
 
-const shopCard = (objItem) => el("article", { class: `sh-card r-${objItem.rarityKey ?? "none"}` }, [
+// A tile is small on purpose: four columns of them is what makes a shop readable at a glance.
+// The picture, though, is the thing being sold, and the game shows it big. One click and it is
+// big here too, with the name, what it costs and what it costs less than.
+const openShopItem = (objItem) => {
+    const elDialog = document.getElementById("elShopDialog");
+    const intSaved = objItem.was - objItem.price;
+    elDialog.replaceChildren(
+        el("div", { class: "head" }, [
+            el("b", { "data-notr": true, text: objItem.name }),
+            el("span", { class: "grow" }),
+            el("button", { class: "x", text: "×", title: "Cerrar", "aria-label": "Cerrar", onclick: () => elDialog.close() })
+        ]),
+        // The scrolling body takes the focus, so it opens ready for the keyboard instead of with
+        // a ring drawn around the close button
+        el("div", { class: "body", tabindex: "-1", autofocus: true }, [
+            el("div", { class: "shot" }, [
+                objItem.image
+                    ? el("img", { src: objItem.image, alt: "" })
+                    : el("span", { class: "glyph", "data-notr": true, text: objItem.name.slice(0, 1) }),
+                el("div", { class: "flags" }, [
+                    objItem.isNew ? el("span", { class: "sh-flag new", text: "Nuevo" }) : null,
+                    objItem.leaving ? el("span", { class: "sh-flag out", text: "Se va" }) : null
+                ])
+            ]),
+            el("p", { class: "what", "data-notr": true, text: [objItem.kind, objItem.series ?? objItem.rarity].filter(Boolean).join(" · ") }),
+            el("p", { class: "price" }, [
+                objApp.objShop?.vbucksIcon ? el("img", { src: objApp.objShop.vbucksIcon, alt: "" }) : null,
+                el("span", { "data-notr": true, text: fmtWhole(objItem.price) }),
+                intSaved > 0 ? el("s", { "data-notr": true, text: fmtWhole(objItem.was) }) : null,
+                intSaved > 0 ? el("span", { class: "saved", text: `Ahorras ${fmtWhole(intSaved)}` }) : null
+            ]),
+            // What the game itself says about this offer, when it says anything
+            objItem.tag ? el("p", { class: "note", "data-notr": true, text: objItem.tag }) : null,
+            objItem.isBundle && objItem.pieces > 1 ? el("p", { class: "note", text: `Lleva ${objItem.pieces} cosas` }) : null,
+            el("p", { class: "when" }, dotted([
+                objItem.section,
+                objItem.isNew ? "Ha entrado hoy" : `En la tienda desde el ${fmtDay(new Date(objItem.inUtc))}`,
+                objItem.leaving ? "Se va en el próximo cambio" : null
+            ]))
+        ])
+    );
+    if (!elDialog.open) elDialog.showModal();
+};
+
+const shopCard = (objItem) => el("article", {
+    class: `sh-card r-${objItem.rarityKey ?? "none"}`, tabindex: "0", role: "button",
+    onclick: () => openShopItem(objItem),
+    onkeydown: (objEvent) => {
+        if (objEvent.key !== "Enter" && objEvent.key !== " ") return;
+        objEvent.preventDefault();
+        openShopItem(objItem);
+    }
+}, [
     el("div", { class: "pic" }, [
         objItem.image
             ? el("img", { src: objItem.image, alt: "", loading: "lazy", decoding: "async" })
@@ -5443,6 +5539,11 @@ const shopCard = (objItem) => el("article", { class: `sh-card r-${objItem.rarity
         objItem.section ? el("p", { class: "where", "data-notr": true, text: objItem.section }) : null
     ])
 ]);
+
+// Esc already closes a modal dialog; this is the click outside it
+document.getElementById("elShopDialog").addEventListener("click", (objEvent) => {
+    if (objEvent.target.id === "elShopDialog") objEvent.target.close();
+});
 
 const shopBlock = (strTitle, strWhy, arrItems) => arrItems.length ? el("section", { class: "sh-block" }, [
     el("div", { class: "sh-head" }, [
