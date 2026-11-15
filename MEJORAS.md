@@ -500,6 +500,29 @@ algún día hace falta tocarlo) y **«Dónde se guardan los datos»** (irrelevan
   (`.l-card.half`, 6 de 12), una al lado de la otra. Apiladas obligaban a scrollear sin motivo,
   habiendo sitio de sobra. Por debajo de 1100 px vuelven a ancho completo.
 
+## Actualizarse no puede depender de borrar la copia anterior — *diagnosticado el 15/11/2026*
+
+Una actualización falló con `Access to the path '...FortniteChestCounter.exe.old' is denied`.
+La cadena de hechos, reconstruida de las fechas de los archivos y de los procesos vivos:
+
+1. A las **01:28:10** la copia v1.3.0 en marcha lanzó un lector (`--dump`), que cargó la v1.3.0
+   y se quedó en el bucle infinito del parser (arreglado en 1.4.0, pero esa copia era anterior).
+2. A las **01:28:26** terminó la actualización a 1.4.0: el `.exe` se renombró a `.exe.old`.
+   El lector colgado se fue con él, y pasó a tener abierto el `.exe.old`.
+3. Su padre se reinició en esos 16 segundos, así que **nadie llegó a matarlo**: el tiempo límite
+   del lector lo aplica el padre, y ese padre ya no existía. Siguió vivo más de una hora.
+4. La siguiente actualización intentó `File.Delete(.old)`, no pudo, y se abortó entera.
+
+Dos arreglos, cada uno suficiente por su cuenta:
+
+- **`Updater`**: si el `.old` no se puede borrar, la copia actual se aparta con un nombre único
+  (`.old.<fecha>`) en vez de abortar. La limpieza del arranque barre todos los `.old*`. Un
+  archivo que nadie puede borrar no es motivo para rechazar una actualización.
+- **`ParseProcess` + `Native.TieReaderToThisProgram`**: los lectores entran en un *job object* de
+  Windows con `KILL_ON_JOB_CLOSE`, así que **mueren con el programa pase lo que pase** — cierre
+  normal, reinicio por actualización o cuelgue. No puede volver a quedar un huérfano. Verificado
+  con un arnés que ata un hijo de larga duración y mata al padre con `FailFast`: el hijo muere.
+
 ## Pendientes menores y sospechas
 
 - **`bTossedFromContainer` no significa «vino de un cofre».** El botín del suelo de la isla previa

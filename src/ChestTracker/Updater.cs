@@ -230,11 +230,24 @@ public sealed class Updater : BackgroundService
             }
         }
 
-        // Windows lets a running executable be renamed, not overwritten: move it aside, put the new one in its place
+        // Windows lets a running executable be renamed, not overwritten: move it aside, put the
+        // new one in its place. The copy set aside by a previous update can still be held open
+        // by something (an orphaned reader, an antivirus mid-scan), and a leftover nobody can
+        // delete is no reason to refuse an update: when it will not go, the old copy is simply
+        // parked under another name and swept up later.
         if (File.Exists(strOld))
         {
-            File.Delete(strOld);
+            try
+            {
+                File.Delete(strOld);
+            }
+            catch (Exception objError)
+            {
+                strOld = $"{strExe}.old.{DateTime.UtcNow:yyyyMMddHHmmss}";
+                _objStore.Log($"No se pudo borrar la copia anterior ({objError.Message}); se aparta como {Path.GetFileName(strOld)}");
+            }
         }
+
         File.Move(strExe, strOld);
         try
         {
@@ -285,7 +298,20 @@ public sealed class Updater : BackgroundService
             return;
         }
 
-        foreach (var strLeftover in new[] { strExe + ".old", strExe + ".new" })
+        // Includes the ones parked under a dated name when the plain .old could not be deleted:
+        // whatever was holding them is usually long gone by the next start
+        var lstLeftovers = new List<string> { strExe + ".new" };
+        try
+        {
+            var strFolder = Path.GetDirectoryName(strExe);
+            if (strFolder != null)
+            {
+                lstLeftovers.AddRange(Directory.EnumerateFiles(strFolder, Path.GetFileName(strExe) + ".old*"));
+            }
+        }
+        catch (Exception) { lstLeftovers.Add(strExe + ".old"); }
+
+        foreach (var strLeftover in lstLeftovers)
         {
             for (var intTry = 0; intTry < 10 && File.Exists(strLeftover); intTry++)
             {

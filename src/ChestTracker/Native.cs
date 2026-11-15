@@ -28,6 +28,88 @@ internal static class Native
         catch (EntryPointNotFoundException) { }
     }
 
+    // -----------------------------------------------------------------------
+    // Keeping the readers tied to this program
+    // -----------------------------------------------------------------------
+
+    private const int JOB_OBJECT_EXTENDED_LIMIT_INFORMATION = 9;
+    private const int JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000;
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr CreateJobObject(IntPtr objAttributes, string? strName);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool SetInformationJobObject(IntPtr objJob, int intClass, IntPtr objInfo, int intLength);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool AssignProcessToJobObject(IntPtr objJob, IntPtr objProcess);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct JOBOBJECT_BASIC_LIMIT_INFORMATION
+    {
+        public long PerProcessUserTimeLimit, PerJobUserTimeLimit;
+        public int LimitFlags;
+        public UIntPtr MinimumWorkingSetSize, MaximumWorkingSetSize;
+        public int ActiveProcessLimit;
+        public UIntPtr Affinity;
+        public int PriorityClass, SchedulingClass;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct JOBOBJECT_EXTENDED_LIMIT_INFORMATION
+    {
+        public JOBOBJECT_BASIC_LIMIT_INFORMATION BasicLimitInformation;
+        public long ReadOperationCount, WriteOperationCount, OtherOperationCount;
+        public long ReadTransferCount, WriteTransferCount, OtherTransferCount;
+        public UIntPtr ProcessMemoryLimit, JobMemoryLimit, PeakProcessMemoryUsed, PeakJobMemoryUsed;
+    }
+
+    private static IntPtr objReaderJob = IntPtr.Zero;
+
+    /// <summary>
+    /// A job that Windows empties when this program ends, however it ends. Readers are put in it
+    /// so that one cannot outlive the program that started it: a reader is meant to be killed by
+    /// its parent when it takes too long, but a parent that restarts for an update, or that
+    /// crashes, never gets to. The orphan then sits there forever, burning a core and holding
+    /// open the copy of the executable it was launched from, which is enough to stop the next
+    /// update from tidying that copy away.
+    /// </summary>
+    public static void TieReaderToThisProgram(IntPtr objProcessHandle)
+    {
+        try
+        {
+            if (objReaderJob == IntPtr.Zero)
+            {
+                objReaderJob = CreateJobObject(IntPtr.Zero, null);
+                if (objReaderJob == IntPtr.Zero)
+                {
+                    return;
+                }
+
+                var objLimits = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION();
+                objLimits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+
+                var intSize = Marshal.SizeOf(objLimits);
+                var objBuffer = Marshal.AllocHGlobal(intSize);
+                try
+                {
+                    Marshal.StructureToPtr(objLimits, objBuffer, false);
+                    SetInformationJobObject(objReaderJob, JOB_OBJECT_EXTENDED_LIMIT_INFORMATION, objBuffer, intSize);
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(objBuffer);
+                }
+            }
+
+            AssignProcessToJobObject(objReaderJob, objProcessHandle);
+        }
+        catch (Exception)
+        {
+            // Not Windows, or jobs unavailable: the parent's own timeout is still there
+        }
+    }
+
     /// <summary>
     /// Says out loud that the program could not start, in the three languages, and offers to
     /// open the log. A WinExe that throws on startup closes with no window at all, which from

@@ -1611,6 +1611,24 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
     {
+        strVersion: "1.4.2",
+        strDate: "2026-11-15",
+        arrItems: [
+            {
+                strTag: "arreglado",
+                es: "Actualizar podía quedarse bloqueado para siempre con un «acceso denegado» a FortniteChestCounter.exe.old. Pasaba cuando algo tenía abierta la copia que dejó la actualización anterior. Ahora, si no se puede borrar, se aparta con otro nombre y la actualización sigue adelante.",
+                en: "Updating could get stuck forever with an “access denied” on FortniteChestCounter.exe.old. It happened when something still had the copy left by the previous update open. Now, if it cannot be deleted, it is set aside under another name and the update carries on.",
+                fr: "La mise à jour pouvait rester bloquée pour toujours avec un « accès refusé » sur FortniteChestCounter.exe.old. Cela arrivait quand quelque chose gardait ouverte la copie laissée par la mise à jour précédente. Désormais, si elle ne peut pas être supprimée, elle est mise de côté sous un autre nom et la mise à jour continue."
+            },
+            {
+                strTag: "arreglado",
+                es: "Y la causa de fondo: los procesos que leen las repeticiones podían quedarse huérfanos si el programa se reiniciaba mientras uno estaba leyendo. Seguían vivos horas, gastando procesador y reteniendo archivos. Ahora Windows se los lleva siempre con el programa, se cierre como se cierre.",
+                en: "And the root of it: the processes that read replays could be orphaned if the program restarted while one was reading. They stayed alive for hours, burning processor and holding files open. Windows now always takes them down with the program, however it closes.",
+                fr: "Et la cause de fond : les processus qui lisent les rediffusions pouvaient devenir orphelins si le programme redémarrait pendant une lecture. Ils restaient actifs des heures, consommant du processeur et retenant des fichiers. Windows les emporte désormais toujours avec le programme, quelle que soit la façon dont il se ferme."
+            }
+        ]
+    },
+    {
         strVersion: "1.4.1",
         strDate: "2026-11-15",
         arrItems: [

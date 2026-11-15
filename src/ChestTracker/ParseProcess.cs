@@ -15,6 +15,7 @@ public static class ParseProcess
     private static readonly JsonSerializerOptions objJsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     /// <summary>
+    /// <summary>
     /// Time limit per replay: 60 seconds plus 10 per MB, as a long match on a busy PC (the game is
     /// running, the reader has low priority) can be slow. FCC_TIMEOUT (seconds) overrides it.
     /// </summary>
@@ -75,6 +76,10 @@ public static class ParseProcess
 
         using (objProcess)
         {
+            // Windows kills it with us however we go, so an update or a crash cannot leave it
+            // running for hours holding the executable it was launched from
+            Native.TieReaderToThisProgram(objProcess.Handle);
+
             // Stay out of the game's way while it is running
             try { objProcess.PriorityClass = ProcessPriorityClass.BelowNormal; } catch { }
 
