@@ -91,7 +91,22 @@ carpeta en el disco del invitado, y hasta que no está en el disco el programa n
 Por eso la pantalla de entrar **pide el enlace pero no lee datos de él**: solo lo abre en el
 navegador, y después busca en el disco.
 
-**La pantalla, en tres vistas** (`objApp.strSquadView`):
+**Pestaña propia, no en Ajustes** (`renderSquad`, contenedor `#elSquad`). Estaba enterrada en el
+cajón de ajustes y es lo primero que alguien necesita encontrar.
+
+**La espera es el problema, no la búsqueda** — *aprendido probándolo con una persona real el
+15/11/2026*. Aceptar el enlace **no baja la carpeta al instante**: OneDrive tardó unos **dos
+minutos**. Durante esa espera el botón «búscalo» no decía nada, así que parecía roto cuando en
+realidad funcionaba. Arreglado en tres sitios:
+
+- `GET /api/squad?fresh=true` salta la caché de 8 s. Sin eso, pulsar el botón podía devolver un
+  «no está» guardado de antes aunque la carpeta ya hubiera llegado. Ese sí era un bug.
+- Mientras se espera, el programa **relee el disco solo cada 5 s** y la carpeta aparece sin pulsar
+  nada. Antes había que adivinar cuándo reintentar.
+- Un panel dice **en qué nubes está mirando**, cuántos segundos lleva y que la nube puede tardar un
+  par de minutos. Si no detecta ninguna nube, lo dice en vez de buscar en silencio.
+
+**La pantalla, en cuatro vistas** (`objApp.strSquadView`):
 
 - **Elección** — «¿Te han invitado?» y «¿Lo montas tú?», los dos botones **al mismo peso**. Esto
   no es estética: antes el botón grande era «Crear», y los tres invitados que aún no habían
@@ -463,6 +478,27 @@ arrancar (puerto tomado, permisos, antivirus, datos corruptos) cerraba el progra
 ni mensaje**. Desde fuera es idéntico a hacer doble clic y que no pase nada. Ahora `objApp.Run()`
 va dentro de un `try` que lo apunta en el registro y enseña un `MessageBox` en los tres idiomas
 con el error y la ruta del log (`Native.ShowStartupFailure`).
+
+## Ajustes: qué va dentro — *decidido el 15/11/2026*
+
+Estaba lleno de cosas nuestras, no del usuario. Queda: **Repeticiones** (con la carpeta dentro),
+Escuadrones (solo un enlace a su pestaña), Registro de Fortnite, Tu ID de Epic, Actualizaciones,
+Copia de seguridad y Borrar datos.
+
+Fuera, y por qué: **«Cómo está ahora»** (las mismas cifras ya están en la cabecera de la página),
+**«Qué cuenta como cada cofre»** (clasificación interna; `ClassOverrides` sigue funcionando si
+algún día hace falta tocarlo) y **«Dónde se guardan los datos»** (irrelevante a nivel usuario).
+
+## Dos cosas de maquetación que conviene no volver a romper
+
+- **El cajón de ajustes bloquea el scroll de la página** (`setDrawerOpen`, clase `body.drawer-open`).
+  Antes salían dos barras a la vez y la rueda movía la que estuviera bajo el puntero. Quitar la
+  barra ensancha la página 15 px, así que `setDrawerOpen` mide su ancho **antes** de bloquear y
+  compensa con `padding-right` en el body: salto medido, 0 px. Abrir y cerrar pasa siempre por ahí;
+  no quedan llamadas sueltas a `classList.add("open")`.
+- **En vivo: la tarjeta del squad y la de cofres minuto a minuto van a media rejilla**
+  (`.l-card.half`, 6 de 12), una al lado de la otra. Apiladas obligaban a scrollear sin motivo,
+  habiendo sitio de sobra. Por debajo de 1100 px vuelven a ancho completo.
 
 ## Pendientes menores y sospechas
 

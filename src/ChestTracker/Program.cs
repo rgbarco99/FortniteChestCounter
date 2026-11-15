@@ -430,9 +430,12 @@ var dtSquadCacheUtc = DateTime.MinValue;
 
 void ForgetSquadCache() => objSquadCache = null;
 
-objApp.MapGet("/api/squad", () =>
+// fresh=true looks at the disk again right now. The page asks for it while somebody is waiting
+// for a shared folder to come down, where a cached answer of "not here" would look like a dead
+// button even once the cloud had finished.
+objApp.MapGet("/api/squad", (bool? fresh) =>
 {
-    if (objSquadCache != null && DateTime.UtcNow - dtSquadCacheUtc < TimeSpan.FromSeconds(8))
+    if (fresh != true && objSquadCache != null && DateTime.UtcNow - dtSquadCacheUtc < TimeSpan.FromSeconds(8))
     {
         return objSquadCache;
     }
