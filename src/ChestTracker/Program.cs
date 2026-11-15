@@ -138,12 +138,41 @@ objApp.MapGet("/api/state", () =>
 
     // What the squad shared, joined to your matches by session id. Their figures sit beside
     // yours and are never added into them.
+    // Who somebody is, is their Epic id; what they are called is whatever they are called today.
+    // A replay keeps the nick its match was played under, so a squadmate who renames themselves
+    // turns into two people across your history. The newest name wins everywhere: what they
+    // publish right now first, and failing that the most recent match that saw them.
+    var dicNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    foreach (var objMatch in lstMatches)
+    {
+        foreach (var objMate in objMatch.Squad)
+        {
+            if (!string.IsNullOrEmpty(objMate.Name))
+            {
+                dicNames[objMate.Id] = objMate.Name;        // matches are in order, so the last wins
+            }
+        }
+    }
+
+    foreach (var (strId, strName) in objSquadReader.Names)
+    {
+        if (!string.IsNullOrEmpty(strName))
+        {
+            dicNames[strId] = strName!;
+        }
+    }
+
     var dicTotals = new Dictionary<string, SharedPlayer>(StringComparer.OrdinalIgnoreCase);
     foreach (var objMatch in lstMatches)
     {
         var dicCards = objSquadReader.ForSession(objMatch.SessionId);
         foreach (var objMate in objMatch.Squad)
         {
+            if (dicNames.TryGetValue(objMate.Id, out var strCurrent))
+            {
+                objMate.Name = strCurrent;
+            }
+
             if (objMate.IsYou || !dicCards.TryGetValue(objMate.Id, out var objCard))
             {
                 continue;
@@ -154,7 +183,7 @@ objApp.MapGet("/api/state", () =>
 
             if (!dicTotals.TryGetValue(objMate.Id, out var objTotal))
             {
-                objTotal = new SharedPlayer { Id = objMate.Id, Name = objMate.Name ?? objSquadReader.Names.GetValueOrDefault(objMate.Id) };
+                objTotal = new SharedPlayer { Id = objMate.Id, Name = objMate.Name };
                 dicTotals[objMate.Id] = objTotal;
             }
 

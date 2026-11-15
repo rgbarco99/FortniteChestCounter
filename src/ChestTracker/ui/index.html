@@ -295,8 +295,12 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 .l-pill.on i { background: var(--spirit); animation: l-blink 1.2s ease-in-out infinite; }
 /* How the squad finished, one bar each */
 .l-squad .l-score { display: grid; gap: 8px; margin-top: 10px; }
-.l-row { display: flex; align-items: center; gap: 10px; }
-.l-row .who { min-width: 130px; font-weight: 600; font-stretch: 75%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Fixed columns, so every bar starts and ends in the same place and their lengths mean something */
+.l-row { display: grid; grid-template-columns: 18px minmax(0, 180px) 1fr auto; align-items: center; gap: 10px; }
+.l-row .crownslot { display: inline-flex; justify-content: center; }
+.l-row .crownslot .crown { margin: 0; }
+.l-row .whocell { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.l-row .who { font-weight: 600; font-stretch: 75%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .l-row .tag { background: var(--card-raised); border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--ink-2); }
 .l-row .track { flex: 1; height: 12px; background: var(--card-raised); border-radius: 999px; overflow: hidden; }
 .l-row .track i { display: block; height: 100%; background: var(--ink-3); border-radius: 999px; transition: width 0.5s ease; }
@@ -304,7 +308,8 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 .l-row.winner .track i { background: var(--gold); }
 .l-row.guess .track i { background: var(--ink-3); opacity: 0.55; }
 .l-row.guess .who, .l-row.guess b { color: var(--ink-2); }
-.l-row b { min-width: 42px; text-align: right; font-size: 19px; }
+.l-row b, .l-row .nodata { min-width: 56px; text-align: right; }
+.l-row b { font-size: 19px; }
 .l-row.winner b { color: var(--gold); }
 /* The crown lands once, rather than being there from the start: it drops in spinning, lands
    heavy, and throws off a ring of light. Winning the chest count is the whole point of a
@@ -419,8 +424,10 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 .l-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
 .l-card { background: var(--card); border-radius: var(--radius); padding: 16px 18px; grid-column: span 2; min-width: 0; }
 .l-card.hero { grid-column: span 4; grid-row: span 2; display: flex; flex-direction: column; justify-content: center; border: 2px solid var(--gold); box-shadow: 0 0 34px rgba(240, 180, 41, 0.18) inset; }
-.l-card.wide { grid-column: span 8; }
-.l-card.side { grid-column: span 4; }
+/* The pair of the live view, split about 60/40: the chest bars next to it were too cramped at
+   a third of the width. Seven and five of twelve is the closest a 12-column grid gets. */
+.l-card.wide { grid-column: span 7; }
+.l-card.side { grid-column: span 5; }
 .l-card.full { grid-column: span 12; }
 /* The squad bars and the minute chart side by side: there is room, and stacking them pushed
    the chart below the fold for no reason. They drop to full width when there is not. */
@@ -1016,9 +1023,6 @@ const ARR_I18N = [
     ["Partida terminada", "Match finished", "Partie terminée"],
     ["Fortnite sigue grabando mientras miras a tu squad o esperas la siguiente partida, y no escribe la clave de la repetición hasta cerrarla.", "Fortnite keeps recording while you spectate your squad or wait for the next match, and only writes the replay key when it closes it.", "Fortnite continue d'enregistrer pendant que tu regardes ton escouade ou attends la partie suivante, et n'écrit la clé de la rediffusion qu'en la fermant."],
     ["Cuando la cierre, el resumen aparecerá aquí y se quedará hasta 60 segundos después de que empiece la siguiente partida.", "When it does, the summary appears here and stays until 60 seconds after the next match starts.", "À ce moment-là, le résumé apparaît ici et reste jusqu'à 60 secondes après le début de la partie suivante."],
-    ["Por qué no hay contador en directo", "Why there is no live count", "Pourquoi pas de décompte en direct"],
-    ["Fortnite cifra la repetición mientras juegas y no escribe la clave hasta que la partida termina. Hasta entonces solo se puede saber cuándo empezó.", "Fortnite encrypts the replay while you play and only writes the key when the match ends. Until then all that can be known is when it started.", "Fortnite chiffre la rediffusion pendant que tu joues et n'écrit la clé qu'à la fin de la partie. D'ici là, on sait seulement quand elle a commencé."],
-    ["En cuanto salgas de la partida, en unos segundos aparecerán aquí los cofres, las eliminaciones y el puesto.", "A few seconds after you leave the match, chests, eliminations and place show up here.", "Quelques secondes après avoir quitté la partie, les coffres, éliminations et la place apparaissent ici."],
     ["Ha empezado otra partida. Este resumen se queda", "Another match has started. This summary stays for", "Une autre partie a commencé. Ce résumé reste encore"],
     ["; {0} rotos", "; {0} broken", " ; {0} cassés"],
     ["frente a tu media a estas alturas", "against your average at this point", "face à ta moyenne à ce stade"],
@@ -1646,6 +1650,30 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // so there is nothing to look up in ARR_I18N.
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
+    {
+        strVersion: "1.4.4",
+        strDate: "2026-11-15",
+        arrItems: [
+            {
+                strTag: "arreglado",
+                es: "Si un compañero se cambia el nombre en Fortnite, ya no aparece como dos personas distintas. El programa reconoce a cada uno por su cuenta de Epic, no por el nombre, así que sus cofres de siempre siguen siendo suyos y se le llama como se llame hoy, también en las partidas viejas.",
+                en: "If a squadmate changes their name in Fortnite, they no longer show up as two different people. The program knows each of you by your Epic account rather than by name, so their chests stay theirs and they are called whatever they are called today, in old matches too.",
+                fr: "Si un coéquipier change de nom dans Fortnite, il n'apparaît plus comme deux personnes différentes. Le programme reconnaît chacun par son compte Epic et non par son nom : ses coffres restent les siens et il porte le nom qu'il a aujourd'hui, y compris dans les anciennes parties."
+            },
+            {
+                strTag: "arreglado",
+                es: "Las barras de cofres del squad medían distinto según lo que llevara cada fila al lado, así que el que más cofres había abierto podía dibujar la barra más corta. Ahora todas empiezan y acaban en el mismo sitio, y la corona va a la izquierda del nombre.",
+                en: "The squad's chest bars were different lengths depending on what else sat in each row, so whoever opened the most chests could end up with the shortest bar. They all start and end in the same place now, and the crown goes to the left of the name.",
+                fr: "Les barres de coffres de l'escouade avaient des longueurs différentes selon ce que contenait chaque ligne, si bien que celui qui avait ouvert le plus de coffres pouvait avoir la barre la plus courte. Elles commencent et finissent toutes au même endroit, et la couronne est à gauche du nom."
+            },
+            {
+                strTag: "mejorado",
+                es: "Durante la partida, los cofres del squad ocupan más sitio al lado de tu ritmo habitual: se veían demasiado pequeños.",
+                en: "During a match, the squad's chests take up more room beside your usual pace: they were showing too small.",
+                fr: "Pendant la partie, les coffres de l'escouade prennent plus de place à côté de ton rythme habituel : ils s'affichaient trop petits."
+            }
+        ]
+    },
     {
         strVersion: "1.4.3",
         strDate: "2026-11-15",
@@ -3999,7 +4027,7 @@ const INT_HOLD_SECONDS = 60;
 // How the squad finished, once the match is over and everybody has published. While a match is
 // running nobody has published anything yet, so this only appears afterwards; and until the last
 // card syncs it says who is missing rather than crowning somebody on half the figures.
-const squadScoreCard = (objMatch, bLive) => {
+const squadScoreCard = (objMatch, bLive, strSize = "half") => {
     // Their cards come through the cloud, which takes as long as it takes: often longer than the
     // few seconds between leaving one match and dropping into the next. Waiting for them with
     // the card on screen only to have it vanish when the next match starts is the worst of both,
@@ -4024,7 +4052,7 @@ const squadScoreCard = (objMatch, bLive) => {
     // the card goes up straight away saying it is waiting.
     if (!arrMates.some((objMate) => objMate.sharedChests != null)) {
         if (!objApp.objState?.inSquad) return null;      // not in a squad: nothing to wait for
-        return el("div", { class: "l-card half l-squad" }, [
+        return el("div", { class: `l-card ${strSize} l-squad` }, [
             el("h2", { text: bPrevious ? "Cofres del squad en la partida anterior" : "Cofres del squad en esta partida" }),
             el("div", { class: "waiting" }, [
                 el("b", {}, [el("span", { class: "spin" }), "Leyendo lo que ha publicado tu squad…"]),
@@ -4055,20 +4083,28 @@ const squadScoreCard = (objMatch, bLive) => {
     const bFirstTime = objApp.strCrownShown !== strKey;
     if (bFirstTime) objApp.strCrownShown = strKey;
 
-    return el("div", { class: "l-card half l-squad" }, [
+    return el("div", { class: `l-card ${strSize} l-squad` }, [
         el("h2", { text: bPrevious ? "Cofres del squad en la partida anterior" : "Cofres del squad en esta partida" }),
         el("div", { class: "l-score" }, arrRows.map((objRow) => {
             // An estimate can never win: it is a floor, and crowning it would be made up
             const bWinner = objRow.intChests === intTop && arrRows.length > 1 && !objRow.bGuess;
             return el("div", { class: `l-row${objRow.bYou ? " you" : ""}${bWinner ? " winner" : ""}${objRow.bGuess ? " guess" : ""}` }, [
-                el("span", { class: `who${bWinner ? " champ" : ""}`, "data-notr": true, text: objRow.strName }),
-                objRow.bYou ? el("span", { class: "tag", text: "tú" }) : null,
-                objRow.bGuess && !objRow.bNone ? el("span", { class: "tag", text: "estimado" }) : null,
+                // The crown sits in a slot of its own, kept in every row whether or not it holds
+                // anything. Hung on the end it stole width from the winner's bar, so the row with
+                // the most chests drew the shortest bar of the four.
+                el("span", { class: "crownslot" }, bWinner ? el("span", { class: `crown${bFirstTime ? " pop" : ""}`, title: "Más cofres de la partida", text: "♛" }) : null),
+                // Name and tag share one cell of fixed width. Loose in the row they pushed the
+                // bar along by however wide they happened to be, so no two bars started or ended
+                // in the same place and the lengths could not be compared by eye.
+                el("span", { class: "whocell" }, [
+                    el("span", { class: `who${bWinner ? " champ" : ""}`, "data-notr": true, text: objRow.strName }),
+                    objRow.bYou ? el("span", { class: "tag", text: "tú" }) : null,
+                    objRow.bGuess && !objRow.bNone ? el("span", { class: "tag", text: "estimado" }) : null
+                ]),
                 el("span", { class: "track" }, el("i", { style: { width: `${intTop && !objRow.bNone ? (objRow.intChests / intTop) * 100 : 0}%` } })),
                 objRow.bNone
                     ? el("span", { class: "nodata", text: "Sin datos" })
-                    : el("b", { class: "figure", "data-notr": true, text: `${objRow.bGuess ? "≥" : ""}${objRow.intChests}` }),
-                bWinner ? el("span", { class: `crown${bFirstTime ? " pop" : ""}`, title: "Más cofres de la partida", text: "♛" }) : null
+                    : el("b", { class: "figure", "data-notr": true, text: `${objRow.bGuess ? "≥" : ""}${objRow.intChests}` })
             ]);
         })),
         el("p", { class: "hint", text: arrGuessed.length
@@ -4381,13 +4417,10 @@ const renderLive = () => {
                     el("h2", { text: "Partida terminada" }),
                     el("p", { class: "hint", text: "Fortnite sigue grabando mientras miras a tu squad o esperas la siguiente partida, y no escribe la clave de la repetición hasta cerrarla." }),
                     el("p", { class: "hint", text: "Cuando la cierre, el resumen aparecerá aquí y se quedará hasta 60 segundos después de que empiece la siguiente partida." })
-                ]) : (squadScoreCard(objMatch, true) ?? el("div", { class: "l-card side" }, [
-                    // Explaining why there is no live count matters the first few times and never
-                    // again; how the squad did in the match just played is worth the space every time
-                    el("h2", { text: "Por qué no hay contador en directo" }),
-                    el("p", { class: "hint", text: "Fortnite cifra la repetición mientras juegas y no escribe la clave hasta que la partida termina. Hasta entonces solo se puede saber cuándo empezó." }),
-                    el("p", { class: "hint", text: "En cuanto salgas de la partida, en unos segundos aparecerán aquí los cofres, las eliminaciones y el puesto." })
-                ]))
+                // Explaining why there is no live count belonged here when there was nothing
+                // better to put in its place. How the squad did in the match just played is
+                // better, every time, so that is what this slot is for now.
+                ]) : squadScoreCard(objMatch, true, "side")
             ])
         );
         drawLivePace(elUsualPace, { openings: [] }, objHabits, dblNow, true, true);

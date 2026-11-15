@@ -547,13 +547,47 @@ Lo que se ha apretado:
   tarjeta de la partida anterior se queda en *En vivo* hasta 15 minutos después de terminarla.
   Antes se esfumaba justo antes de que llegaran los datos, que es el peor momento posible.
 
-- **La tarjeta «Por qué no hay contador en directo» cede su sitio** a la comparación del squad
-  cuando hay una partida anterior reciente que enseñar. Explicar por qué no hay contador importa
-  las primeras veces y nunca más; cómo fue la partida que acabas de jugar importa siempre.
-  Si la anterior pasa de 15 minutos, vuelve la explicación.
+- **La tarjeta «Por qué no hay contador en directo» está eliminada**, no apartada: ese hueco es
+  ahora la comparación del squad de la partida anterior. Explicar por qué no hay contador importa
+  las primeras veces y nunca más. Si no hay partida anterior reciente (más de 15 minutos) o no
+  estás en ningún escuadrón, el hueco queda vacío y la rejilla se recoloca.
+  **La tarjeta no decide su ancho**: lo recibe de quien la coloca, que es el único que conoce su
+  fila. En la vista de partida terminada va a 6 de 12 (junto al gráfico); en la de partida en
+  curso, a 4 (junto a «Tu ritmo habitual», que ocupa 8). Ponerla a 6 en esa fila sumaba 14 y
+  descuadraba la rejilla entera.
+
+**Cómo se renderiza el estado «partida en curso» para probarlo.** `getLiveContext` es un `const`
+de ámbito de módulo, así que asignar `window.getLiveContext` **no lo sustituye** y la página sigue
+usando el real. En la copia instrumentada del scratchpad hay que convertirlo primero
+(`const getLiveContext = ` → `window.getLiveContext = `) y entonces ya se puede reemplazar. Sin
+ese paso, las capturas salen del contexto real y aparentan funcionar.
 - **El resumen anterior aguanta 60 s** en vez de 45 (`INT_HOLD_SECONDS`).
 
 No se puede prometer que estén antes de la siguiente partida: eso lo decide OneDrive.
+
+## Quién es alguien, y cómo se llama hoy — *15/11/2026*
+
+Una compañera se cambió el nick (CHEESCA_97 → ParceNoDispare) y apareció como **dos personas**
+en el historial. La identidad siempre fue el id de Epic (los archivos del escuadrón y las fichas
+van por id), pero el **nombre mostrado** salía de la repetición de cada partida, que guarda el
+nick con el que se jugó aquella.
+
+Ahora `/api/state` arma un mapa `id -> nombre actual` y lo aplica a todas las partidas: gana lo
+que publica ahora mismo en la carpeta compartida, y si no comparte, el nick de la partida más
+reciente en que se le vio. Verificado con los datos reales: las 168 partidas, incluidas las del
+8 de noviembre, muestran un único nombre.
+
+Si se vuelve a tocar algo de nombres: **nunca agrupar por nick**, siempre por id.
+
+## Las barras del squad tienen que medir lo mismo
+
+La corona colgada al final de la fila robaba ancho, así que **el que más cofres había abierto
+dibujaba la barra más corta**. Moverla a la izquierda no bastó: las etiquetas «TÚ» y «ESTIMADO»
+hacían lo mismo, cada fila por su cuenta (465, 387, 465, 426 px medidos).
+
+Las filas son ahora una rejilla de columnas fijas — corona (18px) · nombre y etiquetas (180px) ·
+barra (el resto) · cifra — y la corona tiene su hueco reservado en **todas** las filas, la ocupe
+o no. Medido después: las cuatro barras a 381 px, empezando todas en el mismo píxel.
 
 ## Pendientes menores y sospechas
 
