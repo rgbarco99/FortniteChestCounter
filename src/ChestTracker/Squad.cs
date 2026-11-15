@@ -33,12 +33,6 @@ public static class Squad
     /// <summary>A cloud root can hold anything, so this caps what a search is allowed to cost.</summary>
     private const int INT_MAX_FOLDERS = 600;
 
-    /// <summary>
-    /// Keeps OneDrive from leaving the group as an on-demand placeholder that cannot be read
-    /// offline. Unknown to the FileAttributes enum, so it goes in by number.
-    /// </summary>
-    private const FileAttributes FILE_ATTRIBUTE_PINNED = (FileAttributes)0x00080000;
-
     private static readonly JsonSerializerOptions objJson = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -281,7 +275,7 @@ public static class Squad
             }, objJson));
         }
 
-        KeepOffline(strFolder);
+        KeepOnThisDisk(strFolder);
         Join(strFolder, strEpicId, strName);
         return strFolder;
     }
@@ -311,6 +305,9 @@ public static class Squad
         objFile.UpdatedUtc = DateTime.UtcNow;
 
         WriteMine(strFolder, objFile);
+
+        // A folder that arrived shared comes in on demand, which is the slow way to read it
+        KeepOnThisDisk(strFolder);
     }
 
     /// <summary>
@@ -407,13 +404,33 @@ public static class Squad
     }
 
     /// <summary>
-    /// Asks OneDrive to keep the folder on this disk. Best effort: where it is not a cloud
-    /// folder, or the provider ignores the flag, nothing happens and nothing breaks.
+    /// Asks the cloud to keep the group on this disk, the folder and every file in it, and says
+    /// which files are still only in the cloud. Best effort: where it is not a cloud folder, or
+    /// the provider ignores the ask, nothing happens and nothing breaks.
+    ///
+    /// It matters because a file kept on demand is not really here. Its contents come down when
+    /// something reads them, so a glance at four small files turns into a download, it fails
+    /// outright with no connection, and a copy that is not on the disk cannot be seen changing.
     /// </summary>
-    private static void KeepOffline(string strFolder)
+    public static List<string> KeepOnThisDisk(string strFolder)
     {
-        try { File.SetAttributes(strFolder, File.GetAttributes(strFolder) | FILE_ATTRIBUTE_PINNED); }
-        catch (Exception) { /* Not a cloud folder, or a provider that ignores the flag */ }
+        var lstCloudOnly = new List<string>();
+        Native.KeepOnThisDevice(strFolder);
+
+        try
+        {
+            foreach (var strPath in Directory.EnumerateFiles(strFolder, "*.json"))
+            {
+                Native.KeepOnThisDevice(strPath);
+                if (Native.IsPlaceholder(strPath))
+                {
+                    lstCloudOnly.Add(strPath);
+                }
+            }
+        }
+        catch (Exception) { /* The folder went away mid-pass: the next one sees it */ }
+
+        return lstCloudOnly;
     }
 
     /// <summary>Through a temporary file, so a half-written file never reaches the other players.</summary>

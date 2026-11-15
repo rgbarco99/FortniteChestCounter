@@ -296,7 +296,7 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 /* How the squad finished, one bar each */
 .l-squad .l-score { display: grid; gap: 8px; margin-top: 10px; }
 /* Fixed columns, so every bar starts and ends in the same place and their lengths mean something */
-.l-row { display: grid; grid-template-columns: 18px minmax(0, 180px) 1fr auto; align-items: center; gap: 10px; }
+.l-row { display: grid; grid-template-columns: 18px minmax(0, 180px) 1fr 56px; align-items: center; gap: 10px; }
 .l-row .crownslot { display: inline-flex; justify-content: center; }
 .l-row .crownslot .crown { margin: 0; }
 .l-row .whocell { display: flex; align-items: center; gap: 6px; min-width: 0; }
@@ -308,7 +308,8 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 .l-row.winner .track i { background: var(--gold); }
 .l-row.guess .track i { background: var(--ink-3); opacity: 0.55; }
 .l-row.guess .who, .l-row.guess b { color: var(--ink-2); }
-.l-row b, .l-row .nodata { min-width: 56px; text-align: right; }
+.l-row b, .l-row .nodata { text-align: right; }
+.l-row .nodata { color: var(--ink-3); font-size: 19px; }
 .l-row b { font-size: 19px; }
 .l-row.winner b { color: var(--gold); }
 /* The crown lands once, rather than being there from the start: it drops in spinning, lands
@@ -458,6 +459,9 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 .t-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 14px; }
 .t-bar .week { font-size: 20px; font-stretch: 75%; font-weight: 700; }
 .t-bar .week small { display: block; font-size: 13px; font-weight: 400; font-stretch: 100%; color: var(--ink-2); }
+.t-bar .when { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--ink-3); color: var(--ink-2); white-space: nowrap; }
+.t-bar .when.now { border-color: var(--gold); color: var(--gold); }
+.t-bar .when.soon { border-color: var(--spirit); color: var(--ink); }
 .t-bar .short { color: var(--gold); font-size: 13px; }
 .t-bar .grow { flex: 1; }
 .t-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 14px; }
@@ -912,6 +916,9 @@ const ARR_I18N = [
     ["Cofres de esta semana que no vio", "This week's chests it did not see", "Coffres de la semaine qu'il n'a pas vus"],
     ["Horas del tesoro", "Treasure Hours", "Heures du trésor"],
     ["Semana {0} de {1}", "Week {0} of {1}", "Semaine {0} sur {1}"],
+    ["Actual", "Current", "Actuelle"],
+    ["Próximamente", "Coming soon", "Prochainement"],
+    ["Ya terminada", "Already over", "Déjà terminée"],
     ["más corta: el evento acaba el {0}", "shorter: the event ends on {0}", "plus courte : l'événement finit le {0}"],
     ["Son el mismo instante en todo el mundo. Tu PC está en", "They are the same instant all over the world. Your PC is in", "Elles sont le même instant partout dans le monde. Ton PC est en"],
     [", así que las horas de abajo ya son las tuyas.", ", so the times below are already yours.", ", donc les heures ci-dessous sont déjà les tiennes."],
@@ -939,7 +946,6 @@ const ARR_I18N = [
     ["Recupera las casillas, probabilidades y franjas originales. Conserva lo que tienes tachado, los nombres y las fotos.", "Restores the original squares, odds and windows. Keeps what you have crossed out, the names and the pictures.", "Rétablit les cases, probabilités et créneaux d'origine. Conserve ce que tu as coché, les noms et les images."],
     ["alguno de los {0} que te faltan", "one of the {0} you are missing", "l'un des {0} qui te manquent"],
     ["el que te falta", "the one you are missing", "celui qui te manque"],
-    [", la actual", ", the current one", ", l'actuelle"],
     ["Semana del {0} al {1}{2}", "Week of {0} to {1}{2}", "Semaine du {0} au {1}{2}"],
     ["Semana anterior", "Previous week", "Semaine précédente"],
     ["Semana siguiente", "Next week", "Semaine suivante"],
@@ -1215,6 +1221,7 @@ const ARR_I18N = [
     ["Reiniciando con la versión nueva…", "Restarting with the new version…", "Redémarrage avec la nouvelle version…"],
     ["La página se recarga sola en unos segundos.", "The page reloads by itself in a few seconds.", "La page se recharge seule dans quelques secondes."],
     ["Actualizado a la versión {0}", "Updated to version {0}", "Mis à jour vers la version {0}"],
+    ["La página se ha recargado con la versión nueva.", "The page has been reloaded with the new version.", "La page a été rechargée avec la nouvelle version."],
     ["No se pudo actualizar", "The update failed", "La mise à jour a échoué"],
     ["Más tarde", "Later", "Plus tard"],
     ["Tienes la última versión", "You have the latest version", "Tu as la dernière version"],
@@ -1352,7 +1359,14 @@ const ARR_I18N = [
     ["Sin datos", "No data", "Pas de données"],
     ["Más cofres de la partida", "Most chests of the match", "Le plus de coffres de la partie"],
     ["Cofres del squad en esta partida", "Squad chests in this match", "Coffres de l'escouade dans cette partie"],
+    ["Cofres del squad en la partida anterior", "Squad chests in the previous match", "Coffres de l'escouade dans la partie précédente"],
     ["Leyendo lo que ha publicado tu squad…", "Reading what your squad published…", "Lecture de ce que ton squad a publié…"],
+    ["esperando", "waiting", "en attente"],
+    ["sin datos", "no data", "pas de données"],
+    ["Comparte contigo, pero su ficha de esta partida todavía no ha llegado a vuestra carpeta compartida", "They share with you, but their card for this match has not reached your shared folder yet", "Il partage avec toi, mais sa fiche de cette partie n'est pas encore arrivée dans votre dossier partagé"],
+    ["No comparte, y tu repetición no le vio abrir ningún cofre cerca de ti", "Not sharing, and your replay did not see them open any chest near you", "Il ne partage pas, et ta rediffusion ne lui a vu ouvrir aucun coffre près de toi"],
+    ["Acabo de mirar; vuelvo a hacerlo cada {0} s.", "I have just looked; I look again every {0} s.", "Je viens de regarder ; je regarde à nouveau toutes les {0} s."],
+    ["Lo he mirado {0} veces en {1}, una cada {2} s.", "I have looked {0} times in {1}, once every {2} s.", "J'ai regardé {0} fois en {1}, une fois toutes les {2} s."],
     ["Sus cifras vienen de vuestra carpeta compartida, y la nube tarda un poco en traerlas. Aparecen aquí solas.", "Their figures come from your shared folder, and the cloud takes a moment to bring them over. They show up here by themselves.", "Leurs chiffres viennent de votre dossier partagé, et le cloud met un moment à les apporter. Ils apparaissent ici tout seuls."],
     ["estimado", "estimate", "estimation"],
     ["No está en tu escuadrón: es lo que tu repetición le vio abrir cerca de ti", "Not in your squad: this is what your replay saw them open near you", "Pas dans ton escouade : c'est ce que ta rediffusion lui a vu ouvrir près de toi"],
@@ -1651,6 +1665,54 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
     {
+        strVersion: "1.4.5",
+        strDate: "2026-11-15",
+        arrItems: [
+            {
+                strTag: "arreglado",
+                es: "Los cofres de tus compañeros podían quedarse clavados en una cifra vieja. El programa miraba si había fichas nuevas en la carpeta compartida, no si alguna había cambiado por dentro, así que un compañero que abría diez cofres más seguía saliendo con los de antes hasta la partida siguiente. Ahora se compara lo que dice cada ficha, cofre a cofre.",
+                en: "Your squadmates' chests could stay stuck on an old number. The program looked for new files in the shared folder rather than for files that had changed inside, so a mate who opened ten more chests kept showing the earlier count until the next match. Now what each file says is compared, chest by chest.",
+                fr: "Les coffres de tes coéquipiers pouvaient rester bloqués sur un chiffre ancien. Le programme regardait s'il y avait de nouvelles fiches dans le dossier partagé, et non si l'une d'elles avait changé à l'intérieur : un coéquipier qui ouvrait dix coffres de plus continuait donc d'afficher son total précédent jusqu'à la partie suivante. Désormais, c'est le contenu de chaque fiche qui est comparé, coffre par coffre."
+            },
+            {
+                strTag: "mejorado",
+                es: "La espera por los cofres del squad ahora dura lo que haga falta y se ve: mientras falte la ficha de alguien que comparte contigo, la carpeta se mira cada dos segundos hasta un cuarto de hora, y el resto del tiempo cada ocho. Debajo se te dice cuántas veces se ha mirado, desde cuándo y cada cuánto, para que sepas si se sigue intentando o si no hay nada que leer.",
+                en: "The wait for the squad's chests now lasts as long as it needs to, and you can see it: while a card is missing from someone who shares with you, the folder is checked every two seconds for up to a quarter of an hour, and every eight the rest of the time. Underneath you are told how many times it has been checked, since when and how often, so you can tell whether it is still trying or there is nothing to read.",
+                fr: "L'attente des coffres de l'escouade dure maintenant le temps qu'il faut, et elle se voit : tant que la fiche de quelqu'un qui partage avec toi manque, le dossier est consulté toutes les deux secondes pendant un quart d'heure, et toutes les huit le reste du temps. En dessous, on t'indique combien de fois il a été consulté, depuis quand et à quelle fréquence, pour que tu saches s'il essaie encore ou s'il n'y a rien à lire."
+            },
+            {
+                strTag: "arreglado",
+                es: "Si tu nube guardaba los archivos del squad solo en internet y no en el disco (lo que OneDrive llama archivos a petición), leerlos tardaba o fallaba sin decir nada. Ahora se le pide a la nube que los baje y los mantenga aquí, y si alguno se queda solo en internet se te dice en el registro.",
+                en: "If your cloud kept the squad's files online only and not on the disk (what OneDrive calls files on demand), reading them was slow or failed without saying so. Now the cloud is asked to download them and keep them here, and if one stays online only you are told in the log.",
+                fr: "Si ton cloud ne gardait les fichiers de l'escouade qu'en ligne et pas sur le disque (ce que OneDrive appelle les fichiers à la demande), leur lecture était lente ou échouait sans rien dire. Désormais, on demande au cloud de les télécharger et de les garder ici, et si l'un d'eux reste en ligne uniquement, le journal te le dit."
+            },
+            {
+                strTag: "mejorado",
+                es: "En la comparación de la partida anterior, quien comparte contigo pero cuya ficha todavía no ha llegado sale en su fila, con un guion y la etiqueta «esperando»; quien no comparte sale como «sin datos». Antes no aparecían, y no se distinguía a quien no tiene el programa de quien lo tiene y va con retraso.",
+                en: "In the previous match's comparison, someone who shares with you but whose card has not arrived yet appears in their row, with a dash and a “waiting” tag; someone who does not share shows as “no data”. They used to be left out, and there was no telling apart whoever does not have the program from whoever has it and is simply late.",
+                fr: "Dans la comparaison de la partie précédente, celui qui partage avec toi mais dont la fiche n'est pas encore arrivée apparaît dans sa ligne, avec un tiret et l'étiquette « en attente » ; celui qui ne partage pas s'affiche comme « pas de données ». Avant, ils n'apparaissaient pas, et rien ne distinguait celui qui n'a pas le programme de celui qui l'a et arrive en retard."
+            },
+            {
+                strTag: "arreglado",
+                es: "Al actualizarse, el programa dejaba la página abierta tal cual: la interfaz vieja seguía hablando con el programa nuevo y alguna tarjeta salía descolocada, como el ritmo habitual y los cofres del squad en líneas distintas. Ahora la página se recarga sola en cuanto la actualización termina, y al volver te dice a qué versión.",
+                en: "When it updated, the program left the open page just as it was: the old interface kept talking to the new program and the odd card came out misplaced, like the usual pace and the squad's chests on different lines. The page now reloads itself as soon as the update finishes, and tells you which version it came back on.",
+                fr: "Lors d'une mise à jour, le programme laissait la page ouverte telle quelle : l'ancienne interface continuait de parler au nouveau programme et certaines cartes s'affichaient de travers, comme le rythme habituel et les coffres de l'escouade sur des lignes différentes. La page se recharge maintenant d'elle-même dès la fin de la mise à jour, et au retour elle t'indique vers quelle version."
+            },
+            {
+                strTag: "nuevo",
+                es: "Los tesoros de la semana de Hatsune Miku y los de la de Kasane Teto, con su nombre y su foto. Junto al título de la semana se ve ahora si es la actual, si está por llegar o si ya terminó, y las semanas que vienen se pueden mirar: antes la flecha de avanzar se quedaba bloqueada en la de hoy.",
+                en: "The treasures for Hatsune Miku's week and for Kasane Teto's, with their names and pictures. Beside the week's title you can now see whether it is the current one, still to come or already over, and the weeks ahead can be looked at: the forward arrow used to stop at today's.",
+                fr: "Les trésors de la semaine de Hatsune Miku et de celle de Kasane Teto, avec leur nom et leur image. À côté du titre de la semaine, on voit désormais s'il s'agit de la semaine en cours, à venir ou déjà terminée, et les semaines suivantes peuvent être consultées : la flèche vers l'avant s'arrêtait à celle d'aujourd'hui."
+            },
+            {
+                strTag: "arreglado",
+                es: "«Cofres del squad en la partida anterior» salía a medio traducir en inglés y en francés.",
+                en: "“Squad chests in the previous match” came out half translated in English and French.",
+                fr: "« Coffres de l'escouade dans la partie précédente » s'affichait à moitié traduit en anglais et en français."
+            }
+        ]
+    },
+    {
         strVersion: "1.4.4",
         strDate: "2026-11-15",
         arrItems: [
@@ -1686,9 +1748,9 @@ const ARR_NEWS = [
             },
             {
                 strTag: "mejorado",
-                es: "Y llegan antes: tus cifras se publican al segundo de terminar la partida, y durante los cuatro minutos siguientes se comprueba cada dos segundos si han llegado las de tus compañeros. Mientras tanto se ve que se están leyendo, en vez de un hueco vacío.",
-                en: "And they arrive sooner: your figures are published within a second of the match ending, and for the next four minutes your squadmates' are checked for every two seconds. Meanwhile you can see they are being read, instead of an empty space.",
-                fr: "Et ils arrivent plus vite : tes chiffres sont publiés dans la seconde qui suit la fin de la partie, et pendant les quatre minutes suivantes, ceux de tes coéquipiers sont vérifiés toutes les deux secondes. Entre-temps, on voit qu'ils sont en cours de lecture, au lieu d'un espace vide."
+                es: "Y llegan antes: tus cifras se publican al segundo de terminar la partida, y las de tus compañeros se comprueban cada dos segundos mientras falte alguna. Mientras tanto se ve que se están leyendo, en vez de un hueco vacío.",
+                en: "And they arrive sooner: your figures are published within a second of the match ending, and your squadmates' are checked for every two seconds while any are missing. Meanwhile you can see they are being read, instead of an empty space.",
+                fr: "Et ils arrivent plus vite : tes chiffres sont publiés dans la seconde qui suit la fin de la partie, et ceux de tes coéquipiers sont vérifiés toutes les deux secondes tant qu'il en manque. Entre-temps, on voit qu'ils sont en cours de lecture, au lieu d'un espace vide."
             },
             {
                 strTag: "mejorado",
@@ -2169,6 +2231,8 @@ const ARR_COLUMNS = [
 const objApp = {
     objState: null,
     lngRevision: -1,
+    // La versión con la que se cargó este HTML: si el programa pasa a otra, esta página es la vieja
+    strVersion: null,
     objLayout: null,
     strSelectedFile: null,
     bFollowLatest: true,
@@ -3102,7 +3166,7 @@ const renderTable = (elBody, { arrMatches, objSelected }) => {
 // Everything here can be edited from the tab, so a new season only needs new numbers.
 // Bumped when this file brings data an older copy cannot have: on loading, normalizeTreasure
 // folds in what is new (today's Treasure Hours) without touching what the player edited.
-const INT_TREASURE_VERSION = 5;
+const INT_TREASURE_VERSION = 6;
 
 const defaultTreasure = () => ({
     intVersion: INT_TREASURE_VERSION,
@@ -3164,6 +3228,23 @@ const OBJ_WEEK_ITEMS = {
     "2026-11-08T14|pickaxe": { strName: "Lil' Uzi Crew", strImage: `${STR_ICON}/br/backpack_rumbashowyreward/icon.png` },
     "2026-11-08T14|jam": { strName: "London", strImage: "https://cdn.fortnite-api.com/tracks/14bc957c9a025056.jpg" },
     "2026-11-08T14|loading": { strName: "So Kawaii", strImage: `${STR_ICON}/br/loadingscreen_delilahthw2/icon.png` },
+    // Semana 3 — Hatsune Miku. El coche dorado es el Corvette ZR1 con la calcomanía «Club de la
+    // llama dorada» (CarSkin_EagleTreasureHunt01): esa calcomanía devuelve una imagen en blanco,
+    // así que, como en la semana 2, va la del coche.
+    "2026-11-15T14|gold": { strName: "Miku de oro macizo", strImage: `${STR_ICON}/br/character_fledgravel/icon.png` },
+    "2026-11-15T14|vehicle": { strName: "Chevrolet Corvette ZR1 dorado", strImage: `${STR_ICON}/cars/carbody_eagle/large.png` },
+    "2026-11-15T14|pickaxe": { strName: "Cofre del tesoro de Miku", strImage: `${STR_ICON}/br/backpack_fledgravelreward/icon.png` },
+    "2026-11-15T14|jam": { strName: "PPPP", strImage: "https://cdn.fortnite-api.com/tracks/88488b1f3e0d6975.jpg" },
+    "2026-11-15T14|loading": { strName: "Que la fortuna te acompañe", strImage: `${STR_ICON}/br/loadingscreen_delilahthw3/icon.png` },
+    // Semana 4 — Kasane Teto. Anunciada, pero todavía sin salir: de sus cinco tesoros el juego
+    // solo tiene ya el coche, así que los otros cuatro van con el nombre que anunció Epic, en
+    // inglés y sin foto. En cuanto salgan, su nombre oficial en español y su icono entran aquí
+    // y «Volver al oficial» los recupera.
+    "2026-11-22T14|gold": { strName: "Kasane Teto de oro macizo" },
+    "2026-11-22T14|vehicle": { strName: "Lamborghini Urus SE dorado", strImage: `${STR_ICON}/cars/carbody_wurst/large.png` },
+    "2026-11-22T14|pickaxe": { strName: "Rogue Wave y Tidewalker" },
+    "2026-11-22T14|jam": { strName: "Sea Shanty" },
+    "2026-11-22T14|loading": { strName: "Oscar's Wraps" },
     // El token no cambia de semana: la temporada entera reparte los dos
     "season|token": { strName: "Acceso a la Tienda pirata (2026 y 2027)" }
 };
@@ -3206,6 +3287,15 @@ const normalizeTreasure = (objSaved) => {
             if (objWindow.strStart === "2026-11-14T19:00:00Z" && objWindow.strEnd === "2026-11-14T21:00:00Z") {
                 objWindow.strEnd = "2026-11-14T23:00:00Z";
             }
+        }
+    }
+    // Semanas 3 y 4: hasta ahora no estaban en la lista oficial, así que lo que hubiera escrito
+    // en esas casillas era un apaño mientras no la había. El tesoro oficial toma el relevo una
+    // vez, y solo donde trae su propia foto: lo pegado en una casilla que aquí va sin imagen
+    // (los cuatro tesoros de la semana 4 que el juego todavía no ha publicado) se queda.
+    if (intSaved < 6) {
+        for (const [strKey, objOfficial] of Object.entries(OBJ_WEEK_ITEMS)) {
+            if (objOfficial.strImage && (strKey.startsWith("2026-11-15T14|") || strKey.startsWith("2026-11-22T14|"))) delete objOut.objItems[strKey];
         }
     }
     if (intSaved < INT_TREASURE_VERSION) objOut.intVersion = INT_TREASURE_VERSION;
@@ -3272,6 +3362,17 @@ const getNowWeekIndex = (arrWeeks) => {
     const dblNow = Date.now();
     const intIndex = arrWeeks.findIndex((objWeek) => dblNow < objWeek.dtEnd.getTime());
     return intIndex < 0 ? arrWeeks.length - 1 : intIndex;
+};
+
+// Where the week on screen falls in time. The weeks ahead can be looked at now: their treasures
+// are written down before they start, and from inside the tab a week that has not begun looks
+// exactly like the one being played — same squares, same zero chests. This is what tells them
+// apart, and it is why the forward arrow is allowed to leave the current week.
+const getWeekWhen = (objWeek) => {
+    const dblNow = Date.now();
+    if (dblNow >= objWeek.dtEnd.getTime()) return { strLabel: "Ya terminada", strTone: "done" };
+    if (dblNow < objWeek.dtStart.getTime()) return { strLabel: "Próximamente", strTone: "soon" };
+    return { strLabel: "Actual", strTone: "now" };
 };
 
 // The week on screen. The offset is kept inside the event, so the arrows cannot walk out of it.
@@ -3791,15 +3892,17 @@ const renderTreasure = () => {
     }
     const strMissing = arrMissing.length === 1 ? "el que te falta" : `alguno de los ${arrMissing.length} que te faltan`;
     const dtLastDay = new Date(objWeek.dtEnd.getTime() - 1);
+    const objWhen = getWeekWhen(objWeek);
 
     elTreasure.replaceChildren(...[
         el("div", { class: "t-bar" }, [
             el("span", { class: "week" }, [
                 `Semana ${objWeek.intIndex + 1} de ${objWeek.intCount}`,
-                el("small", { text: `${fmtDay(objWeek.dtStart)} – ${fmtDay(dtLastDay)}${objApp.intWeekOffset === 0 ? ", la actual" : ""}` })
+                el("small", { text: `${fmtDay(objWeek.dtStart)} – ${fmtDay(dtLastDay)}` })
             ]),
+            el("span", { class: `when ${objWhen.strTone}`, text: objWhen.strLabel }),
             el("button", { class: "btn small", text: "Semana anterior", disabled: objWeek.intIndex === 0, onclick: () => { objApp.intWeekOffset--; renderTreasure(); } }),
-            el("button", { class: "btn small", text: "Semana siguiente", disabled: objApp.intWeekOffset >= 0 || objWeek.intIndex >= objWeek.intCount - 1, onclick: () => { objApp.intWeekOffset++; renderTreasure(); } }),
+            el("button", { class: "btn small", text: "Semana siguiente", disabled: objWeek.intIndex >= objWeek.intCount - 1, onclick: () => { objApp.intWeekOffset++; renderTreasure(); } }),
             objWeek.bShort ? el("span", { class: "short", text: `más corta: el evento acaba el ${fmtDay(new Date(dblSeasonTo - 1))}` }) : null,
             el("span", { class: "grow" }),
             el("button", { class: `btn${objApp.bTreasureEditing ? " primary" : ""}`, text: objApp.bTreasureEditing ? "Terminar de editar" : "Editar tesoros", onclick: () => { objApp.bTreasureEditing = !objApp.bTreasureEditing; objApp.strPasteTarget = null; objApp.objFind = null; if (objApp.bTreasureEditing) loadCatalogues(); renderTreasure(); } })
@@ -4024,6 +4127,21 @@ const INT_RUSH_SECONDS = 600;
 // Seconds the summary of the last match stays after the next one starts (loading screen, bus)
 const INT_HOLD_SECONDS = 60;
 
+// What the program is doing while the squad's figures are missing. A spinner says that something
+// is happening; it does not say whether anything is being tried, which is exactly what somebody
+// watching an empty card for two minutes wants to know. The waiting is mostly the cloud's, and
+// the only honest thing to show is how often this end has looked and how often it will look again.
+const sharingNote = () => {
+    const objSharing = objApp.objState?.sharing;
+    if (!objSharing) return null;
+    const intEvery = Math.round(objSharing.everySec ?? 8);
+    if (!objSharing.waitingSinceUtc || objSharing.waitReads < 2) {
+        return el("p", { class: "quiet", text: `Acabo de mirar; vuelvo a hacerlo cada ${intEvery} s.` });
+    }
+    const dblWaited = Math.max(0, (Date.now() - new Date(objSharing.waitingSinceUtc).getTime()) / 1000);
+    return el("p", { class: "quiet", text: `Lo he mirado ${objSharing.waitReads} veces en ${fmtClock(dblWaited)}, una cada ${intEvery} s.` });
+};
+
 // How the squad finished, once the match is over and everybody has published. While a match is
 // running nobody has published anything yet, so this only appears afterwards; and until the last
 // card syncs it says who is missing rather than crowning somebody on half the figures.
@@ -4056,7 +4174,8 @@ const squadScoreCard = (objMatch, bLive, strSize = "half") => {
             el("h2", { text: bPrevious ? "Cofres del squad en la partida anterior" : "Cofres del squad en esta partida" }),
             el("div", { class: "waiting" }, [
                 el("b", {}, [el("span", { class: "spin" }), "Leyendo lo que ha publicado tu squad…"]),
-                el("p", { class: "quiet", text: "Sus cifras vienen de vuestra carpeta compartida, y la nube tarda un poco en traerlas. Aparecen aquí solas." })
+                el("p", { class: "quiet", text: "Sus cifras vienen de vuestra carpeta compartida, y la nube tarda un poco en traerlas. Aparecen aquí solas." }),
+                sharingNote()
             ])
         ]);
     }
@@ -4070,7 +4189,9 @@ const squadScoreCard = (objMatch, bLive, strSize = "half") => {
             bYou: false,
             bGuess: objMate.sharedChests == null,
             // Never seen opening anything near you: no figure at all, rather than a hollow "≥0"
-            bNone: objMate.sharedChests == null && !objMate.nearbyChests
+            bNone: objMate.sharedChests == null && !objMate.nearbyChests,
+            // They share with you, so their figure is on its way: not the same as there being none
+            bPending: !!objMate.pending
         }))
     ].sort((objLeft, objRight) => objRight.intChests - objLeft.intChests);
 
@@ -4099,11 +4220,18 @@ const squadScoreCard = (objMatch, bLive, strSize = "half") => {
                 el("span", { class: "whocell" }, [
                     el("span", { class: `who${bWinner ? " champ" : ""}`, "data-notr": true, text: objRow.strName }),
                     objRow.bYou ? el("span", { class: "tag", text: "tú" }) : null,
-                    objRow.bGuess && !objRow.bNone ? el("span", { class: "tag", text: "estimado" }) : null
+                    objRow.bGuess && !objRow.bNone ? el("span", { class: "tag", text: "estimado" }) : null,
+                    objRow.bNone ? el("span", {
+                        class: "tag",
+                        title: objRow.bPending
+                            ? "Comparte contigo, pero su ficha de esta partida todavía no ha llegado a vuestra carpeta compartida"
+                            : "No comparte, y tu repetición no le vio abrir ningún cofre cerca de ti",
+                        text: objRow.bPending ? "esperando" : "sin datos"
+                    }) : null
                 ]),
                 el("span", { class: "track" }, el("i", { style: { width: `${intTop && !objRow.bNone ? (objRow.intChests / intTop) * 100 : 0}%` } })),
                 objRow.bNone
-                    ? el("span", { class: "nodata", text: "Sin datos" })
+                    ? el("span", { class: "nodata", "data-notr": true, text: "—" })
                     : el("b", { class: "figure", "data-notr": true, text: `${objRow.bGuess ? "≥" : ""}${objRow.intChests}` })
             ]);
         })),
@@ -5679,8 +5807,8 @@ const announceChanges = (objBefore, objAfter) => {
     if (objGameAfter.searchingSinceUtc && objGameAfter.searchingSinceUtc !== objGameBefore.searchingSinceUtc) showToast("Buscando partida…", "El resumen de la anterior se queda hasta 60 segundos después de que empiece la nueva.", "info");
     if (objStatusAfter.errors.length > objStatusBefore.errors.length) showToast("Una repetición no se pudo leer", "El motivo está en Ajustes.", "warn", 9000);
     const objUpdateBefore = objBefore.update ?? {}, objUpdateAfter = objAfter.update ?? {};
-    if (objUpdateAfter.currentVersion && objUpdateBefore.currentVersion && objUpdateAfter.currentVersion !== objUpdateBefore.currentVersion) showToast(`Actualizado a la versión ${objUpdateAfter.currentVersion}`, null, "good", 9000);
-    else if (objUpdateAfter.available && objUpdateAfter.latestVersion !== objUpdateBefore.latestVersion) showToast(`Hay una versión nueva: ${objUpdateAfter.latestVersion}`, null, "gold", 9000);
+    // Que haya cambiado la versión no se avisa aquí: la página se recarga, y el aviso se da al volver
+    if (objUpdateAfter.available && objUpdateAfter.latestVersion !== objUpdateBefore.latestVersion) showToast(`Hay una versión nueva: ${objUpdateAfter.latestVersion}`, null, "gold", 9000);
     if (objUpdateAfter.state === "error" && objUpdateBefore.state !== "error") showToast("No se pudo actualizar", objUpdateAfter.error, "warn", 9000);
 };
 const plural = (intCount, strOne, strMany) => `${intCount} ${intCount === 1 ? strOne : strMany}`;
@@ -5769,6 +5897,18 @@ const refresh = async (bForce = false) => {
         const objBefore = objApp.objState;
         objApp.objState = await api("GET", "/api/state");
         objApp.lngRevision = objApp.objState.revision;
+
+        // Esta página viaja dentro del programa, así que una versión nueva trae su propio HTML y
+        // la pestaña abierta se queda con el de la anterior: el arreglo está instalado y no se
+        // ve. Pasó de verdad, con las barras descuadradas de esta misma tarjeta, ya corregidas.
+        // Al cambiar la versión la página se recarga, que es lo que el aviso de reinicio promete.
+        const strVersion = objApp.objState.update?.currentVersion ?? null;
+        if (strVersion && objApp.strVersion && strVersion !== objApp.strVersion) {
+            try { sessionStorage.setItem("fcc-updated-to", strVersion); } catch (objError) { /* storage unavailable */ }
+            location.reload();
+            return;
+        }
+        if (strVersion) objApp.strVersion = strVersion;
         announceChanges(objBefore, objApp.objState);
         objApp.bRestarting = false;
         updateBusy();
@@ -5809,6 +5949,17 @@ window.addEventListener("resize", () => { clearTimeout(intResizeTimer); intResiz
 
 try { objApp.objDrawerOpen = JSON.parse(localStorage.getItem("contador-cofres-ajustes")) ?? {}; } catch (objError) { objApp.objDrawerOpen = {}; }
 renderNewsButton();
+
+// Al volver de una recarga por actualización: el aviso no se podía dar antes, porque la página
+// que lo habría mostrado es la que se estaba yendo
+try {
+    const strUpdatedTo = sessionStorage.getItem("fcc-updated-to");
+    if (strUpdatedTo) {
+        sessionStorage.removeItem("fcc-updated-to");
+        showToast(`Actualizado a la versión ${strUpdatedTo}`, "La página se ha recargado con la versión nueva.", "good", 9000);
+    }
+} catch (objError) { /* storage unavailable */ }
+
 refresh(true);
 setInterval(refresh, 1500);
 setInterval(updateBusy, 1000);

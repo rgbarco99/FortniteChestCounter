@@ -64,6 +64,60 @@ internal static class Native
         public UIntPtr ProcessMemoryLimit, JobMemoryLimit, PeakProcessMemoryUsed, PeakJobMemoryUsed;
     }
 
+    private const int FILE_ATTRIBUTE_PINNED = 0x00080000;
+    private const int FILE_ATTRIBUTE_UNPINNED = 0x00100000;
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern int GetFileAttributesW(string strPath);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool SetFileAttributesW(string strPath, int intAttributes);
+
+    /// <summary>
+    /// Tells OneDrive to keep this path on the disk ("always keep on this device") instead of
+    /// leaving it as an on-demand placeholder.
+    ///
+    /// It has to go through SetFileAttributesW: .NET's File.SetAttributes validates against its
+    /// own FileAttributes enum, which has no name for this bit, and the flag never reaches
+    /// Windows. That is why an earlier attempt appeared to work and changed nothing.
+    ///
+    /// It matters for a squad folder because a placeholder is not really there: the squad's
+    /// files only come down when something reads them, and a copy that is not on the disk cannot
+    /// be noticed changing. Pinned, OneDrive brings their new figures over as they publish them.
+    /// </summary>
+    public static bool KeepOnThisDevice(string strPath)
+    {
+        try
+        {
+            var intNow = GetFileAttributesW(strPath);
+            if (intNow == -1)
+            {
+                return false;
+            }
+
+            var intWanted = (intNow & ~FILE_ATTRIBUTE_UNPINNED) | FILE_ATTRIBUTE_PINNED;
+            return intWanted == intNow || SetFileAttributesW(strPath, intWanted);
+        }
+        catch (Exception)
+        {
+            return false;       // Not Windows, or a drive that does not do this
+        }
+    }
+
+    /// <summary>True when Windows says this path is only a placeholder, not real bytes on disk.</summary>
+    public static bool IsPlaceholder(string strPath)
+    {
+        try
+        {
+            var intNow = GetFileAttributesW(strPath);
+            return intNow != -1 && (intNow & 0x00400000) != 0;      // RECALL_ON_DATA_ACCESS
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
     private static IntPtr objReaderJob = IntPtr.Zero;
 
     /// <summary>

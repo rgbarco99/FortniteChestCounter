@@ -174,6 +174,31 @@ public sealed class StateResponse
     /// loading from one that is never coming, which the page cannot work out on its own.
     /// </summary>
     public bool InSquad { get; set; }
+
+    /// <summary>How the reading of what the squad shares is going right now.</summary>
+    public SharingStatus Sharing { get; set; } = new();
+}
+
+/// <summary>
+/// What the program is doing about the squad's figures at this moment. It exists because waiting
+/// is the normal state for a minute or two after a match: their card has to be written on their
+/// PC, carried by the cloud and read here, and only the first and last steps are ours. A card
+/// that says nothing more than "waiting" cannot be told from one that has given up, so the page
+/// says how many times it has looked and how often it looks.
+/// </summary>
+public sealed class SharingStatus
+{
+    /// <summary>Times the shared folders have been read since the program started.</summary>
+    public int Reads { get; set; }
+
+    /// <summary>Since when a squadmate's figures for your last match have been missing. Null when nothing is pending.</summary>
+    public DateTime? WaitingSinceUtc { get; set; }
+
+    /// <summary>Reads made since that wait began.</summary>
+    public int WaitReads { get; set; }
+
+    /// <summary>Seconds between one look and the next right now: two while waiting, eight otherwise.</summary>
+    public double EverySec { get; set; }
 }
 
 /// <summary>One squadmate, totalled over the matches of yours they also played.</summary>
@@ -393,6 +418,13 @@ public sealed class SquadMember
     public int? DamageTaken { get; set; }
     public int? Assists { get; set; }
     public int? Revives { get; set; }
+
+    /// <summary>
+    /// This player shares with you and their card for this match has not arrived yet. It is the
+    /// difference between a figure that is coming and one that never will, which is the whole
+    /// difference between "waiting" and "no data".
+    /// </summary>
+    public bool Pending { get; set; }
 
     /// <summary>
     /// Chests they opened in this match, from the card they shared. Null means nobody published

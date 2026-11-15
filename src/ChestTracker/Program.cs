@@ -100,8 +100,12 @@ objApp.Services.GetRequiredService<TrayIcon>().Url = strUrl;
 
 // The interface: one HTML file embedded in the executable.
 // FCC_UI can point to a file on disk to edit the page without rebuilding.
-objApp.MapGet("/", () =>
+// Never from the cache: the page ships inside the executable, so an update replaces it, and a
+// tab that reloads itself after one has to be given the new one and not the one it already had.
+objApp.MapGet("/", (HttpContext objContext) =>
 {
+    objContext.Response.Headers.CacheControl = "no-store, must-revalidate";
+
     var strDevFile = Environment.GetEnvironmentVariable("FCC_UI");
     if (!string.IsNullOrEmpty(strDevFile) && File.Exists(strDevFile))
     {
@@ -175,6 +179,9 @@ objApp.MapGet("/api/state", () =>
 
             if (objMate.IsYou || !dicCards.TryGetValue(objMate.Id, out var objCard))
             {
+                // They have a file in the folder but no card for this match: it is on its way,
+                // which is not the same as there being nothing to show
+                objMate.Pending = !objMate.IsYou && objSquadReader.Names.ContainsKey(objMate.Id);
                 continue;
             }
 
@@ -198,6 +205,13 @@ objApp.MapGet("/api/state", () =>
     {
         Shared = dicTotals.Values.OrderByDescending(objPlayer => objPlayer.Matches).ToList(),
         InSquad = objSettings.SquadPaths.Count > 0,
+        Sharing = new SharingStatus
+        {
+            Reads = objSquadReader.Reads,
+            WaitingSinceUtc = objSquadReader.WaitingSinceUtc,
+            WaitReads = objSquadReader.WaitReads,
+            EverySec = objSquadReader.EverySec
+        },
         Revision = objStore.Revision + objSquadReader.Revision,
         Status = objStore.Status,
         Game = objStore.Game,
@@ -709,7 +723,6 @@ catch (Exception objError)
     return 1;
 }
 
-return 0;
 return 0;
 
 static void OpenInBrowser(string strAddress)
