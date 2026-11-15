@@ -153,6 +153,8 @@ button, input, select { font: inherit; color: inherit; }
 .squad-bar .scope { color: var(--ink-2); font-size: 13.5px; }
 .squad-bar .scope small { display: block; color: var(--ink-3); font-size: 12.5px; }
 .squad-bar .grow { flex: 1; }
+.squad-more { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; }
+.squad-more .hint { margin: 0; }
 .widget .head h2 { margin: 0; flex: 1; }
 .widget.collapsed .head { margin-bottom: 0; }
 .widget.collapsed { align-self: start; }
@@ -874,6 +876,9 @@ const ARR_I18N = [
 
     // Squad and friends
     ["Tu squad", "Your squad", "Ton escouade"],
+    ["Ver más compañeros", "Show more squadmates", "Voir plus de coéquipiers"],
+    ["Ver solo los primeros", "Show only the first few", "N'afficher que les premiers"],
+    ["Se ven {0} de {1} compañeros, los que más has jugado contigo.", "Showing {0} of {1} squadmates, the ones you have played with most.", "{0} coéquipiers affichés sur {1}, ceux avec qui tu as le plus joué."],
     ["no está abierto en este PC.", "is not running on this PC.", "n'est pas ouvert sur ce PC."],
     ["Mientras esté cerrado, vuestra carpeta compartida es una carpeta normal: ni llegan los cofres de tu squad ni salen los tuyos. Ábrelo y se pondrá al día solo.", "While it is closed, your shared folder is an ordinary folder: your squad's chests do not arrive and yours do not leave. Open it and it will catch up by itself.", "Tant qu'il est fermé, votre dossier partagé est un dossier ordinaire : les coffres de ton escouade n'arrivent pas et les tiens ne partent pas. Ouvre-le et il se mettra à jour tout seul."],
     ["Ninguna ficha de tu squad ha cambiado desde antes de esta partida. Que estén todas paradas a la vez no es que no jueguen: es que tu nube no está trayendo nada.", "Not one file from your squad has changed since before this match. All of them frozen at once is not nobody playing: it is your cloud bringing nothing down.", "Aucune fiche de ton escouade n'a changé depuis avant cette partie. Toutes figées en même temps, ce n'est pas que personne ne joue : c'est que ton cloud ne descend rien."],
@@ -1792,6 +1797,18 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
     {
+        strVersion: "1.5.1",
+        strDate: "2026-11-15",
+        arrItems: [
+            {
+                strTag: "arreglado",
+                es: "El bloque «Tu squad» se comía la pantalla con el filtro en «Todas»: una fila por cada persona con la que hayas jugado alguna vez, y con 143 la tabla medía más de cinco mil píxeles. Ahora enseña a los diez con los que más has jugado, y un botón trae diez más cada vez. La corona se sigue calculando con todos, estén a la vista o no.",
+                en: "The “Your squad” block ate the screen with the filter on “All”: one row for every person you have ever played with, and with 143 of them the table ran over five thousand pixels. It now shows the ten you have played with most, and a button brings ten more each time. The crown is still worked out over everybody, on screen or not.",
+                fr: "Le bloc « Ton escouade » dévorait l'écran avec le filtre sur « Toutes » : une ligne par personne avec qui tu as déjà joué, et avec 143 d'entre elles le tableau dépassait les cinq mille pixels. Il affiche maintenant les dix avec qui tu as le plus joué, et un bouton en amène dix de plus à chaque fois. La couronne se calcule toujours sur tout le monde, à l'écran ou non."
+            }
+        ]
+    },
+    {
         strVersion: "1.5.0",
         strDate: "2026-11-15",
         arrItems: [
@@ -2384,6 +2401,11 @@ const INT_MAX_SIZE = 12;
 
 // strHelp is the hover text of each filter: «Última sesión» is the one nobody can guess,
 // and a filter whose rule is invisible is a filter you do not trust.
+// How many squadmates the block shows before asking. Over a whole history anybody who ever
+// filled a squad is one more row, and the block ends up taller than the rest of the board put
+// together: the ones worth seeing are the ones you play with, and they are the first ten.
+const INT_SQUAD_ROWS = 10;
+
 const ARR_RANGES = [
     { strId: "todo", strLabel: "Todas", strHelp: "Todas las partidas que el programa ha leído" },
     { strId: "sesion", strLabel: "Última sesión", strHelp: "Las últimas partidas seguidas: la cuenta se corta en cuanto pasas más de tres horas sin jugar" },
@@ -2421,6 +2443,8 @@ const objApp = {
     bFollowLatest: true,
     // El bloque del squad suma el periodo del filtro; esto lo deja en una sola partida
     bSquadOneMatch: false,
+    // Cuántos compañeros caben antes de pedir más, que con «Todas» son decenas
+    intSquadRows: INT_SQUAD_ROWS,
     // La tienda: lo que trajo el programa, qué subpestaña se mira y qué se busca
     objShop: null,
     strShopView: "destacado",
@@ -3054,6 +3078,12 @@ const ARR_WIDGETS = [
                 Number(objRight.bYou) - Number(objLeft.bYou)
                 || objRight.intMatches - objLeft.intMatches
                 || (perMatch(objRight) ?? -1) - (perMatch(objLeft) ?? -1));
+            // You are always on screen, whatever the cut: it is your own block.
+            const arrOthers = arrRows.filter((objRow) => !objRow.bYou);
+            const intShown = Math.min(objApp.intSquadRows, arrOthers.length);
+            let intRoom = intShown;
+            const arrVisible = arrRows.filter((objRow) => objRow.bYou || intRoom-- > 0);
+
             const arrWithFigure = arrRows.filter((objRow) => objRow.intChestMatches > 0);
             const dblBest = Math.max(...arrWithFigure.map(perMatch));
             const bRace = arrWithFigure.length > 1 && arrWithFigure.some((objRow) => !objRow.bYou);
@@ -3099,7 +3129,7 @@ const ARR_WIDGETS = [
 
             elBody.append(el("div", { class: "table-wrap" }, el("table", {}, [
                 el("thead", {}, el("tr", {}, arrColumns.map(([strHead, , strAlign]) => el("th", { class: strAlign ?? null, text: strHead, style: { cursor: "default" } })))),
-                el("tbody", {}, arrRows.map((objRow) => el("tr", { style: { cursor: "default" } },
+                el("tbody", {}, arrVisible.map((objRow) => el("tr", { style: { cursor: "default" } },
                     arrColumns.map(([, fnValue, strAlign]) => {
                         // A column may give a plain value or a piece of its own (the chest cell does)
                         const varValue = fnValue(objRow);
@@ -3111,6 +3141,16 @@ const ARR_WIDGETS = [
             elBody.append(el("p", { class: "hint", text: bOneMatch
                 ? "Kills, derribos y veces derribado salen del registro de bajas de la partida, que es completo para todos."
                 : "Partidas es cuántas de estas jugó contigo: sus kills, sus derribos y sus cofres suman solo esas." }));
+            // The crown is worked out over everybody, shown or not: a cut list must not crown
+            // somebody who is only first because the real one is three rows below the fold.
+            if (arrOthers.length > INT_SQUAD_ROWS) {
+                elBody.append(el("div", { class: "squad-more" }, [
+                    intShown < arrOthers.length
+                        ? el("button", { class: "btn small", text: "Ver más compañeros", onclick: () => { objApp.intSquadRows += INT_SQUAD_ROWS; renderBoard(); } })
+                        : el("button", { class: "btn small ghost", text: "Ver solo los primeros", onclick: () => { objApp.intSquadRows = INT_SQUAD_ROWS; renderBoard(); } }),
+                    el("span", { class: "hint", text: `Se ven ${intShown} de ${arrOthers.length} compañeros, los que más has jugado contigo.` })
+                ]));
+            }
             elBody.append(el("p", { class: "hint", text: "Los cofres de un compañero son los que ha publicado en vuestra carpeta compartida. Un «*» avisa de que no publicó todas sus partidas, así que su total va corto. Un «≥» es alguien que no comparte: es lo que tus repeticiones le vieron abrir cerca de ti, así que abrió eso o más, y nunca gana la corona." }));
         }
     }
