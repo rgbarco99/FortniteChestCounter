@@ -45,6 +45,57 @@ public static class Squad
     // -----------------------------------------------------------------------
 
     /// <summary>The cloud folders of this PC, as roots a group can live in.</summary>
+    /// <summary>
+    /// Which cloud the shared folders live inside, and whether its program is running right now.
+    ///
+    /// A sync client that is not open turns the shared folder into an ordinary folder: your own
+    /// file keeps being written and nobody else's ever changes, which from the inside looks
+    /// exactly like a squad that has stopped playing. Saying which of the two it is needs this.
+    /// </summary>
+    public static (string? strName, bool? bRunning) DescribeCloud(IEnumerable<string> lstFolders)
+    {
+        try
+        {
+            var lstRoots = DetectRoots();
+            foreach (var strFolder in lstFolders)
+            {
+                var strFull = Path.GetFullPath(strFolder);
+                var objRoot = lstRoots.FirstOrDefault(objOne =>
+                    string.Equals(strFull, objOne.Path, StringComparison.OrdinalIgnoreCase)
+                    || strFull.StartsWith(objOne.Path + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase));
+                if (objRoot == null)
+                {
+                    continue;   // A plain folder, or a network drive: there is no program to look for
+                }
+
+                var strProcess = objRoot.Provider switch
+                {
+                    "OneDrive" => "OneDrive",
+                    "Dropbox" => "Dropbox",
+                    "Google Drive" => "GoogleDriveFS",
+                    _ => null
+                };
+                if (strProcess == null)
+                {
+                    return (objRoot.Provider, null);
+                }
+
+                var arrProcesses = Process.GetProcessesByName(strProcess);
+                try
+                {
+                    return (objRoot.Provider, arrProcesses.Length > 0);
+                }
+                finally
+                {
+                    foreach (var objProcess in arrProcesses) objProcess.Dispose();
+                }
+            }
+        }
+        catch (Exception) { /* Guessing wrong here must never stop the reading */ }
+
+        return (null, null);
+    }
+
     public static List<CloudRoot> DetectRoots()
     {
         var lstRoots = new List<CloudRoot>();

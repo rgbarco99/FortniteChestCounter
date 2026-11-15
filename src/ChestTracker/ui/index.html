@@ -149,6 +149,10 @@ button, input, select { font: inherit; color: inherit; }
 }
 .widget h2 { margin: 0 0 10px; font-size: 15px; font-weight: 500; color: var(--ink-2); }
 .widget .head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.squad-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; }
+.squad-bar .scope { color: var(--ink-2); font-size: 13.5px; }
+.squad-bar .scope small { display: block; color: var(--ink-3); font-size: 12.5px; }
+.squad-bar .grow { flex: 1; }
 .widget .head h2 { margin: 0; flex: 1; }
 .widget.collapsed .head { margin-bottom: 0; }
 .widget.collapsed { align-self: start; }
@@ -256,6 +260,68 @@ table.progress tbody tr:hover { background: var(--card-raised); }
 
 /* ------------------------------------------------------------------ map tab */
 .map { padding: 0 24px 40px; }
+
+/* ------------------------------------------------------------------ shop tab */
+.shop { padding: 0 24px 40px; }
+.shop[hidden] { display: none; }
+.sh-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-bottom: 10px; }
+.sh-bar .count-down { display: flex; flex-direction: column; gap: 2px; }
+.sh-bar .count-down .label { color: var(--ink-2); font-size: 13.5px; }
+.sh-clock { font-size: 32px; font-stretch: 75%; font-weight: 700; color: var(--gold); line-height: 1.05; }
+.sh-clock small { font-size: 15px; font-weight: 400; font-stretch: 100%; color: var(--ink-2); margin: 0 9px 0 3px; }
+.sh-clock small:last-child { margin-right: 0; }
+.sh-bar .at { color: var(--ink-3); font-size: 12.5px; }
+.sh-bar .grow { flex: 1; }
+.sh-sum { color: var(--ink-2); font-size: 13.5px; margin: 0 0 16px; }
+.sh-sum .old { color: var(--gold); }
+.sh-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 18px; }
+.sh-find { background: var(--card-raised); border: 1px solid var(--line); border-radius: 7px; padding: 8px 11px; flex: 1; min-width: 200px; max-width: 360px; }
+.sh-sort { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 13.5px; }
+.sh-sort select { background: var(--card-raised); border: 1px solid var(--line); border-radius: 7px; padding: 7px 9px; color: var(--ink); }
+.sh-block { margin-bottom: 28px; }
+.sh-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 2px; }
+.sh-head h2 { margin: 0; font-size: 21px; font-stretch: 75%; font-weight: 700; }
+.sh-head .count { color: var(--ink-3); font-size: 14px; }
+.sh-block .why { margin: 0 0 12px; color: var(--ink-2); font-size: 13.5px; }
+.sh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(166px, 1fr)); gap: 12px; }
+.sh-card { background: var(--card); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; border-top: 3px solid var(--line); }
+.sh-card .pic { aspect-ratio: 1 / 1; background: var(--card-raised); position: relative; overflow: hidden; }
+.sh-card .pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sh-card .pic .glyph { position: absolute; inset: 0; display: grid; place-items: center; font-size: 52px; font-stretch: 75%; font-weight: 700; color: var(--line); }
+.sh-card .flags { position: absolute; top: 7px; left: 7px; right: 7px; display: flex; flex-wrap: wrap; gap: 5px; }
+.sh-flag { font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 3px 7px; border-radius: 999px; background: var(--card); color: var(--ink); }
+.sh-flag.new { background: var(--gold); color: #241a00; }
+.sh-flag.out { background: var(--danger); color: #1e1938; }
+.sh-flag.off { background: var(--spirit); color: #e9fff8; }
+.sh-card .info { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.sh-card h3 { margin: 0; font-size: 15px; font-stretch: 75%; font-weight: 700; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.sh-card .what { margin: 0; color: var(--ink-2); font-size: 12px; }
+.sh-card .price { margin: 5px 0 0; display: flex; align-items: center; gap: 6px; font-size: 17px; font-stretch: 75%; }
+.sh-card .price img { width: 17px; height: 17px; display: block; }
+.sh-card .price s { color: var(--ink-3); font-size: 13px; font-stretch: 100%; }
+.sh-card .where { margin: auto 0 0; padding-top: 7px; color: var(--ink-3); font-size: 11.5px; }
+/* The colour band is the game's own rarity, which is how anybody reads a shop tile */
+.sh-card.r-common { border-top-color: #8e95a8; }
+.sh-card.r-uncommon { border-top-color: #5eb21a; }
+.sh-card.r-rare { border-top-color: #2e9bdc; }
+.sh-card.r-epic { border-top-color: #9b4dff; }
+.sh-card.r-legendary { border-top-color: #f08020; }
+.sh-card.r-mythic { border-top-color: #eaba2a; }
+.sh-card.r-icon { border-top-color: #3edcd0; }
+.sh-card.r-marvel { border-top-color: #d9372a; }
+.sh-card.r-dc { border-top-color: #4f7ce0; }
+.sh-card.r-starwars { border-top-color: #1f8df0; }
+.sh-card.r-dark { border-top-color: #c4249b; }
+.sh-card.r-gaminglegends { border-top-color: #5b4bd6; }
+.sh-card.r-shadow { border-top-color: #585b66; }
+.sh-card.r-slurp { border-top-color: #1cc3cf; }
+.sh-card.r-lava { border-top-color: #e0792c; }
+.sh-card.r-frozen { border-top-color: #8fd8f2; }
+.sh-card.r-platform { border-top-color: #4ca8c9; }
+@media (max-width: 760px) {
+    .shop { padding: 0 16px 40px; }
+    .sh-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
 .m-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 14px; }
 .m-top .grow { flex: 1; }
 .m-count { color: var(--ink-2); font-size: 14px; }
@@ -364,6 +430,7 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
 .squad .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .squad input[type=text] { flex: 1; min-width: 220px; }
+.squad .mate small.stale { color: var(--gold); }
 .t-scope { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .t-scope .hint { color: var(--ink-2); font-size: 12.5px; }
 .l-pill.treasure { border-color: var(--gold); color: var(--gold); font-size: 15px; }
@@ -665,6 +732,7 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 <main class="live" id="elLive" hidden></main>
 <main class="map" id="elMap" hidden></main>
 <main class="squad" id="elSquad" hidden></main>
+<main class="shop" id="elShop" hidden></main>
 
 <aside class="drawer" id="elDrawer" aria-label="Ajustes"></aside>
 <div class="busy-bar" id="elBusyBar" aria-hidden="true"><i></i></div>
@@ -805,7 +873,65 @@ const ARR_I18N = [
     ["Debajo de cada número de partida, el puesto en que quedaste.", "Under each match number, the place you finished.", "Sous chaque numéro de partie, ta place finale."],
 
     // Squad and friends
-    ["Tu squad en la partida", "Your squad in this match", "Ton escouade dans la partie"],
+    ["Tu squad", "Your squad", "Ton escouade"],
+    ["no está abierto en este PC.", "is not running on this PC.", "n'est pas ouvert sur ce PC."],
+    ["Mientras esté cerrado, vuestra carpeta compartida es una carpeta normal: ni llegan los cofres de tu squad ni salen los tuyos. Ábrelo y se pondrá al día solo.", "While it is closed, your shared folder is an ordinary folder: your squad's chests do not arrive and yours do not leave. Open it and it will catch up by itself.", "Tant qu'il est fermé, votre dossier partagé est un dossier ordinaire : les coffres de ton escouade n'arrivent pas et les tiens ne partent pas. Ouvre-le et il se mettra à jour tout seul."],
+    ["Ninguna ficha de tu squad ha cambiado desde antes de esta partida. Que estén todas paradas a la vez no es que no jueguen: es que tu nube no está trayendo nada.", "Not one file from your squad has changed since before this match. All of them frozen at once is not nobody playing: it is your cloud bringing nothing down.", "Aucune fiche de ton escouade n'a changé depuis avant cette partie. Toutes figées en même temps, ce n'est pas que personne ne joue : c'est que ton cloud ne descend rien."],
+    ["no publica nada desde el", "has not published anything since", "ne publie plus rien depuis le"],
+    ["publicó", "published", "a publié"],
+    ["Tienda", "Shop", "Boutique"],
+    ["La tienda cambia en", "The shop changes in", "La boutique change dans"],
+    ["La tienda está cambiando", "The shop is changing", "La boutique est en train de changer"],
+    ["a las {0} de tu hora", "at {0} your time", "à {0} chez toi"],
+    ["Lo importante", "What matters", "L'essentiel"],
+    ["Toda la tienda", "The whole shop", "Toute la boutique"],
+    ["Rebajas y lotes", "Discounts and bundles", "Remises et lots"],
+    ["Música", "Music", "Musique"],
+    ["Lo nuevo de hoy", "New today", "Les nouveautés du jour"],
+    ["Lo que ha entrado con el cambio de esta madrugada.", "What came in with the small hours' change.", "Ce qui est arrivé avec le changement de cette nuit."],
+    ["Legendarios, series y destacados", "Legendaries, series and featured", "Légendaires, séries et mis en avant"],
+    ["Lo legendario, lo que pertenece a una serie y lo que el juego promociona en su propia baldosa, quitando lo que ya sale arriba.", "The legendary, whatever belongs to a series and whatever the game promotes on its own tile, minus what is already above.", "Le légendaire, ce qui appartient à une série et ce que le jeu met en avant sur sa propre tuile, sans ce qui est déjà au-dessus."],
+    ["Se van en el próximo cambio", "Leaving at the next change", "Partent au prochain changement"],
+    ["Última oportunidad: mañana ya no estarán.", "Last chance: tomorrow they will be gone.", "Dernière chance : demain, ils ne seront plus là."],
+    ["Se va", "Leaving", "Part"],
+    ["{0} cosas", "{0} things", "{0} objets"],
+    ["Rebajas", "Discounts", "Remises"],
+    ["Cuesta menos de lo que suele costar.", "It costs less than it usually does.", "Coûte moins cher que d'habitude."],
+    ["Lotes", "Bundles", "Lots"],
+    ["Varias cosas juntas por un precio.", "Several things together for one price.", "Plusieurs objets ensemble pour un seul prix."],
+    ["Hoy no hay ni rebajas ni lotes.", "Today there are neither discounts nor bundles.", "Aujourd'hui, il n'y a ni remises ni lots."],
+    ["Pistas de improvisación", "Jam tracks", "Pistes de jam"],
+    ["Las canciones que hay hoy, con su autor y lo que cuestan.", "Today's songs, with who made them and what they cost.", "Les chansons du jour, avec leur auteur et leur prix."],
+    ["Hoy no hay ninguna canción en la tienda.", "There is no song in the shop today.", "Il n'y a aucune chanson dans la boutique aujourd'hui."],
+    ["Fuera de las secciones", "Outside the sections", "Hors sections"],
+    ["Buscar en la tienda", "Search the shop", "Chercher dans la boutique"],
+    ["Ordenar por", "Sort by", "Trier par"],
+    ["Ordenar la tienda", "Sort the shop", "Trier la boutique"],
+    ["Precio: de más a menos", "Price: high to low", "Prix : du plus cher au moins cher"],
+    ["Precio: de menos a más", "Price: low to high", "Prix : du moins cher au plus cher"],
+    ["Como en el juego", "As in the game", "Comme dans le jeu"],
+    ["Lo último en entrar", "Most recently added", "Les derniers arrivés"],
+    ["Lo que antes se va", "Leaving soonest", "Ceux qui partent le plus tôt"],
+    ["Rebaja: de más a menos", "Biggest discount first", "La plus grosse remise d'abord"],
+    ["Nombre (A-Z)", "Name (A-Z)", "Nom (A-Z)"],
+    ["No hay nada en la tienda que se llame así.", "Nothing in the shop is called that.", "Rien dans la boutique ne porte ce nom."],
+    ["Trayendo la tienda…", "Fetching the shop…", "Récupération de la boutique…"],
+    ["No he podido traer la tienda. Hace falta conexión a internet: compruébala y vuelve a intentarlo.", "I could not fetch the shop. It needs an internet connection: check yours and try again.", "Je n'ai pas pu récupérer la boutique. Une connexion internet est nécessaire : vérifie la tienne et réessaie."],
+    ["Esta es la tienda del {0}: no he podido traer la de hoy.", "This is the shop from {0}: I could not fetch today's.", "C'est la boutique du {0} : je n'ai pas pu récupérer celle d'aujourd'hui."],
+    ["{0} artículos en la tienda", "{0} items in the shop", "{0} articles dans la boutique"],
+    ["{0} nuevos hoy", "{0} new today", "{0} nouveaux aujourd'hui"],
+    ["{0} se van en el próximo cambio", "{0} leave at the next change", "{0} partent au prochain changement"],
+    ["Estas partidas", "These matches", "Ces parties"],
+    ["Solo esta partida", "This match only", "Cette partie seulement"],
+    ["Ninguna de estas partidas trae datos de equipo.", "None of these matches carries team data.", "Aucune de ces parties ne contient de données d'équipe."],
+    ["Más cofres por partida", "Most chests per match", "Le plus de coffres par partie"],
+    ["Jugó {0} de las {1} partidas que suma este bloque", "They played {0} of the {1} matches this block adds up", "Il a joué {0} des {1} parties que ce bloc additionne"],
+    ["Publicado en {0} de sus {1} partidas", "Published in {0} of their {1} matches", "Publié dans {0} de ses {1} parties"],
+    ["Partidas en las que dio las gracias al conductor", "Matches where they thanked the bus driver", "Parties où il a remercié le chauffeur"],
+    ["Todas las partidas que el programa ha leído", "Every match the program has read", "Toutes les parties que le programme a lues"],
+    ["Las últimas partidas seguidas: la cuenta se corta en cuanto pasas más de tres horas sin jugar", "The most recent matches in a row: the count stops as soon as you go more than three hours without playing", "Les dernières parties d'affilée : le compte s'arrête dès que tu passes plus de trois heures sans jouer"],
+    ["Las partidas de hoy, desde las doce de la noche", "Today's matches, from midnight", "Les parties d'aujourd'hui, depuis minuit"],
+    ["Las partidas de los últimos siete días", "The matches of the last seven days", "Les parties des sept derniers jours"],
     ["Esta repetición no trae datos de equipo.", "This replay has no team data.", "Cette rediffusion n'a pas de données d'équipe."],
     ["Jugador", "Player", "Joueur"],
     [" (tú)", " (you)", " (toi)"],
@@ -1372,10 +1498,11 @@ const ARR_I18N = [
     ["No está en tu escuadrón: es lo que tu repetición le vio abrir cerca de ti", "Not in your squad: this is what your replay saw them open near you", "Pas dans ton escouade : c'est ce que ta rediffusion lui a vu ouvrir près de toi"],
     ["No está en tu escuadrón: es lo que tus repeticiones le vieron abrir cerca de ti", "Not in your squad: this is what your replays saw them open near you", "Pas dans ton escouade : c'est ce que tes rediffusions lui ont vu ouvrir près de toi"],
     ["{0} cofres entre los {1}. Los marcados «estimado» no están en tu escuadrón: es solo lo que tu repetición les vio abrir cerca de ti, así que abrieron eso o más.", "{0} chests between the {1} of you. The ones marked «estimate» are not in your squad: it is only what your replay saw them open near you, so they opened that or more.", "{0} coffres à {1}. Ceux marqués « estimation » ne sont pas dans ton escouade : c'est seulement ce que ta rediffusion leur a vu ouvrir près de toi, donc ils en ont ouvert autant ou plus."],
-    ["Los cofres de tus compañeros vienen de lo que han publicado en vuestra carpeta compartida. Un «≥» es alguien que no comparte: es solo lo que tu repetición le vio abrir cerca de ti, así que abrió eso o más, y nunca gana la corona.", "Your squadmates' chests come from what they published in your shared folder. A «≥» is somebody not sharing: it is only what your replay saw them open near you, so they opened that or more, and it never wins the crown.", "Les coffres de tes coéquipiers viennent de ce qu'ils ont publié dans votre dossier partagé. Un « ≥ » est quelqu'un qui ne partage pas : c'est seulement ce que ta rediffusion lui a vu ouvrir près de toi, donc il en a ouvert autant ou plus, et cela ne gagne jamais la couronne."],
+    ["Los cofres de un compañero son los que ha publicado en vuestra carpeta compartida. Un «*» avisa de que no publicó todas sus partidas, así que su total va corto. Un «≥» es alguien que no comparte: es lo que tus repeticiones le vieron abrir cerca de ti, así que abrió eso o más, y nunca gana la corona.", "A squadmate's chests are the ones they published in your shared folder. A “*” warns that they did not publish every match, so their total falls short. A “≥” is somebody not sharing: it is what your replays saw them open near you, so they opened that or more, and it never wins the crown.", "Les coffres d'un coéquipier sont ceux qu'il a publiés dans votre dossier partagé. Un « * » avertit qu'il n'a pas publié toutes ses parties, donc son total est en dessous. Un « ≥ » est quelqu'un qui ne partage pas : c'est ce que tes rediffusions lui ont vu ouvrir près de toi, donc il en a ouvert autant ou plus, et cela ne gagne jamais la couronne."],
     ["{0} cofres entre los {1}. Los de tus compañeros vienen de vuestra carpeta compartida.", "{0} chests between the {1} of you. Your squadmates' come from your shared folder.", "{0} coffres à {1}. Ceux de tes coéquipiers viennent de votre dossier partagé."],
     ["Tú", "You", "Toi"],
-    ["Kills y derribos salen del registro de bajas de la partida, que es completo para todos.", "Kills and knocks come from the match's own elimination log, which is complete for everybody.", "Éliminations et mises à terre viennent du journal des éliminations de la partie, complet pour tout le monde."],
+    ["Kills, derribos y veces derribado salen del registro de bajas de la partida, que es completo para todos.", "Kills, knocks and times knocked come from the match's own elimination log, which is complete for everybody.", "Éliminations, mises à terre et fois où il a été mis à terre viennent du journal des éliminations de la partie, complet pour tout le monde."],
+    ["Partidas es cuántas de estas jugó contigo: sus kills, sus derribos y sus cofres suman solo esas.", "Matches is how many of these they played with you: their kills, their knocks and their chests add up only those.", "Parties, c'est combien de celles-ci il a jouées avec toi : ses éliminations, ses mises à terre et ses coffres n'additionnent que celles-là."],
     ["Sus cofres contigo", "Their chests with you", "Leurs coffres avec toi"],
     ["{0} en {1}", "{0} in {1}", "{0} en {1}"],
     ["♛ {0} cofres: ganas la partida", "♛ {0} chests: you win the match", "♛ {0} coffres : tu gagnes la partie"],
@@ -1665,6 +1792,60 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
     {
+        strVersion: "1.5.0",
+        strDate: "2026-11-15",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "La tienda, en una pestaña propia. Arriba, cuánto queda para que cambie, en horas, minutos y segundos, y a qué hora cae eso en tu reloj. Debajo, lo que ha entrado hoy, lo legendario y de serie junto a lo que el juego promociona, y lo que se va en el próximo cambio. Cada cosa con su foto y lo que cuesta en pavos, con el precio tachado y lo que te ahorras cuando está rebajada.",
+                en: "The shop, in a tab of its own. At the top, how long until it changes, in hours, minutes and seconds, and what time that is by your clock. Below, what came in today, the legendary and series items next to whatever the game is promoting, and what leaves at the next change. Each one with its picture and what it costs in V-Bucks, with the price struck through and what you save when it is discounted.",
+                fr: "La boutique, dans un onglet à elle. En haut, le temps qu'il reste avant qu'elle change, en heures, minutes et secondes, et l'heure que cela fait chez toi. En dessous, ce qui est arrivé aujourd'hui, le légendaire et les séries à côté de ce que le jeu met en avant, et ce qui part au prochain changement. Chaque chose avec son image et son prix en V-Bucks, avec le prix barré et ce que tu économises quand il est remisé."
+            },
+            {
+                strTag: "nuevo",
+                es: "Y tres subpestañas más: toda la tienda en el orden y las secciones del propio juego, con buscador; las rebajas y los lotes; y las pistas de improvisación con su artista, que si no se comen media tienda. Se puede ordenar por precio, por lo último en entrar, por lo que antes se va, por la rebaja más gorda o por nombre.",
+                en: "And three more subtabs: the whole shop in the game's own order and sections, with a search box; the discounts and bundles; and the jam tracks with who made them, which otherwise eat half the shop. It can be sorted by price, by what came in last, by what leaves soonest, by the biggest discount or by name.",
+                fr: "Et trois autres sous-onglets : toute la boutique dans l'ordre et les sections du jeu, avec un champ de recherche ; les remises et les lots ; et les pistes de jam avec leur auteur, qui sinon dévorent la moitié de la boutique. On peut trier par prix, par dernier arrivé, par ce qui part le plus tôt, par la plus grosse remise ou par nom."
+            },
+            {
+                strTag: "nuevo",
+                es: "Cuando los cofres de un compañero no llegan, el programa dice por qué en vez de esperar callado: si tu nube está cerrada lo avisa («OneDrive no está abierto en este PC»), y si la ficha de alguien lleva sin cambiar desde antes de la partida, lo dice con la hora. Si están paradas las de todos a la vez, te dice que eso no es que no jueguen, es que tu nube no está trayendo nada.",
+                en: "When a squadmate's chests do not arrive, the program says why instead of waiting in silence: if your cloud is closed it says so (“OneDrive is not running on this PC”), and if somebody's file has not changed since before the match, it says that, with the time. If everybody's are frozen at once, it tells you that is not nobody playing: it is your cloud bringing nothing down.",
+                fr: "Quand les coffres d'un coéquipier n'arrivent pas, le programme dit pourquoi au lieu d'attendre en silence : si ton cloud est fermé, il le signale (« OneDrive n'est pas ouvert sur ce PC »), et si la fiche de quelqu'un n'a pas changé depuis avant la partie, il le dit, avec l'heure. Si elles sont toutes figées en même temps, il t'explique que ce n'est pas que personne ne joue : c'est que ton cloud ne descend rien."
+            },
+            {
+                strTag: "mejorado",
+                es: "En Escuadrón, la fecha que salía junto a cada compañero ya dice qué es: «publicó» y la hora, en dorado cuando esa persona lleva más de media hora por detrás de ti.",
+                en: "In Squad, the date beside each squadmate now says what it is: “published” and the time, in gold when that person is more than half an hour behind you.",
+                fr: "Dans Escouade, la date à côté de chaque coéquipier dit maintenant ce qu'elle est : « a publié » et l'heure, en doré quand cette personne a plus d'une demi-heure de retard sur toi."
+            },
+            {
+                strTag: "mejorado",
+                es: "El bloque de tu squad obedece al filtro de arriba. Antes se quedaba clavado en la partida que hubieras seleccionado alguna vez, así que podía enseñarte una partida de anoche con los de siempre mientras mirabas las de hoy. Ahora suma lo que deja el filtro y dice encima qué partidas son; «Solo esta partida» sigue a un clic, y entonces dice cuál.",
+                en: "Your squad's block obeys the filter at the top. It used to stay stuck on whatever match you once picked, so it could show you last night's with your usual crew while you were looking at today's. Now it adds up what the filter leaves and says above which matches those are; “This match only” is still one click away, and then it says which one.",
+                fr: "Le bloc de ton escouade obéit au filtre du haut. Avant, il restait bloqué sur la partie que tu avais sélectionnée une fois, et pouvait donc montrer celle d'hier soir avec les habitués pendant que tu regardais celles du jour. Maintenant il additionne ce que le filtre laisse et indique au-dessus de quelles parties il s'agit ; « Cette partie seulement » reste à un clic, et il dit alors laquelle."
+            },
+            {
+                strTag: "nuevo",
+                es: "Ese bloque trae dos columnas nuevas: cuántas de esas partidas jugó contigo cada uno y sus cofres por partida, que es lo único que compara de verdad a dos personas que no han jugado lo mismo. Por eso la corona va ahora ahí y no al total. Un «*» en el total avisa de que esa persona no publicó todas sus partidas.",
+                en: "That block has two new columns: how many of those matches each of them played with you, and their chests per match, which is the only thing that really compares two people who have not played the same amount. That is why the crown now follows it rather than the total. A “*” on the total warns that the person did not publish every match.",
+                fr: "Ce bloc a deux nouvelles colonnes : combien de ces parties chacun a jouées avec toi, et ses coffres par partie, la seule chose qui compare vraiment deux personnes n'ayant pas joué autant. C'est pourquoi la couronne la suit désormais, et non le total. Un « * » sur le total avertit que la personne n'a pas publié toutes ses parties."
+            },
+            {
+                strTag: "mejorado",
+                es: "Los filtros de arriba se explican solos. «Última sesión» quería decir las últimas partidas seguidas, cortando en cuanto pasas más de tres horas sin jugar, y eso no estaba escrito en ninguna parte: ahora lo dice al pasar el ratón, y el renglón de estado enseña qué deja el filtro que tengas puesto, con fecha y horas.",
+                en: "The filters at the top now explain themselves. “Last session” meant the most recent matches in a row, cut as soon as you go more than three hours without playing, and that was written nowhere: now it says so on hover, and the status line shows what the filter you have on leaves, with dates and times.",
+                fr: "Les filtres du haut s'expliquent tout seuls. « Dernière session » voulait dire les dernières parties d'affilée, coupées dès que tu passes plus de trois heures sans jouer, et ce n'était écrit nulle part : c'est maintenant indiqué au survol, et la ligne d'état montre ce que laisse le filtre choisi, avec les dates et les heures."
+            },
+            {
+                strTag: "arreglado",
+                es: "Algunas frases hechas de varios trozos salían a medio traducir en inglés y en francés, como «313 artículos in la tienda». Pasaba cuando un patrón corto cruzaba de un trozo al siguiente.",
+                en: "Some sentences built from several pieces came out half translated in English and French, such as “313 artículos in la tienda”. It happened when a short pattern reached across from one piece into the next.",
+                fr: "Certaines phrases composées de plusieurs morceaux s'affichaient à moitié traduites en anglais et en français, comme « 313 artículos in la tienda ». Cela arrivait quand un motif court passait d'un morceau au suivant."
+            }
+        ]
+    },
+    {
         strVersion: "1.4.5",
         strDate: "2026-11-15",
         arrItems: [
@@ -1838,9 +2019,9 @@ const ARR_NEWS = [
             },
             {
                 strTag: "nuevo",
-                es: "Ya ves los cofres de tus compañeros. Al terminar la partida, En vivo enseña una barra por cada uno y una corona para quien más abrió. También están en «Tu squad en la partida» y en «Amigos», con su total contigo.",
-                en: "You can now see your squadmates' chests. When the match ends, Live shows a bar for each of them and a crown for whoever opened the most. They are also in “Your squad in the match” and in “Friends”, with their total alongside you.",
-                fr: "Tu vois maintenant les coffres de tes coéquipiers. À la fin de la partie, En direct affiche une barre pour chacun et une couronne pour celui qui en a ouvert le plus. Ils sont aussi dans « Ton squad dans la partie » et dans « Amis », avec leur total avec toi."
+                es: "Ya ves los cofres de tus compañeros. Al terminar la partida, En vivo enseña una barra por cada uno y una corona para quien más abrió. También están en «Tu squad» y en «Amigos», con su total contigo.",
+                en: "You can now see your squadmates' chests. When the match ends, Live shows a bar for each of them and a crown for whoever opened the most. They are also in “Your squad” and in “Friends”, with their total alongside you.",
+                fr: "Tu vois maintenant les coffres de tes coéquipiers. À la fin de la partie, En direct affiche une barre pour chacun et une couronne pour celui qui en a ouvert le plus. Ils sont aussi dans « Ton escouade » et dans « Amis », avec leur total avec toi."
             },
             {
                 strTag: "nuevo",
@@ -2201,11 +2382,13 @@ const OBJ_SERIES = {
 const INT_MIN_SIZE = 2;
 const INT_MAX_SIZE = 12;
 
+// strHelp is the hover text of each filter: «Última sesión» is the one nobody can guess,
+// and a filter whose rule is invisible is a filter you do not trust.
 const ARR_RANGES = [
-    { strId: "todo", strLabel: "Todas" },
-    { strId: "sesion", strLabel: "Última sesión" },
-    { strId: "hoy", strLabel: "Hoy" },
-    { strId: "semana", strLabel: "7 días" }
+    { strId: "todo", strLabel: "Todas", strHelp: "Todas las partidas que el programa ha leído" },
+    { strId: "sesion", strLabel: "Última sesión", strHelp: "Las últimas partidas seguidas: la cuenta se corta en cuanto pasas más de tres horas sin jugar" },
+    { strId: "hoy", strLabel: "Hoy", strHelp: "Las partidas de hoy, desde las doce de la noche" },
+    { strId: "semana", strLabel: "7 días", strHelp: "Las partidas de los últimos siete días" }
 ];
 
 const ARR_COLUMNS = [
@@ -2236,6 +2419,17 @@ const objApp = {
     objLayout: null,
     strSelectedFile: null,
     bFollowLatest: true,
+    // El bloque del squad suma el periodo del filtro; esto lo deja en una sola partida
+    bSquadOneMatch: false,
+    // La tienda: lo que trajo el programa, qué subpestaña se mira y qué se busca
+    objShop: null,
+    strShopView: "destacado",
+    strShopFind: "",
+    strShopSort: null,
+    bShopLoading: false,
+    bShopFailed: false,
+    dblShopTried: 0,
+    intShopClock: null,
     bEditing: false,
     strSortColumn: "numero",
     bSortDescending: true,
@@ -2260,7 +2454,7 @@ const objApp = {
     strCrownShown: null,
     // El mapa de la temporada, pedido al abrir la pestaña
     objMap: null,
-    strTab: { "#tesoros": "tesoros", "#vivo": "vivo", "#mapa": "mapa", "#escuadron": "escuadron" }[location.hash] ?? "partidas",
+    strTab: { "#tesoros": "tesoros", "#vivo": "vivo", "#mapa": "mapa", "#escuadron": "escuadron", "#tienda": "tienda" }[location.hash] ?? "partidas",
     objLiveSeen: { strFile: null, intChests: 0 },
     objDrawerOpen: {},
     objTreasure: null,
@@ -2303,6 +2497,28 @@ const getMatchesInRange = () => {
         default: return arrMatches;
     }
 };
+
+// What the filter is covering right now, said out loud. The label alone explains nothing:
+// «Última sesión» means these matches, from this hour to that one, and the only way to know
+// which is to be told. The status line and the squad block both say it.
+const describeRange = (arrMatches) => {
+    const objRange = ARR_RANGES.find((objItem) => objItem.strId === objApp.objLayout.strRange) ?? ARR_RANGES[0];
+    const arrParts = [objRange.strLabel, `${arrMatches.length} ${arrMatches.length === 1 ? "partida" : "partidas"}`];
+    if (arrMatches.length) {
+        const dtFirst = new Date(arrMatches[0].startedAt);
+        const dtLast = new Date(arrMatches[arrMatches.length - 1].startedAt);
+        arrParts.push(dtFirst.toDateString() === dtLast.toDateString()
+            ? `${fmtWeekDay(dtFirst)}, ${fmtTimeOfDay(dtFirst)} – ${fmtTimeOfDay(dtLast)}`
+            : `${fmtWeekDay(dtFirst)} – ${fmtWeekDay(dtLast)}`);
+    }
+    return arrParts;
+};
+
+// Each piece in its own node. Joined into one string, a short pattern meant for one of them
+// can straddle two pieces and translate the wrong half of the sentence.
+const dotted = (arrParts) => arrParts
+    .filter(Boolean)
+    .flatMap((strPart, intIndex) => intIndex ? [" · ", el("span", { text: strPart })] : [el("span", { text: strPart })]);
 
 const getSelectedMatch = (arrMatches) =>
     arrMatches.find((objMatch) => objMatch.file === objApp.strSelectedFile) ?? arrMatches[arrMatches.length - 1] ?? null;
@@ -2766,62 +2982,136 @@ const ARR_WIDGETS = [
         }
     },
     {
-        strId: "escuadra", strTitle: "Tu squad en la partida", strKind: "panel", intSize: 8, bHidden: false,
-        fnRender: (elBody, { objSelected }) => {
-            if (!objSelected) return;
-            if (!objSelected.squad.length) {
-                elBody.append(el("p", { class: "hint", text: "Esta repetición no trae datos de equipo." }));
+        strId: "escuadra", strTitle: "Tu squad", strKind: "panel", intSize: 8, bHidden: false,
+        fnRender: (elBody, { arrMatches, objSelected }) => {
+            // This used to read one match, the selected one, which is not what anybody expects
+            // from a board with a filter at the top: you pick «Hoy» and the squad table stays on
+            // a match from last night, showing the people you usually play with whether or not
+            // they were in it. It adds up what the filter leaves, and the line above the table
+            // says which matches those are. One match on its own is a click away, and then it
+            // says which one, so the table is never about a match you are not looking at.
+            const bOneMatch = objApp.bSquadOneMatch && objSelected != null;
+            const arrScope = bOneMatch ? [objSelected] : arrMatches;
+
+            elBody.append(el("div", { class: "squad-bar" }, [
+                el("span", { class: "scope" }, bOneMatch
+                    ? [`Partida ${objSelected.intNumber}`, el("small", { text: fmtDate(objSelected.startedAt) })]
+                    : dotted(describeRange(arrScope))),
+                el("span", { class: "grow" }),
+                el("button", {
+                    class: bOneMatch ? "btn small" : "btn small primary", text: "Estas partidas", "aria-pressed": String(!bOneMatch),
+                    onclick: () => { objApp.bSquadOneMatch = false; renderBoard(); }
+                }),
+                el("button", {
+                    class: bOneMatch ? "btn small primary" : "btn small", text: "Solo esta partida", "aria-pressed": String(bOneMatch), disabled: objSelected == null,
+                    onclick: () => { objApp.bSquadOneMatch = true; renderBoard(); }
+                })
+            ]));
+
+            if (!arrScope.some((objMatch) => objMatch.squad.length)) {
+                elBody.append(el("p", { class: "hint", text: bOneMatch ? "Esta repetición no trae datos de equipo." : "Ninguna de estas partidas trae datos de equipo." }));
                 return;
             }
-            // Chests are the one figure a replay cannot hold for anybody but its owner: these
-            // come from what each squadmate published into the shared folder.
-            const chestsOf = (objMate) => objMate.isYou ? objSelected.chestsTotal : objMate.sharedChests;
-            // Only a published figure can win: an estimate is a floor, not a total
-            const intMost = Math.max(...objSelected.squad.map((objMate) => chestsOf(objMate) ?? -1));
-            const bAnyShared = objSelected.squad.some((objMate) => !objMate.isYou && objMate.sharedChests != null);
-            const winsIt = (objMate) => bAnyShared && chestsOf(objMate) === intMost && objSelected.squad.length > 1;
+
+            // One row per person who was on your team in any of these matches, you included.
+            // Chests are the one figure a replay cannot hold for anybody but its owner: a
+            // teammate's come from what they published into the shared folder, so their total
+            // only covers the matches whose card arrived, and intChestMatches says how many.
+            const dicPeople = new Map();
+            for (const objMatch of arrScope) {
+                for (const objMate of objMatch.squad) {
+                    let objRow = dicPeople.get(objMate.id);
+                    if (!objRow) {
+                        objRow = {
+                            strId: objMate.id, strName: null, bYou: objMate.isYou, strPlatform: null, strLast: "",
+                            intMatches: 0, intKills: 0, intKnocks: 0, intKnocked: 0, intBus: 0,
+                            intChests: 0, intChestMatches: 0, intNearby: 0
+                        };
+                        dicPeople.set(objMate.id, objRow);
+                    }
+                    objRow.intMatches++;
+                    objRow.intKills += objMate.kills ?? 0;
+                    objRow.intKnocks += objMate.knocks ?? 0;
+                    objRow.intKnocked += objMate.timesKnocked ?? 0;
+                    if (objMate.thankedBusDriver) objRow.intBus++;
+                    const intChests = objMate.isYou ? objMatch.chestsTotal : objMate.sharedChests;
+                    if (intChests != null) { objRow.intChests += intChests; objRow.intChestMatches++; }
+                    else objRow.intNearby += objMate.nearbyChests ?? 0;
+                    // Matches come oldest first, so the last one seen is the current name and platform
+                    if (objMatch.startedAt >= objRow.strLast) {
+                        objRow.strLast = objMatch.startedAt;
+                        objRow.strName = objMate.name ?? objRow.strName;
+                        objRow.strPlatform = objMate.platform ?? objRow.strPlatform;
+                    }
+                }
+            }
+
+            // Per match is the only figure that compares two people who played a different
+            // number of matches, so it is what the crown follows. Only a published figure can
+            // win: an estimate is a floor, not a total.
+            const perMatch = (objRow) => objRow.intChestMatches ? objRow.intChests / objRow.intChestMatches : null;
+            const arrRows = [...dicPeople.values()].sort((objLeft, objRight) =>
+                Number(objRight.bYou) - Number(objLeft.bYou)
+                || objRight.intMatches - objLeft.intMatches
+                || (perMatch(objRight) ?? -1) - (perMatch(objLeft) ?? -1));
+            const arrWithFigure = arrRows.filter((objRow) => objRow.intChestMatches > 0);
+            const dblBest = Math.max(...arrWithFigure.map(perMatch));
+            const bRace = arrWithFigure.length > 1 && arrWithFigure.some((objRow) => !objRow.bYou);
+            const winsIt = (objRow) => bRace && objRow.intChestMatches > 0 && perMatch(objRow) === dblBest;
 
             const arrColumns = [
                 // The nick and the marker are separate pieces: glued together the whole string
                 // carries a name, so it matches nothing in ARR_I18N and "(tú)" stays Spanish.
                 // The crown belongs beside the name, which is what anybody reads first.
-                ["Jugador", (objMate) => {
-                    const bWinner = winsIt(objMate);
+                ["Jugador", (objRow) => {
+                    const bWinner = winsIt(objRow);
                     return el("span", { class: bWinner ? "champ" : null }, [
-                        el("span", { "data-notr": true, text: objMate.name ?? objMate.id.slice(0, 8) }),
-                        objMate.isYou ? el("span", { text: " (tú)" }) : null,
-                        bWinner ? el("span", { class: "crown", title: "Más cofres de la partida", text: "♛" }) : null
+                        el("span", { "data-notr": true, text: objRow.strName ?? objRow.strId.slice(0, 8) }),
+                        objRow.bYou ? el("span", { text: " (tú)" }) : null,
+                        bWinner ? el("span", { class: "crown", title: bOneMatch ? "Más cofres de la partida" : "Más cofres por partida", text: "♛" }) : null
                     ]);
                 }, "left"],
-                ["Cofres", (objMate) => {
-                    const intChests = chestsOf(objMate);
-                    if (intChests == null) {
-                        // Nothing shared: fall back to what your replay saw them open near you
-                        return objMate.nearbyChests
-                            ? el("span", { class: "guess", title: "No está en tu escuadrón: es lo que tu repetición le vio abrir cerca de ti", text: `≥${objMate.nearbyChests}` })
+                bOneMatch ? null : ["Partidas", (objRow) => el("span", {
+                    title: `Jugó ${objRow.intMatches} de las ${arrScope.length} partidas que suma este bloque`, text: String(objRow.intMatches)
+                })],
+                ["Cofres", (objRow) => {
+                    if (!objRow.intChestMatches) {
+                        // Nothing shared: fall back to what your replays saw them open near you
+                        return objRow.intNearby
+                            ? el("span", { class: "guess", title: "No está en tu escuadrón: es lo que tus repeticiones le vieron abrir cerca de ti", text: `≥${fmtWhole(objRow.intNearby)}` })
                             : el("span", { class: "nodata", text: "Sin datos" });
                     }
-                    return el("span", { class: winsIt(objMate) ? "shared champ" : "shared", text: String(intChests) });
+                    return el("span", {
+                        class: winsIt(objRow) ? "shared champ" : "shared",
+                        title: objRow.intChestMatches < objRow.intMatches ? `Publicado en ${objRow.intChestMatches} de sus ${objRow.intMatches} partidas` : null,
+                        text: objRow.intChestMatches < objRow.intMatches ? `${fmtWhole(objRow.intChests)}*` : fmtWhole(objRow.intChests)
+                    });
                 }],
-                ["Kills", (objMate) => objMate.kills ?? "–"],
-                ["Derribos", (objMate) => objMate.knocks],
-                ["Derribado", (objMate) => objMate.timesKnocked],
-                ["Plataforma", (objMate) => OBJ_PLATFORMS[objMate.platform] ?? objMate.platform ?? "–", "left"],
-                ["Gracias al bus", (objMate) => objMate.thankedBusDriver ? "Sí" : "No", "left"]
-            ];
+                ["Cofres por partida", (objRow) => perMatch(objRow) == null ? "–" : fmtNumber(perMatch(objRow))],
+                ["Kills", (objRow) => objRow.intKills],
+                ["Derribos", (objRow) => objRow.intKnocks],
+                ["Derribado", (objRow) => objRow.intKnocked],
+                ["Plataforma", (objRow) => OBJ_PLATFORMS[objRow.strPlatform] ?? objRow.strPlatform ?? "–", "left"],
+                ["Gracias al bus", (objRow) => bOneMatch
+                    ? (objRow.intBus ? "Sí" : "No")
+                    : el("span", { title: "Partidas en las que dio las gracias al conductor", text: String(objRow.intBus) }), "left"]
+            ].filter(Boolean);
+
             elBody.append(el("div", { class: "table-wrap" }, el("table", {}, [
                 el("thead", {}, el("tr", {}, arrColumns.map(([strHead, , strAlign]) => el("th", { class: strAlign ?? null, text: strHead, style: { cursor: "default" } })))),
-                el("tbody", {}, objSelected.squad.map((objMate) => el("tr", { style: { cursor: "default" }, title: objMate.eliminatedBy ? `Eliminado por ${objMate.eliminatedBy}` : null },
+                el("tbody", {}, arrRows.map((objRow) => el("tr", { style: { cursor: "default" } },
                     arrColumns.map(([, fnValue, strAlign]) => {
                         // A column may give a plain value or a piece of its own (the chest cell does)
-                        const varValue = fnValue(objMate);
+                        const varValue = fnValue(objRow);
                         return varValue instanceof Node
                             ? el("td", { class: strAlign ?? null }, varValue)
                             : el("td", { class: strAlign ?? null, text: varValue });
                     }))))
             ])));
-            elBody.append(el("p", { class: "hint", text: "Kills y derribos salen del registro de bajas de la partida, que es completo para todos." }));
-            elBody.append(el("p", { class: "hint", text: "Los cofres de tus compañeros vienen de lo que han publicado en vuestra carpeta compartida. Un «≥» es alguien que no comparte: es solo lo que tu repetición le vio abrir cerca de ti, así que abrió eso o más, y nunca gana la corona." }));
+            elBody.append(el("p", { class: "hint", text: bOneMatch
+                ? "Kills, derribos y veces derribado salen del registro de bajas de la partida, que es completo para todos."
+                : "Partidas es cuántas de estas jugó contigo: sus kills, sus derribos y sus cofres suman solo esas." }));
+            elBody.append(el("p", { class: "hint", text: "Los cofres de un compañero son los que ha publicado en vuestra carpeta compartida. Un «*» avisa de que no publicó todas sus partidas, así que su total va corto. Un «≥» es alguien que no comparte: es lo que tus repeticiones le vieron abrir cerca de ti, así que abrió eso o más, y nunca gana la corona." }));
         }
     }
 ];
@@ -4131,6 +4421,56 @@ const INT_HOLD_SECONDS = 60;
 // is happening; it does not say whether anything is being tried, which is exactly what somebody
 // watching an empty card for two minutes wants to know. The waiting is mostly the cloud's, and
 // the only honest thing to show is how often this end has looked and how often it will look again.
+// Everybody who shares with you, with the moment each of them last wrote their file.
+const publisherOf = (strId) => (objApp.objState?.sharing?.publishers ?? [])
+    .find((objOne) => objOne.id.toLowerCase() === (strId ?? "").toLowerCase());
+
+// A sync client that is not running turns the shared folder into an ordinary folder: your own
+// file keeps being written and nobody else's ever changes, which from in here looks exactly
+// like a squad that has stopped playing. It is worth saying out loud, because it is silent.
+const cloudWarning = () => {
+    const objSharing = objApp.objState?.sharing;
+    if (!objSharing?.cloudName || objSharing.cloudRunning !== false) return null;
+    return el("p", { class: "warnbox" }, [
+        el("b", {}, [el("span", { "data-notr": true, text: objSharing.cloudName }), " ", "no está abierto en este PC."]),
+        el("br"),
+        "Mientras esté cerrado, vuestra carpeta compartida es una carpeta normal: ni llegan los cofres de tu squad ni salen los tuyos. Ábrelo y se pondrá al día solo."
+    ]);
+};
+
+// Somebody who shares with you but whose file has not changed since before this match began is
+// not a cloud taking its time: there is nothing on the way. Telling the two apart is the whole
+// question while a figure does not arrive, and only the moment they last published answers it.
+const quietPublishers = (objMatch) => {
+    const dblStart = new Date(objMatch.startedAt).getTime();
+    return (objApp.objState?.sharing?.publishers ?? [])
+        .filter((objOne) => new Date(objOne.publishedUtc).getTime() < dblStart);
+};
+
+// What is missing, and why, under the card that is waiting for it
+const waitingNotes = (objMatch) => {
+    const arrPublishers = objApp.objState?.sharing?.publishers ?? [];
+    const arrQuiet = quietPublishers(objMatch);
+    const setPending = new Set((objMatch.squad ?? [])
+        .filter((objMate) => !objMate.isYou && objMate.pending)
+        .map((objMate) => objMate.id.toLowerCase()));
+
+    const arrOut = [cloudWarning()];
+    // All of them frozen at once is not a squad that stopped playing: it is this PC not receiving
+    if (arrPublishers.length > 1 && arrQuiet.length === arrPublishers.length) {
+        arrOut.push(el("p", { class: "quiet", text: "Ninguna ficha de tu squad ha cambiado desde antes de esta partida. Que estén todas paradas a la vez no es que no jueguen: es que tu nube no está trayendo nada." }));
+    }
+    for (const objOne of arrQuiet) {
+        if (!setPending.has(objOne.id.toLowerCase())) continue;
+        arrOut.push(el("p", { class: "quiet" }, [
+            el("b", { "data-notr": true, text: objOne.name ?? objOne.id.slice(0, 8) }), " ",
+            "no publica nada desde el", " ",
+            el("span", { "data-notr": true, text: fmtDate(objOne.publishedUtc) })
+        ]));
+    }
+    return arrOut.filter(Boolean);
+};
+
 const sharingNote = () => {
     const objSharing = objApp.objState?.sharing;
     if (!objSharing) return null;
@@ -4175,7 +4515,8 @@ const squadScoreCard = (objMatch, bLive, strSize = "half") => {
             el("div", { class: "waiting" }, [
                 el("b", {}, [el("span", { class: "spin" }), "Leyendo lo que ha publicado tu squad…"]),
                 el("p", { class: "quiet", text: "Sus cifras vienen de vuestra carpeta compartida, y la nube tarda un poco en traerlas. Aparecen aquí solas." }),
-                sharingNote()
+                sharingNote(),
+                ...waitingNotes(objMatch)
             ])
         ]);
     }
@@ -4237,7 +4578,9 @@ const squadScoreCard = (objMatch, bLive, strSize = "half") => {
         })),
         el("p", { class: "hint", text: arrGuessed.length
             ? `${intTotal} cofres entre los ${arrRows.length}. Los marcados «estimado» no están en tu escuadrón: es solo lo que tu repetición les vio abrir cerca de ti, así que abrieron eso o más.`
-            : `${intTotal} cofres entre los ${arrRows.length}. Los de tus compañeros vienen de vuestra carpeta compartida.` })
+            : `${intTotal} cofres entre los ${arrRows.length}. Los de tus compañeros vienen de vuestra carpeta compartida.` }),
+        // Somebody is still missing from a card that is otherwise filled in: same question, same answer
+        ...waitingNotes(objMatch)
     ]);
 };
 
@@ -4660,10 +5003,21 @@ const squadMateRow = (objMate, bInside) => el("div", { class: "mate" }, [
     objMate.isYou ? el("span", { class: "tag you", text: "tú" }) : null,
     objMate.playedWithYou && !objMate.isYou ? el("span", { class: "tag", text: "de tu squad" }) : null,
     objMate.matches ? el("span", { class: "tag", text: plural(objMate.matches, "partida", "partidas") }) : null,
-    bInside && objMate.updatedUtc
-        ? el("small", { "data-notr": true, text: new Date(objMate.updatedUtc).toLocaleString(STR_LOCALE) })
-        : null
+    // The bare date said nothing: what matters is whether they have published since you did
+    bInside && objMate.updatedUtc ? el("small", { class: isBehind(objMate) ? "stale" : null }, [
+        "publicó", " ", el("span", { "data-notr": true, text: new Date(objMate.updatedUtc).toLocaleString(STR_LOCALE) })
+    ]) : null
 ]);
+
+// You have published since they last did, by a margin no cloud explains. Either their program is
+// not running or nothing of theirs is reaching this PC; both are worth seeing at a glance.
+const isBehind = (objMate) => {
+    if (objMate.isYou || !objMate.updatedUtc) return false;
+    const strYours = objSquad?.squads?.flatMap((objGroup) => objGroup.members)
+        .find((objOne) => objOne.isYou && objOne.updatedUtc)?.updatedUtc;
+    if (!strYours) return false;
+    return new Date(strYours).getTime() - new Date(objMate.updatedUtc).getTime() > 30 * 60 * 1000;
+};
 
 // What leaves this PC, field by field, readable before joining and not only after. The
 // negatives matter as much as the list: they are what somebody worried would look for.
@@ -4862,6 +5216,7 @@ const squadOneGroup = (objGroup) => {
 };
 
 const squadManageView = () => [
+    cloudWarning(),
     ...objSquad.squads.map(squadOneGroup),
     ...(objSquad.found ?? []).map(squadFoundCard),
     objSquad.squads.length < objSquad.max
@@ -4894,8 +5249,298 @@ const renderSquad = () => {
     ]));
 };
 
+// ---------------------------------------------------------------------------
+// The item shop: what is on sale, what came in today and what leaves tonight.
+//
+// None of this is in a replay. The program brings it from fortnite-api.com and keeps it in the
+// data folder; this side only draws it and counts down to the next change, which Fortnite does
+// at midnight UTC every day wherever you are.
+//
+// Every word that comes from the API is already in the reader's language, so each one carries
+// data-notr: the names of things on sale are names, and translating them again would be wrong.
+// ---------------------------------------------------------------------------
+const elShop = document.getElementById("elShop");
+
+const ARR_SHOP_VIEWS = [
+    { strId: "destacado", strLabel: "Lo importante" },
+    { strId: "todo", strLabel: "Toda la tienda" },
+    { strId: "ofertas", strLabel: "Rebajas y lotes" },
+    { strId: "musica", strLabel: "Música" }
+];
+
+// The shop arrives in the game's own order, which is the one worth keeping by default inside
+// each section. The rest are the questions anybody actually asks of a shop: what is dear, what
+// is cheap, what is new, what is about to go and where something is by name.
+const ARR_SHOP_SORTS = [
+    { strId: "caro", strLabel: "Precio: de más a menos" },
+    { strId: "barato", strLabel: "Precio: de menos a más" },
+    { strId: "juego", strLabel: "Como en el juego" },
+    { strId: "nuevo", strLabel: "Lo último en entrar" },
+    { strId: "sale", strLabel: "Lo que antes se va" },
+    { strId: "rebaja", strLabel: "Rebaja: de más a menos" },
+    { strId: "nombre", strLabel: "Nombre (A-Z)" }
+];
+
+// Until it is chosen, each subtab gets the order that suits what it is for: the discounts open
+// on the biggest saving, everything else on the dearest first.
+const shopSort = () => objApp.strShopSort ?? (objApp.strShopView === "ofertas" ? "rebaja" : "caro");
+
+const sortShop = (arrItems) => {
+    const arrOut = [...arrItems];
+    const byName = (objLeft, objRight) => objLeft.name.localeCompare(objRight.name, STR_LOCALE);
+    const dblTime = (strWhen) => new Date(strWhen).getTime();
+    switch (shopSort()) {
+        case "juego": return arrOut;        // as it came: the shop is already in the game's order
+        case "barato": return arrOut.sort((objLeft, objRight) => objLeft.price - objRight.price || byName(objLeft, objRight));
+        case "nuevo": return arrOut.sort((objLeft, objRight) => dblTime(objRight.inUtc) - dblTime(objLeft.inUtc) || objRight.price - objLeft.price);
+        case "sale": return arrOut.sort((objLeft, objRight) => dblTime(objLeft.outUtc) - dblTime(objRight.outUtc) || objRight.price - objLeft.price);
+        case "rebaja": return arrOut.sort((objLeft, objRight) => (objRight.was - objRight.price) - (objLeft.was - objLeft.price) || objRight.price - objLeft.price);
+        case "nombre": return arrOut.sort(byName);
+        default: return arrOut.sort((objLeft, objRight) => objRight.price - objLeft.price || byName(objLeft, objRight));
+    }
+};
+
+// Midnight UTC, wherever you are. Worked out here as well as read from the shop, so the clock
+// can tick before the shop arrives, and so that an old copy — whose own change is already in the
+// past — counts down to the next real one instead of standing at zero for ever.
+const getNextShopReset = () => {
+    const strWhen = objApp.objShop?.nextResetUtc;
+    if (strWhen && !objApp.objShop.stale && getShopEntries().length) return new Date(strWhen).getTime();
+    const dtNow = new Date();
+    return Date.UTC(dtNow.getUTCFullYear(), dtNow.getUTCMonth(), dtNow.getUTCDate() + 1);
+};
+
+const getShopEntries = () => objApp.objShop?.entries ?? [];
+
+// Legendary, anything with a series behind it, whatever the game is promoting on its own tile,
+// and the bundles. This is «the important stuff» the rest of the shop is not.
+const isShopBig = (objItem) => objItem.rarityKey === "legendary"
+    || !!objItem.series
+    || (!!objItem.banner && objItem.bannerKey !== "AmountOff")
+    || !!objItem.tag
+    || objItem.isBundle;
+
+const loadShop = async (bForce = false) => {
+    if (objApp.bShopLoading) return;
+    objApp.bShopLoading = true;
+    objApp.bShopFailed = false;
+    objApp.dblShopTried = Date.now();
+    renderShop();
+    try {
+        const objShop = await api("GET", `/api/shop?lang=${STR_LANG}`);
+        objApp.objShop = objShop;
+        objApp.bShopFailed = !!objShop?.failed;
+    } catch (objError) {
+        objApp.bShopFailed = !objApp.objShop;
+    }
+    objApp.bShopLoading = false;
+    renderShop();
+};
+
+// The clock ticks only while the tab is on screen. The numbers live in their own nodes, away
+// from the words, so the translator has nothing to look at a second later.
+const startShopClock = () => {
+    if (objApp.intShopClock) return;
+    objApp.intShopClock = setInterval(() => {
+        if (objApp.strTab !== "tienda") { stopShopClock(); return; }
+        const dblLeft = getNextShopReset() - Date.now();
+        const elClock = document.getElementById("elShopClock");
+        if (elClock) {
+            const arrParts = countdownParts(dblLeft);
+            const arrNumbers = elClock.querySelectorAll("b");
+            if (arrNumbers.length !== arrParts.length) renderShop();
+            else arrParts.forEach((strValue, intIndex) => { arrNumbers[intIndex].textContent = strValue; });
+        }
+        // Once it has turned over it is another shop, so ask for it again; and while what is on
+        // screen is old or missing, try again every so often in case the connection came back
+        const dblSince = Date.now() - objApp.dblShopTried;
+        const bOld = !getShopEntries().length || !!objApp.objShop?.stale;
+        if (!objApp.bShopLoading && ((dblLeft <= 0 && dblSince > 20000) || (bOld && dblSince > 300000))) loadShop(true);
+    }, 1000);
+};
+
+const stopShopClock = () => {
+    if (objApp.intShopClock) clearInterval(objApp.intShopClock);
+    objApp.intShopClock = null;
+};
+
+const countdownParts = (dblMs) => {
+    const intLeft = Math.max(0, Math.floor(dblMs / 1000));
+    const strPad = (intValue) => String(intValue).padStart(2, "0");
+    const intHours = Math.floor(intLeft / 3600);
+    const arrParts = [strPad(Math.floor((intLeft % 3600) / 60)), strPad(intLeft % 60)];
+    return intHours > 0 ? [String(intHours), ...arrParts] : arrParts;
+};
+
+// h, min and s are written the same way in the three languages, so they are left alone
+const shopClock = (dblLeft) => {
+    const arrParts = countdownParts(dblLeft);
+    const arrUnits = arrParts.length === 3 ? ["h", "min", "s"] : ["min", "s"];
+    return el("div", { class: "sh-clock", id: "elShopClock", "data-notr": true },
+        arrParts.flatMap((strValue, intIndex) => [el("b", { text: strValue }), el("small", { text: arrUnits[intIndex] })]));
+};
+
+const shopCard = (objItem) => el("article", { class: `sh-card r-${objItem.rarityKey ?? "none"}` }, [
+    el("div", { class: "pic" }, [
+        objItem.image
+            ? el("img", { src: objItem.image, alt: "", loading: "lazy", decoding: "async" })
+            : el("span", { class: "glyph", "data-notr": true, text: objItem.name.slice(0, 1) }),
+        el("div", { class: "flags" }, [
+            objItem.isNew ? el("span", { class: "sh-flag new", text: "Nuevo" }) : null,
+            objItem.leaving ? el("span", { class: "sh-flag out", text: "Se va" }) : null,
+            objItem.was > objItem.price ? el("span", { class: "sh-flag off", "data-notr": true, text: `−${fmtWhole(objItem.was - objItem.price)}` }) : null
+        ])
+    ]),
+    el("div", { class: "info" }, [
+        el("h3", { "data-notr": true, title: objItem.name, text: objItem.name }),
+        el("p", { class: "what", "data-notr": true, text: [objItem.kind, objItem.series ?? objItem.rarity].filter(Boolean).join(" · ") }),
+        el("p", { class: "price" }, [
+            objApp.objShop?.vbucksIcon ? el("img", { src: objApp.objShop.vbucksIcon, alt: "", loading: "lazy" }) : null,
+            el("b", { "data-notr": true, text: fmtWhole(objItem.price) }),
+            objItem.was > objItem.price ? el("s", { "data-notr": true, text: fmtWhole(objItem.was) }) : null,
+            objItem.isBundle && objItem.pieces > 1 ? el("span", { class: "what", text: `${objItem.pieces} cosas` }) : null
+        ]),
+        objItem.section ? el("p", { class: "where", "data-notr": true, text: objItem.section }) : null
+    ])
+]);
+
+const shopBlock = (strTitle, strWhy, arrItems) => arrItems.length ? el("section", { class: "sh-block" }, [
+    el("div", { class: "sh-head" }, [
+        el("h2", { text: strTitle }),
+        el("span", { class: "count", "data-notr": true, text: String(arrItems.length) })
+    ]),
+    strWhy ? el("p", { class: "why", text: strWhy }) : null,
+    el("div", { class: "sh-grid" }, arrItems.map(shopCard))
+]) : null;
+
+const renderShopFeatured = () => {
+    const arrAll = getShopEntries();
+    const arrNew = arrAll.filter((objItem) => objItem.isNew);
+    const setNew = new Set(arrNew.map((objItem) => objItem.id));
+    const arrBig = arrAll.filter((objItem) => isShopBig(objItem) && !setNew.has(objItem.id));
+    const arrOut = arrAll.filter((objItem) => objItem.leaving);
+    return [
+        shopBlock("Lo nuevo de hoy", "Lo que ha entrado con el cambio de esta madrugada.", sortShop(arrNew)),
+        shopBlock("Legendarios, series y destacados", "Lo legendario, lo que pertenece a una serie y lo que el juego promociona en su propia baldosa, quitando lo que ya sale arriba.", sortShop(arrBig)),
+        shopBlock("Se van en el próximo cambio", "Última oportunidad: mañana ya no estarán.", sortShop(arrOut))
+    ].filter(Boolean);
+};
+
+// The whole shop, in the game's own order, section by section. Typing in the box redraws the
+// list and nothing else: rebuilding the page around the box would take the cursor with it.
+const shopSections = () => {
+    const strFind = objApp.strShopFind.trim().toLowerCase();
+    const arrAll = getShopEntries().filter((objItem) => !strFind
+        || `${objItem.name} ${objItem.kind ?? ""} ${objItem.series ?? ""} ${objItem.section ?? ""}`.toLowerCase().includes(strFind));
+    if (!arrAll.length) {
+        return [el("p", { class: "hint", text: "No hay nada en la tienda que se llame así." })];
+    }
+    const arrSections = [];
+    for (const objItem of arrAll) {
+        const strSection = objItem.section ?? "";
+        const objSection = arrSections.find((objOne) => objOne.strName === strSection);
+        if (objSection) objSection.arrItems.push(objItem);
+        else arrSections.push({ strName: strSection, arrItems: [objItem] });
+    }
+    return arrSections.map((objSection) => el("section", { class: "sh-block" }, [
+        el("div", { class: "sh-head" }, [
+            objSection.strName ? el("h2", { "data-notr": true, text: objSection.strName }) : el("h2", { text: "Fuera de las secciones" }),
+            el("span", { class: "count", "data-notr": true, text: String(objSection.arrItems.length) })
+        ]),
+        el("div", { class: "sh-grid" }, sortShop(objSection.arrItems).map(shopCard))
+    ]));
+};
+
+const renderShopEverything = () => [el("div", { id: "elShopList" }, shopSections())];
+
+const shopTools = () => el("div", { class: "sh-tools" }, [
+    objApp.strShopView === "todo" ? el("input", {
+        type: "search", class: "sh-find", value: objApp.strShopFind, placeholder: "Buscar en la tienda",
+        "aria-label": "Buscar en la tienda", spellcheck: "false",
+        oninput: (objEvent) => {
+            objApp.strShopFind = objEvent.target.value;
+            document.getElementById("elShopList")?.replaceChildren(...shopSections());
+        }
+    }) : null,
+    el("label", { class: "sh-sort" }, [
+        "Ordenar por", " ",
+        el("select", {
+            "aria-label": "Ordenar la tienda",
+            onchange: (objEvent) => { objApp.strShopSort = objEvent.target.value; renderShop(); }
+        }, ARR_SHOP_SORTS.map((objSort) => el("option", {
+            value: objSort.strId, selected: shopSort() === objSort.strId, text: objSort.strLabel
+        })))
+    ])
+]);
+
+const renderShopDeals = () => {
+    const arrAll = getShopEntries();
+    const arrOff = sortShop(arrAll.filter((objItem) => objItem.was > objItem.price));
+    const arrBundles = sortShop(arrAll.filter((objItem) => objItem.isBundle));
+    const arrOut = [
+        shopBlock("Rebajas", "Cuesta menos de lo que suele costar.", arrOff),
+        shopBlock("Lotes", "Varias cosas juntas por un precio.", arrBundles)
+    ].filter(Boolean);
+    return arrOut.length ? arrOut : [el("p", { class: "hint", text: "Hoy no hay ni rebajas ni lotes." })];
+};
+
+const renderShopMusic = () => {
+    const arrTracks = getShopEntries().filter((objItem) => objItem.isTrack);
+    return arrTracks.length
+        ? [shopBlock("Pistas de improvisación", "Las canciones que hay hoy, con su autor y lo que cuestan.", sortShop(arrTracks))]
+        : [el("p", { class: "hint", text: "Hoy no hay ninguna canción en la tienda." })];
+};
+
+const renderShop = () => {
+    if (objApp.strTab !== "tienda") return;
+    const objShop = objApp.objShop;
+    const dblLeft = getNextShopReset() - Date.now();
+    const arrAll = getShopEntries();
+
+    const elBar = el("div", { class: "sh-bar" }, [
+        el("div", { class: "count-down" }, [
+            el("span", { class: "label", text: dblLeft > 0 ? "La tienda cambia en" : "La tienda está cambiando" }),
+            shopClock(dblLeft),
+            el("span", { class: "at", text: `a las ${fmtTimeOfDay(new Date(getNextShopReset()))} de tu hora` })
+        ]),
+        el("span", { class: "grow" }),
+        ...ARR_SHOP_VIEWS.map((objView) => el("button", {
+            class: objApp.strShopView === objView.strId ? "btn small primary" : "btn small",
+            text: objView.strLabel, "aria-pressed": String(objApp.strShopView === objView.strId),
+            onclick: () => { objApp.strShopView = objView.strId; renderShop(); }
+        })),
+        el("button", {
+            class: "btn small ghost", text: objApp.bShopLoading ? "Trayendo la tienda…" : "Actualizar",
+            disabled: objApp.bShopLoading, onclick: () => loadShop(true)
+        })
+    ]);
+
+    const arrBody = [];
+    if (!arrAll.length) {
+        arrBody.push(el("p", { class: "hint", text: objApp.bShopLoading
+            ? "Trayendo la tienda…"
+            : "No he podido traer la tienda. Hace falta conexión a internet: compruébala y vuelve a intentarlo." }));
+    } else {
+        if (objShop?.stale) {
+            arrBody.push(el("p", { class: "sh-sum" }, el("span", { class: "old", text: `Esta es la tienda del ${fmtDay(new Date(objShop.dateUtc))}: no he podido traer la de hoy.` })));
+        }
+        arrBody.push(el("p", { class: "sh-sum" }, dotted([
+            `${arrAll.length} artículos en la tienda`,
+            `${arrAll.filter((objItem) => objItem.isNew).length} nuevos hoy`,
+            `${arrAll.filter((objItem) => objItem.leaving).length} se van en el próximo cambio`
+        ])));
+        arrBody.push(shopTools());
+        if (objApp.strShopView === "todo") arrBody.push(...renderShopEverything());
+        else if (objApp.strShopView === "ofertas") arrBody.push(...renderShopDeals());
+        else if (objApp.strShopView === "musica") arrBody.push(...renderShopMusic());
+        else arrBody.push(...renderShopFeatured());
+    }
+
+    elShop.replaceChildren(elBar, ...arrBody);
+};
+
 // Tabs: matches board, live match, treasure card
-const ARR_TABS = [["partidas", "Partidas", ""], ["vivo", "En vivo", "#vivo"], ["mapa", "Mapa", "#mapa"], ["tesoros", "Tesoros", "#tesoros"], ["escuadron", "Escuadrón", "#escuadron"]];
+const ARR_TABS = [["partidas", "Partidas", ""], ["vivo", "En vivo", "#vivo"], ["mapa", "Mapa", "#mapa"], ["tesoros", "Tesoros", "#tesoros"], ["escuadron", "Escuadrón", "#escuadron"], ["tienda", "Tienda", "#tienda"]];
 const renderTabs = () => {
     document.body.dataset.tab = objApp.strTab;
     document.getElementById("elTabs").replaceChildren(...ARR_TABS.map(([strId, strLabel, strHash]) => el("button", {
@@ -4911,7 +5556,9 @@ const showTab = (bFromPoll = false) => {
     elLive.hidden = objApp.strTab !== "vivo";
     elMap.hidden = objApp.strTab !== "mapa";
     elSquad.hidden = objApp.strTab !== "escuadron";
+    elShop.hidden = objApp.strTab !== "tienda";
     if (objApp.strTab !== "escuadron") stopSquadWatch();
+    if (objApp.strTab !== "tienda") stopShopClock();
     if (objApp.strTab === "partidas") { renderBoard(); return; }
     renderChrome();
     if (objApp.strTab === "vivo") { renderLive(); return; }
@@ -4920,6 +5567,12 @@ const showTab = (bFromPoll = false) => {
         // Entrar en la pestaña es motivo para mirar el disco otra vez
         if (!bFromPoll) loadSquad(true).then(renderSquad);
         renderSquad();
+        return;
+    }
+    if (objApp.strTab === "tienda") {
+        renderShop();
+        startShopClock();
+        if (!objApp.objShop && !objApp.bShopLoading) loadShop();
         return;
     }
     const bTyping = bFromPoll && elTreasure.contains(document.activeElement) && ["INPUT", "SELECT"].includes(document.activeElement.tagName);
@@ -5162,7 +5815,7 @@ const renderChrome = () => {
     document.getElementById("elEditToggle").classList.toggle("primary", objApp.bEditing);
 
     document.getElementById("elRange").replaceChildren(...ARR_RANGES.map((objRange) => el("button", {
-        text: objRange.strLabel, "aria-pressed": String(objApp.objLayout.strRange === objRange.strId),
+        text: objRange.strLabel, title: objRange.strHelp, "aria-pressed": String(objApp.objLayout.strRange === objRange.strId),
         onclick: () => { objApp.objLayout.strRange = objRange.strId; saveLayout(); renderBoard(); }
     })));
 
@@ -5176,6 +5829,10 @@ const renderChrome = () => {
     } else {
         elStatus.append(el("span", {}, [el("i", { class: `dot${objStatus.demosFolderExists ? "" : " off"}` }), objStatus.demosFolderExists ? `Vigilando ${objApp.objState.settings.demosPath}` : "Carpeta de repeticiones no encontrada"]));
         elStatus.append(el("span", { text: `${objApp.objState.matches.length} ${objApp.objState.matches.length === 1 ? "partida guardada" : "partidas guardadas"}, ${objStatus.replayFilesFound} ${objStatus.replayFilesFound === 1 ? "repetición" : "repeticiones"} en la carpeta` }));
+        if (objApp.strTab === "partidas" && objApp.objLayout.strRange !== "todo") {
+            const objRange = ARR_RANGES.find((objItem) => objItem.strId === objApp.objLayout.strRange);
+            elStatus.append(el("span", { title: objRange?.strHelp ?? null }, dotted(describeRange(getMatchesInRange()))));
+        }
         if (objStatus.pendingCount > 0) elStatus.append(el("span", { class: "live" }, [el("i", { class: "spin-dot" }), `Leyendo repeticiones: ${objStatus.pendingCount === 1 ? "queda 1" : `quedan ${objStatus.pendingCount}`}`]));
         if (objStatus.liveFile) elStatus.append(el("span", { class: "live", text: "Partida en curso: síguela en la pestaña En vivo" }));
         const objGame = objApp.objState.game ?? {};

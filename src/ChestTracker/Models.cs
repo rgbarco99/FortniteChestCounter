@@ -188,6 +188,15 @@ public sealed class StateResponse
 /// </summary>
 public sealed class SharingStatus
 {
+    /// <summary>The cloud the shared folders live in, when it is one this program knows.</summary>
+    public string? CloudName { get; set; }
+
+    /// <summary>Whether that cloud's program is running. Null when there is no way to tell.</summary>
+    public bool? CloudRunning { get; set; }
+
+    /// <summary>Everybody who shares with you, and when each of them last wrote their file.</summary>
+    public List<SharedPublisher> Publishers { get; set; } = new();
+
     /// <summary>Times the shared folders have been read since the program started.</summary>
     public int Reads { get; set; }
 
@@ -275,6 +284,61 @@ public sealed class MapView
     public bool HasImage { get; set; }
     public List<MapPlace> Places { get; set; } = new();
     public DateTime? FetchedUtc { get; set; }
+}
+
+/// <summary>The item shop as the page draws it: when it changes, and what is in it.</summary>
+public sealed class ShopView
+{
+    public string Language { get; set; } = "";
+    public DateTime DateUtc { get; set; }
+    public DateTime NextResetUtc { get; set; }
+    public DateTime FetchedUtc { get; set; }
+    public string? VbucksIcon { get; set; }
+    /// <summary>True when this is the last shop that could be brought, not today's.</summary>
+    public bool Stale { get; set; }
+    /// <summary>True when there was nothing saved and nothing could be brought either.</summary>
+    public bool Failed { get; set; }
+    public List<ShopItem> Entries { get; set; } = new();
+}
+
+/// <summary>One tile of the shop: one thing for sale, which may hold several items.</summary>
+public sealed class ShopItem
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string? Image { get; set; }
+    public int Price { get; set; }
+    /// <summary>What it costs without the discount; the same as the price when there is none.</summary>
+    public int Was { get; set; }
+    public string? Section { get; set; }
+    public int SectionRank { get; set; }
+    public int SectionIndex { get; set; }
+    public int Sort { get; set; }
+    public string? Kind { get; set; }
+    public string? Rarity { get; set; }
+    public string? RarityKey { get; set; }
+    public string? Series { get; set; }
+    public string? Banner { get; set; }
+    public string? BannerKey { get; set; }
+    public string? Tag { get; set; }
+    public bool IsBundle { get; set; }
+    public bool IsTrack { get; set; }
+    /// <summary>How many things come in it, which is more than one in a bundle.</summary>
+    public int Pieces { get; set; }
+    public DateTime InUtc { get; set; }
+    public DateTime OutUtc { get; set; }
+    public bool IsNew { get; set; }
+    public bool Leaving { get; set; }
+}
+
+/// <summary>One squadmate's file, as the reader last saw it.</summary>
+public sealed class SharedPublisher
+{
+    public string Id { get; set; } = "";
+    public string? Name { get; set; }
+
+    /// <summary>When they last published, by their own clock, as their file says.</summary>
+    public DateTime PublishedUtc { get; set; }
 }
 
 /// <summary>One of the copies the program keeps of the saved matches.</summary>

@@ -90,6 +90,7 @@ objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredServi
 objBuilder.Services.AddSingleton<SquadReader>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<SquadReader>());
 objBuilder.Services.AddSingleton<SeasonMap>();
+objBuilder.Services.AddSingleton<Shop>();
 objBuilder.Services.AddSingleton<TrayIcon>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<TrayIcon>());
 
@@ -207,6 +208,17 @@ objApp.MapGet("/api/state", () =>
         InSquad = objSettings.SquadPaths.Count > 0,
         Sharing = new SharingStatus
         {
+            CloudName = objSquadReader.CloudName,
+            CloudRunning = objSquadReader.CloudRunning,
+            Publishers = objSquadReader.Published
+                .Select(objPair => new SharedPublisher
+                {
+                    Id = objPair.Key,
+                    Name = dicNames.GetValueOrDefault(objPair.Key) ?? objSquadReader.Names.GetValueOrDefault(objPair.Key),
+                    PublishedUtc = objPair.Value
+                })
+                .OrderByDescending(objOne => objOne.PublishedUtc)
+                .ToList(),
             Reads = objSquadReader.Reads,
             WaitingSinceUtc = objSquadReader.WaitingSinceUtc,
             WaitReads = objSquadReader.WaitReads,
@@ -315,6 +327,10 @@ objApp.MapGet("/api/map", (SeasonMap objMap) => objMap.Describe());
 
 objApp.MapGet("/api/map/image", (SeasonMap objMap) =>
     objMap.HasImage ? Results.File(objMap.ReadImagePath(), "image/png") : Results.NotFound());
+
+// The item shop, in the language the page is being read in. Only asked for when the tab is open
+objApp.MapGet("/api/shop", async (string? lang, Shop objShop, CancellationToken objToken) =>
+    await objShop.DescribeAsync(lang, objToken));
 
 // The copies the program keeps by itself, newest first
 objApp.MapGet("/api/backups", () => Backup.List(strDataFolder));
@@ -703,6 +719,10 @@ objApp.Lifetime.ApplicationStopped.Register(() => Instance.Remove(strDataFolder)
 
 objApp.Lifetime.ApplicationStarted.Register(() =>
     _ = objApp.Services.GetRequiredService<SeasonMap>().RefreshAsync(objApp.Lifetime.ApplicationStopping));
+
+// Only for a reader who has opened the shop tab before: it brings nothing otherwise
+objApp.Lifetime.ApplicationStarted.Register(() =>
+    _ = objApp.Services.GetRequiredService<Shop>().WarmAsync(objApp.Lifetime.ApplicationStopping));
 
 if (!args.Contains("--no-browser"))
 {

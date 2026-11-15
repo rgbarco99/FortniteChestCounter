@@ -39,6 +39,13 @@ public sealed class SquadReader : BackgroundService
     /// <summary>Player id -> the name they publish under.</summary>
     private Dictionary<string, string?> _dicNames = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Player id -> when their file says they last published.</summary>
+    private Dictionary<string, DateTime> _dicPublished = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Asking the system for a process list is not free, so it is asked now and then.</summary>
+    private static readonly TimeSpan tsCloudCheck = TimeSpan.FromSeconds(30);
+    private DateTime _dtCloudChecked = DateTime.MinValue;
+
     private bool _bComplained;
 
     /// <summary>Files already reported as still in the cloud, so it is said once and not every pass.</summary>
@@ -78,6 +85,19 @@ public sealed class SquadReader : BackgroundService
     public bool HasData => _dicBySession.Count > 0;
 
     public IReadOnlyDictionary<string, string?> Names => _dicNames;
+
+    /// <summary>
+    /// When each of them last published, by their own clock. A squadmate's file that has not
+    /// changed since before the match being waited for has nothing to do with the cloud being
+    /// slow: there is nothing on the way, and only this can tell the two apart.
+    /// </summary>
+    public IReadOnlyDictionary<string, DateTime> Published => _dicPublished;
+
+    /// <summary>The cloud the shared folders live in, when it is one this program knows.</summary>
+    public string? CloudName { get; private set; }
+
+    /// <summary>Whether that cloud's program is running. Null when there is no way to tell.</summary>
+    public bool? CloudRunning { get; private set; }
 
     protected override async Task ExecuteAsync(CancellationToken objToken)
     {
@@ -187,6 +207,9 @@ public sealed class SquadReader : BackgroundService
             {
                 _dicBySession = new Dictionary<string, Dictionary<string, SquadCard>>(StringComparer.OrdinalIgnoreCase);
                 _dicNames = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+                _dicPublished = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
+                CloudName = null;
+                CloudRunning = null;
                 Revision++;
             }
 
@@ -195,8 +218,15 @@ public sealed class SquadReader : BackgroundService
 
         Reads++;
 
+        if (DateTime.UtcNow - _dtCloudChecked > tsCloudCheck)
+        {
+            _dtCloudChecked = DateTime.UtcNow;
+            (CloudName, CloudRunning) = Squad.DescribeCloud(objSettings.SquadPaths);
+        }
+
         var dicBySession = new Dictionary<string, Dictionary<string, SquadCard>>(StringComparer.OrdinalIgnoreCase);
         var dicNames = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        var dicPublished = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var strFolder in objSettings.SquadPaths)
         {
@@ -225,6 +255,11 @@ public sealed class SquadReader : BackgroundService
                 }
 
                 dicNames[objFile.PlayerId] = objFile.Name;
+                // The same player can be in two shared folders: the one they wrote last wins
+                if (!dicPublished.TryGetValue(objFile.PlayerId, out var dtSeen) || objFile.UpdatedUtc > dtSeen)
+                {
+                    dicPublished[objFile.PlayerId] = objFile.UpdatedUtc;
+                }
 
                 foreach (var objCard in objFile.Cards)
                 {
@@ -262,6 +297,7 @@ public sealed class SquadReader : BackgroundService
 
         _dicBySession = dicBySession;
         _dicNames = dicNames;
+        _dicPublished = dicPublished;
         _bComplained = false;
     }
 
