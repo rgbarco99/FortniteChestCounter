@@ -523,6 +523,38 @@ Dos arreglos, cada uno suficiente por su cuenta:
   normal, reinicio por actualización o cuelgue. No puede volver a quedar un huérfano. Verificado
   con un arnés que ata un hijo de larga duración y mata al padre con `FailFast`: el hijo muere.
 
+## Lección: mover marcado fuera del cajón rompe sus estilos
+
+Al sacar Escuadrón a su propia pestaña, el marcado dejó de estar dentro de `.drawer` y **todas
+sus reglas CSS dejaron de aplicar**: los compañeros salían como texto corrido
+(`HttpDefitú162 partidas15/11/2026`). Las 26 reglas compartidas se escriben ahora
+`.drawer X, .squad X`. Si algún día se mueve a otro sitio, hay que repetir la operación.
+
+## Cuándo llegan los cofres del squad — *revisado el 15/11/2026*
+
+La queja fue no llegar a ver los cofres de los compañeros antes de empezar la partida siguiente.
+La cadena es: tu partida se guarda → la publicas → **OneDrive sube y baja** → su programa lee.
+De esos cuatro pasos solo controlamos el primero y el último, y el del medio es el lento.
+
+Lo que se ha apretado:
+
+- **Publicar: de 5 s a 1 s.** Cuando no hay nada nuevo el tick cuesta una comparación de enteros,
+  así que esperar no ahorraba nada; lo que compra es publicar en el primer segundo.
+- **Leer: 2 s durante los 4 minutos siguientes a terminar una partida, 8 s el resto del tiempo.**
+  Ese es el único momento en que se esperan sus cifras y el único en que están llegando.
+- **La comparación ya no desaparece al empezar la partida siguiente.** El hueco entre partidas de
+  este jugador es de unos 10 s de mediana, bastante menos de lo que tarda la nube, así que la
+  tarjeta de la partida anterior se queda en *En vivo* hasta 15 minutos después de terminarla.
+  Antes se esfumaba justo antes de que llegaran los datos, que es el peor momento posible.
+
+- **La tarjeta «Por qué no hay contador en directo» cede su sitio** a la comparación del squad
+  cuando hay una partida anterior reciente que enseñar. Explicar por qué no hay contador importa
+  las primeras veces y nunca más; cómo fue la partida que acabas de jugar importa siempre.
+  Si la anterior pasa de 15 minutos, vuelve la explicación.
+- **El resumen anterior aguanta 60 s** en vez de 45 (`INT_HOLD_SECONDS`).
+
+No se puede prometer que estén antes de la siguiente partida: eso lo decide OneDrive.
+
 ## Pendientes menores y sospechas
 
 - **`bTossedFromContainer` no significa «vino de un cofre».** El botín del suelo de la isla previa

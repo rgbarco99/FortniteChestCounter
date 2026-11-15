@@ -168,6 +168,7 @@ objApp.MapGet("/api/state", () =>
     return new StateResponse
     {
         Shared = dicTotals.Values.OrderByDescending(objPlayer => objPlayer.Matches).ToList(),
+        InSquad = objSettings.SquadPaths.Count > 0,
         Revision = objStore.Revision + objSquadReader.Revision,
         Status = objStore.Status,
         Game = objStore.Game,

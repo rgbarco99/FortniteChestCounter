@@ -14,7 +14,12 @@ namespace ChestTracker;
 /// </summary>
 public sealed class SquadPublisher : BackgroundService
 {
-    private static readonly TimeSpan tsTick = TimeSpan.FromSeconds(5);
+    /// <summary>
+    /// Short on purpose. When nothing has changed the tick costs one long comparison, so there
+    /// is nothing to save by waiting: what it buys is that a match just finished is published
+    /// within a second instead of up to five, and the squad is watching that first second.
+    /// </summary>
+    private static readonly TimeSpan tsTick = TimeSpan.FromSeconds(1);
 
     private readonly Store _objStore;
 

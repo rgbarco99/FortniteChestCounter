@@ -56,6 +56,7 @@ button, input, select { font: inherit; color: inherit; }
 .brand { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
 .brand svg { width: 42px; height: 42px; flex: none; filter: drop-shadow(0 0 10px rgba(240, 180, 41, 0.28)); }
 .brand .brand-game { font-weight: 400; color: var(--ink-2); }
+.brand-version { display: block; font-size: 11px; font-weight: 400; font-stretch: 100%; color: var(--ink-3); letter-spacing: 0.02em; line-height: 1; margin-top: 2px; }
 .brand .brand-name { font-weight: 700; color: var(--ink); }
 .segmented.lang button { min-width: 38px; font-size: 13px; }
 .update-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 0 24px 14px; padding: 10px 16px; border-radius: var(--radius); background: var(--card); border-left: 4px solid var(--gold); }
@@ -305,20 +306,53 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 .l-row.guess .who, .l-row.guess b { color: var(--ink-2); }
 .l-row b { min-width: 42px; text-align: right; font-size: 19px; }
 .l-row.winner b { color: var(--gold); }
-/* The crown lands once, rather than being there from the start */
-.crown.pop { animation: crown-pop 0.7s cubic-bezier(0.2, 1.5, 0.4, 1) both; transform-origin: 50% 80%; }
-@keyframes crown-pop {
-    0% { transform: scale(0) rotate(-35deg); opacity: 0; }
-    55% { transform: scale(1.45) rotate(8deg); opacity: 1; }
-    100% { transform: scale(1) rotate(0); opacity: 1; }
+/* The crown lands once, rather than being there from the start: it drops in spinning, lands
+   heavy, and throws off a ring of light. Winning the chest count is the whole point of a
+   Treasure Hour, so it is worth a moment. */
+.crown.pop {
+    position: relative; display: inline-block; transform-origin: 50% 90%;
+    animation: crown-drop 0.9s cubic-bezier(0.18, 1.6, 0.36, 1) both, crown-glow 1.6s ease-out 0.35s both;
 }
-@media (prefers-reduced-motion: reduce) { .crown.pop { animation: none; } .l-row .track i { transition: none; } }
+.crown.pop::after {
+    content: ""; position: absolute; left: 50%; top: 55%; width: 10px; height: 10px; margin: -5px 0 0 -5px;
+    border-radius: 50%; border: 2px solid var(--gold); opacity: 0; pointer-events: none;
+    animation: crown-ring 0.85s ease-out 0.38s both;
+}
+@keyframes crown-drop {
+    0%   { transform: translateY(-26px) scale(0.2) rotate(-50deg); opacity: 0; }
+    45%  { transform: translateY(3px) scale(1.65) rotate(12deg); opacity: 1; }
+    65%  { transform: translateY(0) scale(0.92) rotate(-5deg); }
+    82%  { transform: scale(1.12) rotate(2deg); }
+    100% { transform: none; opacity: 1; }
+}
+@keyframes crown-glow {
+    0%, 20% { text-shadow: 0 0 22px var(--gold), 0 0 44px rgba(240, 180, 41, 0.75); }
+    100%    { text-shadow: 0 0 6px rgba(240, 180, 41, 0.45); }
+}
+@keyframes crown-ring {
+    0%   { opacity: 0.9; transform: scale(0.3); border-width: 3px; }
+    100% { opacity: 0; transform: scale(5.5); border-width: 1px; }
+}
+/* The winner's bar catches the light once, so the eye goes to the row and not just the icon */
+.l-row.winner .track { position: relative; overflow: hidden; }
+.l-row.winner .track::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.75) 50%, transparent 80%);
+    transform: translateX(-120%);
+    animation: track-shine 1.1s ease-out 0.45s both;
+}
+@keyframes track-shine { to { transform: translateX(120%); } }
+@media (prefers-reduced-motion: reduce) {
+    .crown.pop, .crown.pop::after, .l-row.winner .track::after { animation: none; }
+    .crown.pop::after { display: none; }
+    .l-row .track i { transition: none; }
+}
 .squad .s-wrap { max-width: 860px; margin: 0 auto; padding: 8px 0 40px; }
 .squad h1 { font-size: 30px; font-stretch: 75%; margin: 0 0 6px; }
 .squad .lead { color: var(--ink-2); margin: 0 0 14px; max-width: 70ch; }
-.squad .waiting { background: var(--card-raised); border-radius: 10px; padding: 14px 16px; margin-top: 12px; display: grid; gap: 8px; }
-.squad .waiting b { display: flex; align-items: center; gap: 10px; font-size: 15px; }
-.squad .waiting p { margin: 0; }
+.squad .waiting, .l-squad .waiting { background: var(--card-raised); border-radius: 10px; padding: 14px 16px; margin-top: 12px; display: grid; gap: 8px; }
+.squad .waiting b, .l-squad .waiting b { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+.squad .waiting p, .l-squad .waiting p { margin: 0; }
 .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ink-3); border-top-color: var(--gold); animation: spin 0.9s linear infinite; flex: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
@@ -539,35 +573,35 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 /* Whoever opened the most: the name is what the eye lands on first, so it carries the win */
 .champ, .champ * { color: var(--gold); font-weight: 700; }
 .drawer .section.group { --accent: var(--good); }
-.drawer .quiet { color: var(--ink-2); font-size: 13px; }
-.drawer .warnbox { background: var(--card-raised); border-left: 3px solid var(--gold); border-radius: 6px; padding: 10px 12px; margin: 10px 0; }
-.drawer .found { background: var(--card-raised); border-radius: 10px; padding: 12px 14px; margin-top: 10px; display: grid; gap: 8px; justify-items: stretch; }
-.drawer .found > b { font-size: 15px; }
-.drawer .found p { margin: 0; }
-.drawer .mates { display: grid; gap: 6px; margin: 10px 0; }
-.drawer .mate { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--card); border-radius: 8px; padding: 7px 10px; }
-.drawer .found .mate { background: var(--card); }
-.drawer .mate b { font-stretch: 75%; }
-.drawer .mate small { margin-left: auto; color: var(--ink-2); font-size: 12px; }
-.drawer .mate .tag { background: var(--card-raised); border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; }
-.drawer .mate .tag.you { color: var(--gold); }
-.drawer .steps { margin: 12px 0 0; padding-left: 20px; color: var(--ink-2); font-size: 13px; display: grid; gap: 4px; }
-.drawer .shared { background: var(--card-raised); border-radius: 8px; padding: 8px 12px; margin: 10px 0; }
-.drawer .shared summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink-2); }
-.drawer .shared p { margin: 8px 0 0; font-size: 13px; color: var(--ink-2); }
+.drawer .quiet, .squad .quiet { color: var(--ink-2); font-size: 13px; }
+.drawer .warnbox, .squad .warnbox { background: var(--card-raised); border-left: 3px solid var(--gold); border-radius: 6px; padding: 10px 12px; margin: 10px 0; }
+.drawer .found, .squad .found { background: var(--card-raised); border-radius: 10px; padding: 12px 14px; margin-top: 10px; display: grid; gap: 8px; justify-items: stretch; }
+.drawer .found > b, .squad .found > b { font-size: 15px; }
+.drawer .found p, .squad .found p { margin: 0; }
+.drawer .mates, .squad .mates { display: grid; gap: 6px; margin: 10px 0; }
+.drawer .mate, .squad .mate { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--card); border-radius: 8px; padding: 7px 10px; }
+.drawer .found .mate, .squad .found .mate { background: var(--card); }
+.drawer .mate b, .squad .mate b { font-stretch: 75%; }
+.drawer .mate small, .squad .mate small { margin-left: auto; color: var(--ink-2); font-size: 12px; }
+.drawer .mate .tag, .squad .mate .tag { background: var(--card-raised); border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; }
+.drawer .mate .tag.you, .squad .mate .tag.you { color: var(--gold); }
+.drawer .steps, .squad .steps { margin: 12px 0 0; padding-left: 20px; color: var(--ink-2); font-size: 13px; display: grid; gap: 4px; }
+.drawer .shared, .squad .shared { background: var(--card-raised); border-radius: 8px; padding: 8px 12px; margin: 10px 0; }
+.drawer .shared summary, .squad .shared summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.drawer .shared p, .squad .shared p { margin: 8px 0 0; font-size: 13px; color: var(--ink-2); }
 .drawer .steps.big { color: var(--ink); font-size: 14px; gap: 14px; margin-top: 14px; }
 .drawer .steps.big li::marker { font-weight: 700; color: var(--gold); }
-.drawer .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.drawer .paths, .squad .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
 @media (max-width: 560px) { .drawer .paths { grid-template-columns: 1fr; } }
-.drawer .path { background: var(--card-raised); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; }
-.drawer .path p { margin: 0; }
-.drawer .path .btn { width: 100%; margin-top: 4px; }
-.drawer .group { background: var(--card-raised); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
-.drawer .grouphead { display: flex; align-items: center; gap: 8px; }
-.drawer .grouphead b { font-size: 15px; font-stretch: 75%; }
-.drawer .grouphead .tag { background: var(--card); border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--ink-2); }
-.drawer .group .mate { background: var(--card); }
-.drawer .group .confirm { display: inline-flex; flex-direction: column; gap: 6px; }
+.drawer .path, .squad .path { background: var(--card-raised); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; }
+.drawer .path p, .squad .path p { margin: 0; }
+.drawer .path .btn, .squad .path .btn { width: 100%; margin-top: 4px; }
+.drawer .group, .squad .group { background: var(--card-raised); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
+.drawer .grouphead, .squad .grouphead { display: flex; align-items: center; gap: 8px; }
+.drawer .grouphead b, .squad .grouphead b { font-size: 15px; font-stretch: 75%; }
+.drawer .grouphead .tag, .squad .grouphead .tag { background: var(--card); border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--ink-2); }
+.drawer .group .mate, .squad .group .mate { background: var(--card); }
+.drawer .group .confirm, .squad .group .confirm { display: inline-flex; flex-direction: column; gap: 6px; }
 .drawer .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
 .drawer .facts div { background: var(--card-raised); border-radius: 8px; padding: 8px 10px; }
 .drawer .facts b { display: block; font-size: 24px; font-stretch: 75%; line-height: 1.1; }
@@ -600,7 +634,7 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 <body>
 
 <header class="top">
-    <h1 class="brand"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="15" fill="#2e2558"/><rect x="2.5" y="2.5" width="59" height="59" rx="14.5" fill="none" stroke="#f0b429" stroke-opacity=".55"/><path d="M13 30c0-9 8-15 19-15s19 6 19 15z" fill="#f0b429"/><rect x="13" y="30" width="38" height="20" rx="3" fill="#c98500"/><rect x="13" y="30" width="38" height="5" fill="#8a5a00"/><rect x="21" y="15.6" width="4.5" height="34.4" fill="#8a5a00" opacity=".6"/><rect x="38.5" y="15.6" width="4.5" height="34.4" fill="#8a5a00" opacity=".6"/><rect x="28" y="29" width="8" height="10" rx="2" fill="#fff1c1"/><circle cx="32" cy="33.5" r="1.4" fill="#8a5a00"/></svg><span><span class="brand-game">Fortnite</span> <span class="brand-name">Chest Counter</span></span></h1>
+    <h1 class="brand"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="15" fill="#2e2558"/><rect x="2.5" y="2.5" width="59" height="59" rx="14.5" fill="none" stroke="#f0b429" stroke-opacity=".55"/><path d="M13 30c0-9 8-15 19-15s19 6 19 15z" fill="#f0b429"/><rect x="13" y="30" width="38" height="20" rx="3" fill="#c98500"/><rect x="13" y="30" width="38" height="5" fill="#8a5a00"/><rect x="21" y="15.6" width="4.5" height="34.4" fill="#8a5a00" opacity=".6"/><rect x="38.5" y="15.6" width="4.5" height="34.4" fill="#8a5a00" opacity=".6"/><rect x="28" y="29" width="8" height="10" rx="2" fill="#fff1c1"/><circle cx="32" cy="33.5" r="1.4" fill="#8a5a00"/></svg><span><span class="brand-game">Fortnite</span> <span class="brand-name">Chest Counter</span><small class="brand-version" id="elVersion" data-notr=""></small></span></h1>
     <div class="segmented tabs" id="elTabs" role="tablist" aria-label="Secciones"></div>
     <div class="segmented" id="elRange" role="group" aria-label="Partidas que se cuentan"></div>
     <span class="grow"></span>
@@ -981,7 +1015,7 @@ const ARR_I18N = [
     ["Tu ritmo habitual, minuto a minuto", "Your usual pace, minute by minute", "Ton rythme habituel, minute par minute"],
     ["Partida terminada", "Match finished", "Partie terminée"],
     ["Fortnite sigue grabando mientras miras a tu squad o esperas la siguiente partida, y no escribe la clave de la repetición hasta cerrarla.", "Fortnite keeps recording while you spectate your squad or wait for the next match, and only writes the replay key when it closes it.", "Fortnite continue d'enregistrer pendant que tu regardes ton escouade ou attends la partie suivante, et n'écrit la clé de la rediffusion qu'en la fermant."],
-    ["Cuando la cierre, el resumen aparecerá aquí y se quedará hasta 45 segundos después de que empiece la siguiente partida.", "When it does, the summary appears here and stays until 45 seconds after the next match starts.", "À ce moment-là, le résumé apparaît ici et reste jusqu'à 45 secondes après le début de la partie suivante."],
+    ["Cuando la cierre, el resumen aparecerá aquí y se quedará hasta 60 segundos después de que empiece la siguiente partida.", "When it does, the summary appears here and stays until 60 seconds after the next match starts.", "À ce moment-là, le résumé apparaît ici et reste jusqu'à 60 secondes après le début de la partie suivante."],
     ["Por qué no hay contador en directo", "Why there is no live count", "Pourquoi pas de décompte en direct"],
     ["Fortnite cifra la repetición mientras juegas y no escribe la clave hasta que la partida termina. Hasta entonces solo se puede saber cuándo empezó.", "Fortnite encrypts the replay while you play and only writes the key when the match ends. Until then all that can be known is when it started.", "Fortnite chiffre la rediffusion pendant que tu joues et n'écrit la clé qu'à la fin de la partie. D'ici là, on sait seulement quand elle a commencé."],
     ["En cuanto salgas de la partida, en unos segundos aparecerán aquí los cofres, las eliminaciones y el puesto.", "A few seconds after you leave the match, chests, eliminations and place show up here.", "Quelques secondes après avoir quitté la partie, les coffres, éliminations et la place apparaissent ici."],
@@ -1164,7 +1198,7 @@ const ARR_I18N = [
     ["Partida finalizada", "Match finished", "Partie terminée"],
     ["El recuento aparece en cuanto Fortnite cierre la repetición.", "The count appears as soon as Fortnite closes the replay.", "Le décompte apparaît dès que Fortnite ferme la rediffusion."],
     ["Buscando partida…", "Searching for a match…", "Recherche d'une partie…"],
-    ["El resumen de la anterior se queda hasta 45 segundos después de que empiece la nueva.", "The previous summary stays until 45 seconds after the new match starts.", "Le résumé précédent reste jusqu'à 45 secondes après le début de la nouvelle partie."],
+    ["El resumen de la anterior se queda hasta 60 segundos después de que empiece la nueva.", "The previous summary stays until 60 seconds after the new match starts.", "Le résumé précédent reste jusqu'à 60 secondes après le début de la nouvelle partie."],
     ["Una repetición no se pudo leer", "A replay could not be read", "Une rediffusion n'a pas pu être lue"],
     ["El motivo está en Ajustes.", "The reason is in Settings.", "La raison est dans les Paramètres."],
     ["código {0}", "code {0}", "code {0}"],
@@ -1314,6 +1348,8 @@ const ARR_I18N = [
     ["Sin datos", "No data", "Pas de données"],
     ["Más cofres de la partida", "Most chests of the match", "Le plus de coffres de la partie"],
     ["Cofres del squad en esta partida", "Squad chests in this match", "Coffres de l'escouade dans cette partie"],
+    ["Leyendo lo que ha publicado tu squad…", "Reading what your squad published…", "Lecture de ce que ton squad a publié…"],
+    ["Sus cifras vienen de vuestra carpeta compartida, y la nube tarda un poco en traerlas. Aparecen aquí solas.", "Their figures come from your shared folder, and the cloud takes a moment to bring them over. They show up here by themselves.", "Leurs chiffres viennent de votre dossier partagé, et le cloud met un moment à les apporter. Ils apparaissent ici tout seuls."],
     ["estimado", "estimate", "estimation"],
     ["No está en tu escuadrón: es lo que tu repetición le vio abrir cerca de ti", "Not in your squad: this is what your replay saw them open near you", "Pas dans ton escouade : c'est ce que ta rediffusion lui a vu ouvrir près de toi"],
     ["No está en tu escuadrón: es lo que tus repeticiones le vieron abrir cerca de ti", "Not in your squad: this is what your replays saw them open near you", "Pas dans ton escouade : c'est ce que tes rediffusions lui ont vu ouvrir près de toi"],
@@ -1610,6 +1646,36 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // so there is nothing to look up in ARR_I18N.
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
+    {
+        strVersion: "1.4.3",
+        strDate: "2026-11-15",
+        arrItems: [
+            {
+                strTag: "mejorado",
+                es: "Los cofres de tus compañeros ya no se esfuman al empezar la partida siguiente. La comparación de la partida anterior se queda en En vivo hasta un cuarto de hora, así que llegue cuando llegue de la nube, la ves. Ocupa el sitio del texto que explicaba por qué no hay contador en directo.",
+                en: "Your squadmates' chests no longer vanish when the next match starts. The comparison of the previous match stays in Live for up to a quarter of an hour, so whenever the cloud delivers it, you see it. It takes the place of the text explaining why there is no live count.",
+                fr: "Les coffres de tes coéquipiers ne disparaissent plus au début de la partie suivante. La comparaison de la partie précédente reste dans En direct jusqu'à un quart d'heure : quel que soit le moment où le cloud la livre, tu la vois. Elle prend la place du texte expliquant pourquoi il n'y a pas de décompte en direct."
+            },
+            {
+                strTag: "mejorado",
+                es: "Y llegan antes: tus cifras se publican al segundo de terminar la partida, y durante los cuatro minutos siguientes se comprueba cada dos segundos si han llegado las de tus compañeros. Mientras tanto se ve que se están leyendo, en vez de un hueco vacío.",
+                en: "And they arrive sooner: your figures are published within a second of the match ending, and for the next four minutes your squadmates' are checked for every two seconds. Meanwhile you can see they are being read, instead of an empty space.",
+                fr: "Et ils arrivent plus vite : tes chiffres sont publiés dans la seconde qui suit la fin de la partie, et pendant les quatre minutes suivantes, ceux de tes coéquipiers sont vérifiés toutes les deux secondes. Entre-temps, on voit qu'ils sont en cours de lecture, au lieu d'un espace vide."
+            },
+            {
+                strTag: "mejorado",
+                es: "La corona de quien más cofres abrió ahora cae girando, rebota al aterrizar y suelta un destello, y su barra recibe un barrido de luz. El resumen de la partida anterior aguanta un minuto en vez de 45 segundos.",
+                en: "The crown for whoever opened the most chests now drops in spinning, bounces as it lands and throws off a flash of light, and their bar catches a sweep of it. The previous match summary lasts a minute instead of 45 seconds.",
+                fr: "La couronne de celui qui a ouvert le plus de coffres tombe maintenant en tournant, rebondit à l'atterrissage et lance un éclat de lumière, et sa barre en reçoit un balayage. Le résumé de la partie précédente dure une minute au lieu de 45 secondes."
+            },
+            {
+                strTag: "arreglado",
+                es: "La pestaña Escuadrón se veía mal: los compañeros salían como un churro de texto sin separar. También sobraba el párrafo largo del principio, y el botón de volver a comprobar era más pequeño que los de al lado. Y ahora la versión que tienes instalada se ve bajo el nombre del programa.",
+                en: "The Squad tab looked wrong: squadmates came out as one run-on block of text. The long paragraph at the top was unnecessary too, and the check-again button was smaller than the ones beside it. The version you have installed now shows under the program's name.",
+                fr: "L'onglet Escouade s'affichait mal : les coéquipiers apparaissaient comme un bloc de texte sans séparation. Le long paragraphe du début était superflu, et le bouton pour vérifier à nouveau était plus petit que ceux d'à côté. La version installée s'affiche désormais sous le nom du programme."
+            }
+        ]
+    },
     {
         strVersion: "1.4.2",
         strDate: "2026-11-15",
@@ -3928,19 +3994,44 @@ const elSquad = document.getElementById("elSquad");
 const INT_RUSH_SECONDS = 600;
 
 // Seconds the summary of the last match stays after the next one starts (loading screen, bus)
-const INT_HOLD_SECONDS = 45;
+const INT_HOLD_SECONDS = 60;
 
 // How the squad finished, once the match is over and everybody has published. While a match is
 // running nobody has published anything yet, so this only appears afterwards; and until the last
 // card syncs it says who is missing rather than crowning somebody on half the figures.
 const squadScoreCard = (objMatch, bLive) => {
-    if (bLive || !objMatch.squad?.length) return null;
+    // Their cards come through the cloud, which takes as long as it takes: often longer than the
+    // few seconds between leaving one match and dropping into the next. Waiting for them with
+    // the card on screen only to have it vanish when the next match starts is the worst of both,
+    // so during a live match the comparison of the one just finished stays up until it is stale.
+    let bPrevious = false;
+    if (bLive) {
+        const objDone = getNumberedMatches().at(-1);
+        if (!objDone || objDone.file === objMatch.file) return null;
+        const dblMinutes = (Date.now() - new Date(objDone.startedAt).getTime() - objDone.durationSec * 1000) / 60000;
+        if (dblMinutes > 15) return null;
+        objMatch = objDone;
+        bPrevious = true;
+    }
+
+    if (!objMatch.squad?.length) return null;
 
     const arrMates = objMatch.squad.filter((objMate) => !objMate.isYou);
     if (!arrMates.length) return null;
 
-    // Nobody sharing at all means there is nothing to compare: the card stays away
-    if (!arrMates.some((objMate) => objMate.sharedChests != null)) return null;
+    // Nothing shared yet. If you are in a squad their cards are on the way, and the cloud takes
+    // its time: an empty space where the comparison will be looks like it is never coming, so
+    // the card goes up straight away saying it is waiting.
+    if (!arrMates.some((objMate) => objMate.sharedChests != null)) {
+        if (!objApp.objState?.inSquad) return null;      // not in a squad: nothing to wait for
+        return el("div", { class: "l-card half l-squad" }, [
+            el("h2", { text: bPrevious ? "Cofres del squad en la partida anterior" : "Cofres del squad en esta partida" }),
+            el("div", { class: "waiting" }, [
+                el("b", {}, [el("span", { class: "spin" }), "Leyendo lo que ha publicado tu squad…"]),
+                el("p", { class: "quiet", text: "Sus cifras vienen de vuestra carpeta compartida, y la nube tarda un poco en traerlas. Aparecen aquí solas." })
+            ])
+        ]);
+    }
 
     const arrRows = [
         { strName: objMatch.ownerName ?? "Tú", intChests: objMatch.chestsTotal, bYou: true, bGuess: false },
@@ -3965,7 +4056,7 @@ const squadScoreCard = (objMatch, bLive) => {
     if (bFirstTime) objApp.strCrownShown = strKey;
 
     return el("div", { class: "l-card half l-squad" }, [
-        el("h2", { text: "Cofres del squad en esta partida" }),
+        el("h2", { text: bPrevious ? "Cofres del squad en la partida anterior" : "Cofres del squad en esta partida" }),
         el("div", { class: "l-score" }, arrRows.map((objRow) => {
             // An estimate can never win: it is a floor, and crowning it would be made up
             const bWinner = objRow.intChests === intTop && arrRows.length > 1 && !objRow.bGuess;
@@ -4289,12 +4380,14 @@ const renderLive = () => {
                 objContext.bEnding ? el("div", { class: "l-card side" }, [
                     el("h2", { text: "Partida terminada" }),
                     el("p", { class: "hint", text: "Fortnite sigue grabando mientras miras a tu squad o esperas la siguiente partida, y no escribe la clave de la repetición hasta cerrarla." }),
-                    el("p", { class: "hint", text: "Cuando la cierre, el resumen aparecerá aquí y se quedará hasta 45 segundos después de que empiece la siguiente partida." })
-                ]) : el("div", { class: "l-card side" }, [
+                    el("p", { class: "hint", text: "Cuando la cierre, el resumen aparecerá aquí y se quedará hasta 60 segundos después de que empiece la siguiente partida." })
+                ]) : (squadScoreCard(objMatch, true) ?? el("div", { class: "l-card side" }, [
+                    // Explaining why there is no live count matters the first few times and never
+                    // again; how the squad did in the match just played is worth the space every time
                     el("h2", { text: "Por qué no hay contador en directo" }),
                     el("p", { class: "hint", text: "Fortnite cifra la repetición mientras juegas y no escribe la clave hasta que la partida termina. Hasta entonces solo se puede saber cuándo empezó." }),
                     el("p", { class: "hint", text: "En cuanto salgas de la partida, en unos segundos aparecerán aquí los cofres, las eliminaciones y el puesto." })
-                ])
+                ]))
             ])
         );
         drawLivePace(elUsualPace, { openings: [] }, objHabits, dblNow, true, true);
@@ -4599,7 +4692,7 @@ const squadOneGroup = (objGroup) => {
             el("button", { class: "btn", text: "Abrir la carpeta", onclick: () => api("POST", `/api/squad/open?path=${encodeURIComponent(objGroup.path)}`).catch(() => showToast("No se pudo abrir la carpeta.", null, "warn")) }),
             // Joining again is also the repair: it puts your file back if the folder lost it
             el("button", {
-                class: "btn small", text: "Volver a comprobar",
+                class: "btn", text: "Volver a comprobar",
                 onclick: () => squadRun(() => api("POST", `/api/squad/join?path=${encodeURIComponent(objGroup.path)}`), "Escuadrón comprobado", null)
             }),
             dangerButton("Salir", "Sí, salir", () => squadRun(() => api("POST", `/api/squad/leave?path=${encodeURIComponent(objGroup.path)}`), "Has salido del escuadrón", null))
@@ -4635,7 +4728,6 @@ const renderSquad = () => {
     objSquad = objApp.objSquad;
     elSquad.replaceChildren(el("div", { class: "s-wrap" }, [
         el("h1", { text: "Escuadrón" }),
-        el("p", { class: "lead", text: "Tu repetición solo graba los cofres que se abren cerca de ti, así que los de tus compañeros no están en tu archivo: están en el suyo. Una carpeta compartida junta lo que ha visto cada uno. Nada sale de tu PC hasta que entres en un escuadrón." }),
         squadDisclosure(),
         ...squadBody()
     ]));
@@ -4899,6 +4991,11 @@ const renderBoard = () => {
 
 // Header controls, status line and the tray of hidden widgets
 const renderChrome = () => {
+    // Which version is running, small but on screen: the first thing worth knowing when
+    // something behaves oddly, and asking somebody to open Settings to find it is a step too many
+    const elVersion = document.getElementById("elVersion");
+    if (elVersion) elVersion.textContent = objApp.objState?.update?.currentVersion ? `v${objApp.objState.update.currentVersion}` : "";
+
     document.body.classList.toggle("editing", objApp.bEditing);
     document.getElementById("elEditToggle").textContent = objApp.bEditing ? "Terminar de editar" : "Editar panel";
     document.getElementById("elEditToggle").classList.toggle("primary", objApp.bEditing);
@@ -5546,7 +5643,7 @@ const announceChanges = (objBefore, objAfter) => {
     if (!objBefore.live && objAfter.live) showToast("Partida en curso", "La pestaña En vivo ya la está siguiendo.", "info");
     const objGameBefore = objBefore.game ?? {}, objGameAfter = objAfter.game ?? {};
     if (objGameAfter.matchFinishedUtc && objGameAfter.matchFinishedUtc !== objGameBefore.matchFinishedUtc) showToast("Partida finalizada", "El recuento aparece en cuanto Fortnite cierre la repetición.", "info");
-    if (objGameAfter.searchingSinceUtc && objGameAfter.searchingSinceUtc !== objGameBefore.searchingSinceUtc) showToast("Buscando partida…", "El resumen de la anterior se queda hasta 45 segundos después de que empiece la nueva.", "info");
+    if (objGameAfter.searchingSinceUtc && objGameAfter.searchingSinceUtc !== objGameBefore.searchingSinceUtc) showToast("Buscando partida…", "El resumen de la anterior se queda hasta 60 segundos después de que empiece la nueva.", "info");
     if (objStatusAfter.errors.length > objStatusBefore.errors.length) showToast("Una repetición no se pudo leer", "El motivo está en Ajustes.", "warn", 9000);
     const objUpdateBefore = objBefore.update ?? {}, objUpdateAfter = objAfter.update ?? {};
     if (objUpdateAfter.currentVersion && objUpdateBefore.currentVersion && objUpdateAfter.currentVersion !== objUpdateBefore.currentVersion) showToast(`Actualizado a la versión ${objUpdateAfter.currentVersion}`, null, "good", 9000);

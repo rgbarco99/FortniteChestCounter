@@ -10,7 +10,18 @@ namespace ChestTracker;
 /// </summary>
 public sealed class SquadReader : BackgroundService
 {
-    private static readonly TimeSpan tsTick = TimeSpan.FromSeconds(6);
+    /// <summary>How often to look when nothing has just happened.</summary>
+    private static readonly TimeSpan tsIdleTick = TimeSpan.FromSeconds(8);
+
+    /// <summary>
+    /// How often to look just after a match of yours ended. That is the one moment the squad's
+    /// figures are being waited for, and the one moment they are arriving: the cloud delivers
+    /// them when it delivers them, and checking often is the only way to show them as they land.
+    /// </summary>
+    private static readonly TimeSpan tsEagerTick = TimeSpan.FromSeconds(2);
+
+    /// <summary>How long after a match ends the eager pace lasts.</summary>
+    private static readonly TimeSpan tsEagerFor = TimeSpan.FromMinutes(4);
 
     private readonly Store _objStore;
 
@@ -55,8 +66,28 @@ public sealed class SquadReader : BackgroundService
                 }
             }
 
-            try { await Task.Delay(tsTick, objToken); }
+            try { await Task.Delay(JustPlayed() ? tsEagerTick : tsIdleTick, objToken); }
             catch (TaskCanceledException) { return; }
+        }
+    }
+
+    /// <summary>A match of yours ended a moment ago, so their cards are on their way right now.</summary>
+    private bool JustPlayed()
+    {
+        try
+        {
+            var objLast = _objStore.GetMatches().MaxBy(objMatch => objMatch.StartedAt);
+            if (objLast == null)
+            {
+                return false;
+            }
+
+            var dtEnded = objLast.StartedAt.AddSeconds(objLast.DurationSec);
+            return DateTime.Now - dtEnded < tsEagerFor;
+        }
+        catch (Exception)
+        {
+            return false;
         }
     }
 

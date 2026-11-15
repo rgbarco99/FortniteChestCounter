@@ -168,6 +168,12 @@ public sealed class StateResponse
 
     /// <summary>What the squad has shared, added up over the matches you played together.</summary>
     public List<SharedPlayer> Shared { get; set; } = new();
+
+    /// <summary>
+    /// This player is in at least one squad. It is what tells an empty comparison that is still
+    /// loading from one that is never coming, which the page cannot work out on its own.
+    /// </summary>
+    public bool InSquad { get; set; }
 }
 
 /// <summary>One squadmate, totalled over the matches of yours they also played.</summary>
