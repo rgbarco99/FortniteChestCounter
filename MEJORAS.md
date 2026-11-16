@@ -713,6 +713,52 @@ Ahora lo cuenta el propio asterisco: pasar el ratón lo dice en una línea, y pu
 entero, con cuántas partidas están igual. El asterisco pasó de ser un carácter dentro de la
 celda a un botón en dorado y en voladita, porque una marca que no parece pulsable no se pulsa.
 
+## Una clase con dos dueños: el hueco vacío bajo la barra de estado — *16/11/2026*
+
+Jugando salía una banda de unos 50 px vacíos entre la barra de estado y el contenido de la
+pestaña, y solo jugando. La causa: **`.live` la usaban dos cosas distintas**, el `<main>` de la
+pestaña En vivo y el aviso «Partida en curso» de la barra de estado (y también la Hora del tesoro
+que está corriendo). La regla `.live { padding: 0 24px 40px }`, escrita para la pestaña, le metía
+40 px de relleno inferior al aviso. Como la barra de estado es un flex, los demás trozos se
+estiraban a esa altura y debajo del texto quedaba página en blanco.
+
+Las reglas de las pestañas van ahora atadas al elemento: `main.live`, `main.treasure`, `main.map`,
+`main.shop`. **Al escribir una regla con un nombre corriente —`live`, `card`, `bar`, `top`—, atarla
+al elemento o al contenedor**: el nombre se va a volver a usar.
+
+Cómo se encontró, que es reutilizable: el color de la banda en la captura era exactamente el de
+la página, así que no era ningún elemento con fondo; midiendo con Chrome headless
+`getBoundingClientRect()` de cada hijo de `<body>`, la barra de estado medía 74 px en vez de 34.
+
+## Que las dos pestañas quepan en una pantalla — *16/11/2026*
+
+Con una ventana de 1904×954, que es la del portátil de este proyecto:
+
+| | Antes | Ahora |
+|---|---|---|
+| En vivo | 975 px | **841 px** |
+| Tesoros | 1.524 px | **951 px** |
+
+Qué se quitó, por orden de lo que más dio:
+
+- **El panel de proyección se mudó a la fila de arriba**, junto a las Horas del tesoro, que
+  estaban medio vacías casi toda la semana. Ahí no cuesta nada: la fila ya medía eso por las
+  fichas. −142 px.
+- **La letra pequeña del pie se pliega** («Cómo se calcula»). Ocho renglones de matices que
+  importan la primera vez y ninguna de las siguientes. −130 px.
+- **Las seis fichas de datos pasan de dos columnas a tres** en pantalla ancha. −100 px.
+- Aire: rellenos, huecos de rejilla y tamaños de letra de las tarjetas. El reloj de En vivo pasó
+  de 84 px a 68.
+- **El gráfico ocupa la fila entera cuando no hay tarjeta de squad.** Jugando solo, o sin nadie
+  que comparta, media fila se quedaba vacía toda la partida.
+
+Y una trampa de CSS que costó tres intentos: la foto de cada tesoro **no se recortaba por
+`object-fit`, sino por desbordamiento**. El contenedor es `display: grid; place-items: center`, y
+con eso la imagen no se estira, su `height: 100%` se queda en `auto` y se sale de la caja, que la
+recorta con su `overflow: hidden`. `object-fit` no pintaba nada: ni `contain` ni `place-self:
+stretch` cambiaban nada. Lo que lo arregla es sacarla del flujo (`position: absolute; inset: 0`),
+y entonces sí cabe entera: del coche dorado se veía solo el techo y ahora se ve el coche.
+
 ## Pendientes menores y sospechas
 
 - **`bTossedFromContainer` no significa «vino de un cofre».** El botín del suelo de la isla previa
