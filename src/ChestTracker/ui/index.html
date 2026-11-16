@@ -75,6 +75,27 @@ button, input, select { font: inherit; color: inherit; }
 .fail-bar li .msg { color: var(--ink-2); font-size: 13px; word-break: break-word; }
 .fail-bar .row { display: flex; flex-wrap: wrap; gap: 8px; }
 
+/* Salvar el Mundo: the V-Bucks on offer today, hanging from a button in the header */
+.vbucks { position: relative; display: flex; }
+.btn .n:not(:empty) { margin-left: 7px; color: var(--gold); font-weight: 700; }
+.vb-pop {
+    position: absolute; top: calc(100% + 7px); right: 0; z-index: 60;
+    width: 274px; max-width: calc(100vw - 32px);
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); padding: 11px 13px;
+}
+.vb-pop[hidden] { display: none; }
+.vb-pop .vb-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.vb-pop .vb-head b { font-size: 20px; color: var(--gold); }
+.vb-pop .vb-head .tag { font-size: 11.5px; color: var(--ink-3); }
+.vb-pop ul { list-style: none; margin: 8px 0 0; padding: 0; }
+.vb-pop li { display: flex; align-items: baseline; gap: 7px; font-size: 13px; line-height: 1.35; border-top: 1px solid var(--line); padding: 5px 0; }
+.vb-pop li .pay { color: var(--gold); white-space: nowrap; font-size: 14px; }
+.vb-pop li .what { color: var(--ink-2); }
+.vb-pop .none { margin: 7px 0 0; font-size: 13px; color: var(--ink-2); }
+.vb-pop .src { margin: 8px 0 0; font-size: 11px; color: var(--ink-3); }
+.vb-pop .src span + span::before { content: " \00b7  "; }
+
 /* What went into each version: a dialog over the dashboard, opened from the header */
 .btn.has-news::after {
     content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%;
@@ -777,6 +798,10 @@ details.t-note > p { margin: 8px 0 0; }
     <div class="segmented tabs" id="elTabs" role="tablist" aria-label="Secciones"></div>
     <div class="segmented" id="elRange" role="group" aria-label="Partidas que se cuentan"></div>
     <span class="grow"></span>
+    <div class="vbucks" id="elVbucks">
+        <button class="btn" id="elVbucksOpen" aria-expanded="false" title="Las misiones de Salvar el Mundo que dan pavos hoy">Pavos<span class="n" id="elVbucksCount" data-notr=""></span></button>
+        <div class="vb-pop" id="elVbucksPop" hidden></div>
+    </div>
     <button class="btn" id="elNewsOpen">Novedades</button>
     <button class="btn" id="elEditToggle">Editar panel</button>
     <div class="segmented lang" id="elLang" role="group" aria-label="Idioma"></div>
@@ -1742,6 +1767,32 @@ const ARR_I18N = [
     ["Eso no parece un enlace. Pega el que te ha pasado tu squad, que empieza por https://", "That does not look like a link. Paste the one your squad sent you, which starts with https://", "Cela ne ressemble pas à un lien. Colle celui que ton squad t'a envoyé, qui commence par https://"],
 
     ["Fortnite no llegó a cerrar esta repetición (el juego se cerró a mitad de partida) y quedó cifrada sin clave: no se puede leer.", "Fortnite never closed this replay (the game was closed mid-match), so it stayed encrypted without a key and cannot be read.", "Fortnite n'a jamais fermé cette rediffusion (le jeu a été fermé en pleine partie) : elle est restée chiffrée sans clé et ne peut pas être lue."],
+    ["Pavos", "V-Bucks", "V-Bucks"],
+    ["{0} pavos", "{0} V-Bucks", "{0} V-Bucks"],
+    ["Las misiones de Salvar el Mundo que dan pavos hoy", "Today's Save the World missions that pay V-Bucks", "Les missions de Sauver le monde qui rapportent des V-Bucks aujourd'hui"],
+    ["Nivel {0}, {1}", "Level {0}, {1}", "Niveau {0}, {1}"],
+    ["caducan en {0}", "{0} left", "il en reste {0}"],
+    ["caducan ya", "expiring now", "expirent maintenant"],
+    ["Buscando las alertas\u2026", "Looking up the alerts\u2026", "Recherche des alertes\u2026"],
+    ["No se pudieron leer las alertas de Salvar el Mundo.", "The Save the World alerts could not be read.", "Les alertes de Sauver le monde n'ont pas pu \u00eatre lues."],
+    ["Hoy no hay ninguna misi\u00f3n que d\u00e9 pavos.", "No mission pays V-Bucks today.", "Aucune mission ne rapporte de V-Bucks aujourd'hui."],
+    ["puede estar desactualizado", "may be out of date", "peut \u00eatre obsol\u00e8te"],
+
+    // The Save the World mission names. No public service gives them translated, so here they are
+    ["Lucha contra la tormenta", "Fight the Storm", "Combattre la temp\u00eate"],
+    ["Recupera los datos", "Retrieve the Data", "R\u00e9cup\u00e9rer les donn\u00e9es"],
+    ["Surca el rel\u00e1mpago", "Ride the Lightning", "Chevaucher la foudre"],
+    ["Repara el refugio", "Repair the Shelter", "R\u00e9parer l'abri"],
+    ["Evac\u00faa el refugio", "Evacuate the Shelter", "\u00c9vacuer l'abri"],
+    ["Rescata a los supervivientes", "Rescue the Survivors", "Sauver les survivants"],
+    ["Destruye los campamentos", "Destroy the Encampments", "D\u00e9truire les campements"],
+    ["Entrega la bomba", "Deliver the Bomb", "Livrer la bombe"],
+    ["Elimina y recoge", "Eliminate and Collect", "\u00c9liminer et collecter"],
+    ["Construye la red de radares", "Build the Radar Grid", "Construire le r\u00e9seau radar"],
+    ["Abastece la base", "Fuel the Homebase", "Ravitailler la base"],
+    ["Lanza el cohete", "Launch the Rocket", "Lancer la fus\u00e9e"],
+    ["Reabastecimiento", "Resupply", "Ravitaillement"],
+
     ["No se pudo iniciar el lector.", "The reader could not be started.", "Impossible de lancer le lecteur."],
     ["La lectura tardó más de {0} segundos y se canceló.", "Reading took more than {0} seconds and was cancelled.", "La lecture a pris plus de {0} secondes et a été annulée."],
     ["El lector terminó con el código {0}.", "The reader ended with code {0}.", "Le lecteur s'est terminé avec le code {0}."],
@@ -1900,6 +1951,24 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // so there is nothing to look up in ARR_I18N.
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
+    {
+        strVersion: "1.7.0",
+        strDate: "2026-11-16",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Un bot\u00f3n nuevo en la cabecera, Pavos: ense\u00f1a las misiones de Salvar el Mundo que dan pavos hoy, cu\u00e1ntos hay en total y cu\u00e1nto queda para que caduquen. Cada l\u00ednea dice los pavos, el nivel de la misi\u00f3n y su nombre, y pasando el rat\u00f3n sale la zona. Cae colgando del bot\u00f3n, sin moverte de la pesta\u00f1a en la que est\u00e9s, y se cierra con el siguiente clic fuera o con Esc.",
+                en: "A new button in the header, V-Bucks: it shows today\u2019s Save the World missions that pay V-Bucks, how many there are in all and how long until they expire. Each line gives the V-Bucks, the mission\u2019s power level and its name, and hovering it shows the zone. It drops out of the button without moving you off the tab you are on, and the next click outside, or Esc, puts it away.",
+                fr: "Un nouveau bouton dans l\u2019en-t\u00eate, V-Bucks : il montre les missions de Sauver le monde qui rapportent des V-Bucks aujourd\u2019hui, combien il y en a en tout et le temps qu\u2019il reste avant qu\u2019elles expirent. Chaque ligne donne les V-Bucks, le niveau de la mission et son nom, et le survol affiche la zone. Il se d\u00e9plie sous le bouton sans te faire quitter l\u2019onglet o\u00f9 tu es, et le clic suivant en dehors, ou \u00c9chap, le referme."
+            },
+            {
+                strTag: "nuevo",
+                es: "Esas alertas no las da ninguna API: la de Fortnite no tiene Salvar el Mundo y la de Epic pide tu cuenta. Salen de freethevbucks.com, la p\u00e1gina que leen los propios jugadores, y el programa la consulta solo cuando abres el panel, como mucho una vez cada veinte minutos. En esa petici\u00f3n no va nada tuyo. La cuenta atr\u00e1s es la de verdad: la lleva esa misma p\u00e1gina, no es suponer que sea medianoche.",
+                en: "No API gives those alerts: the Fortnite one has no Save the World and Epic\u2019s asks for your account. They come from freethevbucks.com, the page the players themselves read, and the program only asks for it when you open the panel, at most once every twenty minutes. Nothing about you travels in that request. The countdown is the real one, carried by that same page, not a guess that it is midnight.",
+                fr: "Aucune API ne donne ces alertes : celle de Fortnite n\u2019a pas Sauver le monde et celle d\u2019Epic demande ton compte. Elles viennent de freethevbucks.com, la page que lisent les joueurs eux-m\u00eames, et le programme ne la consulte que quand tu ouvres le panneau, au plus une fois toutes les vingt minutes. Rien de toi ne circule dans cette requ\u00eate. Le compte \u00e0 rebours est le vrai : il vient de cette page, ce n\u2019est pas une supposition sur minuit."
+            }
+        ]
+    },
     {
         strVersion: "1.6.1",
         strDate: "2026-11-16",
@@ -7261,6 +7330,123 @@ document.getElementById("elNewsOpen").addEventListener("click", openNews);
 // Esc already closes a modal dialog; this is the click outside it
 document.getElementById("elNewsDialog").addEventListener("click", (objEvent) => {
     if (objEvent.target.id === "elNewsDialog") document.getElementById("elNewsDialog").close();
+});
+
+// ---------------------------------------------------------------------------
+// Salvar el Mundo: the V-Bucks on offer today.
+//
+// A button in the header and a small list that drops out of it. It takes no room on any tab and
+// does not move the one being read: the panel is drawn over it, and the next click outside closes
+// it again.
+//
+// Nothing is asked for until the button is pressed. The alerts come from somebody else's page
+// (see Vbucks.cs for why there is no API to ask instead), and a program that is open all day has
+// no business reading it for nobody.
+// ---------------------------------------------------------------------------
+
+// What the page calls each mission, and what this one calls it. The rest of the languages come
+// from the usual table; anything new Epic adds shows up in English until it is written in here.
+const OBJ_STW_MISSIONS = {
+    "Fight the Storm": "Lucha contra la tormenta",
+    "Retrieve the Data": "Recupera los datos",
+    "Ride the Lightning": "Surca el rel\u00e1mpago",
+    "Repair the Shelter": "Repara el refugio",
+    "Evacuate the Shelter": "Evac\u00faa el refugio",
+    "Rescue the Survivors": "Rescata a los supervivientes",
+    "Destroy the Encampments": "Destruye los campamentos",
+    "Deliver the Bomb": "Entrega la bomba",
+    "Eliminate and Collect": "Elimina y recoge",
+    "Build the Radar Grid": "Construye la red de radares",
+    "Fuel the Homebase": "Abastece la base",
+    "Launch the Rocket": "Lanza el cohete",
+    "Resupply": "Reabastecimiento"
+};
+
+let objVbucksView = null;
+let bVbucksBusy = false;
+let intVbucksTick = 0;
+
+const elVbucksPop = () => document.getElementById("elVbucksPop");
+
+// The label under the total. The page the alerts come from carries their real expiry, so this is
+// their own clock and not a guess about midnight.
+const sayVbucksLeft = (objView) => {
+    if (!objView.expiresUtc || !objView.missions.length) return null;
+    const dblSeconds = (new Date(objView.expiresUtc).getTime() - Date.now()) / 1000;
+    if (dblSeconds > 48 * 3600) return null;              // not a date about today's alerts
+    return dblSeconds > 60 ? `caducan en ${fmtPlayed(dblSeconds)}` : "caducan ya";
+};
+
+const renderVbucks = () => {
+    const elPop = elVbucksPop();
+    const objView = objVbucksView;
+
+    // Nothing to show yet: the first press waits for the answer
+    if (!objView) {
+        elPop.replaceChildren(el("p", { class: "none", text: bVbucksBusy ? "Buscando las alertas\u2026" : "No se pudieron leer las alertas de Salvar el Mundo." }));
+        return;
+    }
+
+    const strLeft = sayVbucksLeft(objView);
+    elPop.replaceChildren(...[
+        objView.missions.length ? el("div", { class: "vb-head" }, [
+            el("b", { class: "figure", text: `${objView.total} pavos` }),
+            strLeft && el("span", { class: "tag", text: strLeft })
+        ]) : null,
+        objView.missions.length
+            // The zone and the corner of it are a place and stay as the game writes them; hovering
+            // a line is enough for something nobody needs to read every time
+            ? el("ul", {}, objView.missions.map((objMission) => el("li", { title: [objMission.zone, objMission.area].filter(Boolean).join(" \u00b7 ") }, [
+                el("b", { class: "pay figure", text: `${objMission.vbucks} pavos` }),
+                el("span", { class: "what", text: `Nivel ${objMission.power}, ${OBJ_STW_MISSIONS[objMission.mission] ?? objMission.mission}` })
+            ])))
+            : el("p", { class: "none", text: "Hoy no hay ninguna misi\u00f3n que d\u00e9 pavos." }),
+        el("p", { class: "src" }, [
+            el("span", { "data-notr": true, text: "freethevbucks.com" }),
+            objView.stale && el("span", { text: "puede estar desactualizado" })
+        ])
+    ].filter(Boolean));
+    document.getElementById("elVbucksCount").textContent = objView.total ? String(objView.total) : "";
+};
+
+const closeVbucks = () => {
+    elVbucksPop().hidden = true;
+    document.getElementById("elVbucksOpen").setAttribute("aria-expanded", "false");
+    if (intVbucksTick) { clearInterval(intVbucksTick); intVbucksTick = 0; }
+};
+
+const openVbucks = async () => {
+    elVbucksPop().hidden = false;
+    document.getElementById("elVbucksOpen").setAttribute("aria-expanded", "true");
+    // The countdown keeps up while the panel is open, and stops the moment it closes
+    if (!intVbucksTick) intVbucksTick = setInterval(() => { if (objVbucksView) renderVbucks(); }, 30000);
+    renderVbucks();
+
+    if (bVbucksBusy) return;
+    bVbucksBusy = true;
+    renderVbucks();
+    try {
+        // The program keeps the answer for twenty minutes, so asking on every press costs nothing
+        objVbucksView = await api("GET", "/api/vbucks");
+        if (objVbucksView?.failed) objVbucksView = null;
+    } catch (objError) {
+        objVbucksView = null;
+    } finally {
+        bVbucksBusy = false;
+        renderVbucks();
+    }
+};
+
+document.getElementById("elVbucksOpen").addEventListener("click", (objEvent) => {
+    objEvent.stopPropagation();
+    if (elVbucksPop().hidden) openVbucks(); else closeVbucks();
+});
+// Anywhere else, and Esc, puts it away
+document.addEventListener("click", (objEvent) => {
+    if (!elVbucksPop().hidden && !document.getElementById("elVbucks").contains(objEvent.target)) closeVbucks();
+});
+document.addEventListener("keydown", (objEvent) => {
+    if (objEvent.key === "Escape" && !elVbucksPop().hidden) closeVbucks();
 });
 
 // A newer version: a bar under the header with the button that updates

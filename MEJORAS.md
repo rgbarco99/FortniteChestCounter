@@ -759,6 +759,48 @@ recorta con su `overflow: hidden`. `object-fit` no pintaba nada: ni `contain` ni
 stretch` cambiaban nada. Lo que lo arregla es sacarla del flujo (`position: absolute; inset: 0`),
 y entonces sí cabe entera: del coche dorado se veía solo el techo y ahora se ve el coche.
 
+## Los pavos de Salvar el Mundo, y por qué no vienen de una API — *16/11/2026*
+
+El botón **Pavos** de la cabecera abre una lista pequeña con las misiones de Salvar el Mundo que
+dan pavos hoy, cuántos hay en total y cuánto queda para que caduquen. No ocupa sitio en ninguna
+pestaña: cuelga del botón y se cierra con el siguiente clic fuera o con Esc.
+
+**Para eso no hay API pública.** Se comprobó una por una:
+
+| Candidata | Qué contesta |
+|---|---|
+| `fortnite-api.com` (de donde salen el mapa y la tienda) | No tiene nada de Salvar el Mundo: `/v2/stw/...` → 404 |
+| Epic, `/fortnite/api/game/v2/world/info` | **401**. Pide un token de cuenta, no vale uno de cliente |
+| `fortniteapi.io` | El dominio ya ni resuelve |
+| `api.seebot.dev`, `api.freethevbucks.com`, `stwplanner.pro` | No resuelven |
+
+Las herramientas que sí lo hacen (HawkBucks y compañía) entran con `grant_type=device_auth` y una
+cuenta de Epic real: habría que meter aquí un inicio de sesión de Epic y guardar un secreto de
+dispositivo en disco. Para una lista de dos misiones no compensa, y es un riesgo que esta app no
+tiene hoy.
+
+Así que la fuente es **la página que leen los propios jugadores**, `freethevbucks.com/timed-missions`,
+que pinta las alertas en el servidor. De ahí salen los pavos, el nivel, el nombre de la misión, la
+zona y —esto es lo bueno— **la fecha real de caducidad**, que la página lleva en su propio script
+(`var expirationDates = [...]`): el contador no se inventa que sea medianoche UTC.
+
+Las reglas de leer la página de otro, que están en `Vbucks.cs`:
+
+- Una petición cada veinte minutos como mucho, **solo cuando se abre el panel**. Nunca al arrancar.
+- Si falla, se espera dos minutos antes de volver a intentarlo, y mientras se enseña lo último que
+  sí se leyó, marcado como que puede estar desactualizado.
+- Al ser una página y no una API, puede cambiar de forma. Por eso se cuentan **todas** las alertas
+  leídas, den pavos o no (`Seen`): si salen cero, es que la página cambió, y se dice; no se dice
+  que hoy no hay pavos. Esa distinción es la que evita el fallo silencioso.
+- Los nombres de las misiones vienen en inglés y se traducen a mano en `OBJ_STW_MISSIONS` más
+  `ARR_I18N`. Una misión que no esté en la tabla sale en inglés, que es mejor que no salir.
+
+**Y una trampa del traductor que conviene recordar:** `quedan {0}` y `{0} h {1} min` pesan lo
+mismo (siete letras de literal), así que al traducir «quedan 3 h 4 min» ganaba el segundo y en
+inglés salía **«3 left h 4 min»**. Los patrones se ordenan por longitud del literal y **gana el
+primero que encaja**, así que cuando una frase compuesta se traduzca mal, la salida es darle al
+patrón de fuera un literal más largo: aquí, `caducan en {0}`.
+
 ## Pendientes menores y sospechas
 
 - **`bTossedFromContainer` no significa «vino de un cofre».** El botín del suelo de la isla previa

@@ -627,6 +627,54 @@ public sealed class SquadView
     public string? YourName { get; set; }
 }
 
+/// <summary>
+/// The Save the World alerts that pay V-Bucks right now: how many are up, until when, and which
+/// mission pays each one. Read from a page, not an API, so <see cref="Failed"/> means the page
+/// could not be read or no longer looks the way it did, which is not the same as a day with
+/// nothing to collect.
+/// </summary>
+public sealed class VbucksView
+{
+    /// <summary>
+    /// When the alerts run out, as the page itself counts it down. Null when the page did not say,
+    /// and then the panel shows no countdown rather than a made-up one.
+    /// </summary>
+    public DateTime? ExpiresUtc { get; set; }
+    public DateTime FetchedUtc { get; set; }
+
+    /// <summary>Every V-Buck up for the taking today, added up.</summary>
+    public int Total { get; set; }
+
+    /// <summary>How many alerts were read in all, paying or not: proof the page was understood.</summary>
+    public int Seen { get; set; }
+
+    /// <summary>True when this is the last reading that worked, not the one asked for now.</summary>
+    public bool Stale { get; set; }
+
+    /// <summary>True when there was nothing to show and nothing could be read either.</summary>
+    public bool Failed { get; set; }
+
+    public List<VbucksMission> Missions { get; set; } = new();
+}
+
+/// <summary>One alert that pays V-Bucks.</summary>
+public sealed class VbucksMission
+{
+    public int Vbucks { get; set; }
+
+    /// <summary>The power level the mission asks for.</summary>
+    public int Power { get; set; }
+
+    /// <summary>The mission's own name, in English, as the page prints it.</summary>
+    public string Mission { get; set; } = "";
+
+    /// <summary>Where in the zone it is: city, suburbs, lakeside and so on.</summary>
+    public string Area { get; set; } = "";
+
+    /// <summary>Stonewood, Plankerton, Canny Valley or Twine Peaks.</summary>
+    public string Zone { get; set; } = "";
+}
+
 // Request bodies
 
 public sealed class SettingsRequest

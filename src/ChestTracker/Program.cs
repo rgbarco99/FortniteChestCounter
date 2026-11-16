@@ -91,6 +91,7 @@ objBuilder.Services.AddSingleton<SquadReader>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<SquadReader>());
 objBuilder.Services.AddSingleton<SeasonMap>();
 objBuilder.Services.AddSingleton<Shop>();
+objBuilder.Services.AddSingleton<Vbucks>();
 objBuilder.Services.AddSingleton<TrayIcon>();
 objBuilder.Services.AddHostedService(objServices => objServices.GetRequiredService<TrayIcon>());
 
@@ -362,6 +363,11 @@ objApp.MapGet("/api/map/image", (SeasonMap objMap) =>
 // The item shop, in the language the page is being read in. Only asked for when the tab is open
 objApp.MapGet("/api/shop", async (string? lang, Shop objShop, CancellationToken objToken) =>
     await objShop.DescribeAsync(lang, objToken));
+
+// The Save the World alerts that pay V-Bucks. Only asked for when the reader opens the panel:
+// nothing goes out on startup, and the answer is kept for twenty minutes.
+objApp.MapGet("/api/vbucks", async (Vbucks objVbucks, CancellationToken objToken) =>
+    await objVbucks.DescribeAsync(objToken));
 
 // The copies the program keeps by itself, newest first
 objApp.MapGet("/api/backups", () => Backup.List(strDataFolder));
