@@ -1,0 +1,4 @@
+# The replays and their readings never leave this PC: a replay carries the Epic id and the
+# nickname of everybody who was in that match. Only this file is in the repository.
+*.replay
+*.expected.json

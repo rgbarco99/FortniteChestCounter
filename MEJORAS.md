@@ -24,7 +24,7 @@ cofre tiene una recompensa visible al momento.
 | 3 | Pestaña Mapa | **Primera versión hecha** · calor, zonas y reparto |
 | 4 | Comparativa de mejora por días/semanas/meses | **Hecho** |
 | 5 | `matches.json` partido por partida | Pendiente |
-| 6 | Tests del parser | Pendiente |
+| 6 | Tests del parser | **Hecho** · referencia de una repetición real, con el diff en palabras |
 | 7 | Imágenes y nombres desde la API (2.1) | **Hecho** · buscador sobre los cuatro catálogos |
 | 8 | Semanas cortadas al final del evento | **Hecho** · cinco semanas, la última acaba el 5 de diciembre |
 | 9 | Tesoros oficiales de cada semana por defecto | **Hecho** · semanas 1 y 2, editables, con «Volver al oficial» |
@@ -281,10 +281,53 @@ que el navegador la llama directamente y no hace falta pasar por el programa.
 
 ### 2.2 Objetos de la semana y Horas del tesoro
 
-Esto **no tiene API**: Epic lo publica en su blog y dentro del juego. El proceso se queda manual
-y acordado: cuando salgan, avisas, se leen, se meten en los datos de la pestaña y salen en una
-release. Conviene que el programa ayude recordando que toca: avisar cuando el cambio de semana
-haya pasado y queden casillas sin revisar.
+**Los objetos de la semana se buscan solos desde el 16/11/2026.** No hay API que los liste, pero
+sí hay una que tiene los objetos, y Epic los marca en su identificador interno:
+
+| Casilla | Cómo se reconoce |
+|---|---|
+| Pico o mochilero | sufijo `Reward`: `Backpack_FledGravelReward` |
+| Atuendo dorado | el mismo nombre en clave sin sufijo: `Character_FledGravel` |
+| Pantalla de carga | `thw`, de *treasure-hunt week*: `loadingscreen_delilahthw3` |
+| Vehículo | `TreasureHunt` en la calcomanía: `CarSkin_EagleTreasureHunt01` |
+| Pista | no lleva marca: es la única pista añadida el día que abre la semana |
+
+Dos rutas que se cubren la una a la otra: `/v2/cosmetics/new` (70 KB, lo que trajo el último
+parche) y, para la pantalla de carga, una consulta por identificador, que funciona aunque el
+parche ya no sea el último. **Con `?language=es` la API devuelve el nombre oficial ya traducido**,
+que es toda la diferencia entre esto y una lista de nombres en clave: «Que la fortuna te
+acompañe» sale tal cual.
+
+Probado contra la API real el 16/11/2026, semana a semana: la 3 sale **entera y correcta**, las
+1 y 2 dan su pantalla de carga (sus objetos ya no están en el último parche) y las 4 y 5 no dan
+nada, que es lo que tienen que dar hasta que Epic las publique. Vaciando a mano los datos de la
+semana 3 en una copia de la página, las cinco casillas se rellenaron solas con su nombre español
+y su icono.
+
+**La ventana va pegada al inicio de la semana, no a la semana entera**, y esto costó un fallo que
+conviene no repetir: una semana termina justo cuando empieza la siguiente, así que una ventana
+que cubría la semana completa se llevaba los tesoros de la siguiente. La semana 2 salía con los
+cinco objetos de la 3, todos correctos y todos en la semana equivocada. Estrecha y a veces vacía
+es mejor que ancha y a veces equivocada: una casilla vacía pide que la rellenes, una casilla con
+lo que no es, no.
+
+Reglas que conviene no deshacer:
+
+- Lo que encuentra va a `objFound`, **aparte** de `objItems`, que es lo que escribes tú. Orden de
+  preferencia: lo tuyo gana a lo escrito a mano en el programa, y eso gana a lo encontrado.
+- La excepción es una entrada `bAnnounced`: el nombre que Epic anunció antes de que el objeto
+  existiera, sin foto. Eso es un hueco tapado, así que lo encontrado sí la sustituye.
+- La pista no lleva marca ninguna. Si hay dos candidatas el mismo día, **no elige**: deja la
+  casilla como está.
+- La calcomanía dorada del coche devuelve una imagen de relleno, así que la foto se saca del
+  coche de debajo (`CarBody_<nombre>`), igual que se hacía a mano.
+- El aviso de casillas sin tesoro sale en la pestaña con un botón para buscarlas al momento, y
+  distingue la semana que no ha empezado todavía de la que ya empezó y sigue sin publicarse.
+
+**Las Horas del tesoro siguen a mano**, y de momento se quedan así por decisión del 16/11/2026:
+no se anuncian siempre, y una franja prevista por patrón (sábado 19:00 UTC, domingo 02:00 UTC)
+sería inventarse el dato más vistoso de la pestaña. Cuando haya una nueva, se apunta y sale en
+una release.
 
 **Los tesoros oficiales vienen puestos de fábrica** (`OBJ_WEEK_ITEMS`), con la clave
 `<inicio de la semana en UTC>|<casilla>`, igual que `objItems`. Lo que escribas en la pestaña gana
@@ -343,9 +386,39 @@ Las franjas nuevas que trae una versión se **mezclan una sola vez** con las que
 (`INT_TREASURE_VERSION` en `normalizeTreasure`, comparando por hora de inicio). Así una franja que
 borraste a propósito no vuelve en cada arranque.
 
-### 2.3 Lo que falta: que enganche
+### 2.3 Que enganche — **hecho el 16/11/2026**
 
-Hoy la pestaña informa. Debería **motivar**. Ideas, de más a menos clara:
+Lo que se hizo, con datos reales (199 partidas, 5.613 cofres de temporada):
+
+- **Cuántos cofres te faltan.** Cada casilla dice «Te faltan unos 6.916 cofres para los 7.813 que
+  cuesta de media», o «Ya has pasado de los 568». Es la misma cifra que el porcentaje, en la
+  única unidad que el lector abre de verdad.
+- **La barra.** Era un hilo de 6 px que con el 0,0015 % del atuendo no se veía. Ahora son 16 px,
+  con degradado, brillo y una marca en la mitad para tener contra qué medir. Suelo del 1,5 % del
+  ancho: los imposibles se ven como una astilla, que es honesto por los dos lados —hay algo, y
+  es casi nada.
+- **Suerte real.** «6,5 esperados con tus cofres; llevas 0: te está costando». La esperanza es la
+  suma de la probabilidad de cada casilla sobre sus propios cofres, que es justo lo comparable
+  con la cuenta: en una casilla que solo puede caer una vez, la probabilidad de tenerla **es** el
+  número esperado. Las semanas que no han empezado no suman: no tienen cofres detrás y contarlas
+  arrastraría la esperanza a cero y lo llamaría mala suerte. Con menos de 0,3 esperados no se
+  juzga, se dice que es pronto.
+- **Resumen de temporada.** «0 de 26 tesoros conseguidos».
+- **Ritmo hasta el final.** Al ritmo de la temporada (cofres por día desde que empezó), cuántos
+  quedan hasta el 5 de diciembre y hasta el domingo, y en qué dejaría eso cada casilla que falta:
+  `96,3 % → 99,9 %`, `10,8 % → 31,7 %`, `0,057 % → 0,19 %`. Las semanales se proyectan al final
+  de su semana y las de temporada al final del evento, porque es cuando cada una deja de poder
+  caer. **Las Horas del tesoro se quedan fuera de la proyección**: las que vienen no están
+  anunciadas, y contarlas sería inventarse la mejor parte de la respuesta. Y nunca se escribe
+  100 %: es una probabilidad, la última décima no se cierra.
+
+Lo que no se hizo, y por qué:
+
+- **Avisar del multiplicador en la pestaña**: ya hay un distintivo en *En vivo* durante la Hora
+  del tesoro, y repetirlo no añade nada.
+- **El quesito por tesoro**: la barra grande hace el mismo trabajo y cabe en la tarjeta.
+
+Ideas originales, por si se retoman:
 
 - **Quesito por tesoro.** Un gráfico circular por objeto sin tachar: qué parte de la probabilidad
   ya has «consumido» con los cofres que llevas y cuánta queda. Ver el trozo crecer cofre a cofre
@@ -447,14 +520,38 @@ archivo si se corta la luz.
 
 ---
 
-## 6. Tests del parser
+## 6. Tests del parser — **hecho el 16/11/2026**
 
-El parser es la pieza crítica y la única que no se puede verificar a ojo: hoy cualquier cambio se
-hace a ciegas. Es lo que más frena a tocarlo, y el mapa y los tesoros van a obligar a tocarlo.
+`dotnet test src/ChestTracker.Tests/ChestTracker.Tests.csproj`. Lee las repeticiones que haya en
+`tests/fixtures`, las pasa por el lector de verdad (`ParseProcess.ParseWithLargeStack`, pila
+grande incluida) y compara el resultado contra la lectura que se dio por buena. Instrucciones
+completas en [tests/README.md](tests/README.md).
 
-Qué hacer: guardar una repetición real como fixture, con el JSON que debe salir, y comparar la
-salida de `--dump` contra él. Barato y desactiva el miedo. **Hacerlo antes del siguiente cambio
-del parser, no después.**
+**Lo que hace que sirva es el fallo**, no el acierto. No dice «los dos archivos son distintos»:
+recorre los dos árboles a la vez y nombra cada sitio donde dejan de coincidir, con la ruta por la
+que se busca. Probado a propósito manipulando la referencia:
+
+```
+parserVersion: 8 -> 7
+players[3].kills: 99 -> null
+openings[12].category: "municion" -> ya no está
+openings[40].y: no estaba -> 547
+eliminations: 138 elementos -> 139
+```
+
+La referencia de hoy es una partida de 567 s con 81 aperturas de 10 clases distintas, 80
+jugadores y 139 bajas: 10 MB de repetición, 65 KB de lectura, 1 segundo de test. Se eligió por
+variedad, no por tamaño; la primera que se probó duró 46 segundos y no tenía ningún cofre, que
+como referencia de un contador de cofres no vale de nada.
+
+**Las repeticiones no están en el repositorio y no pueden estarlo:** cada una lleva dentro el id
+de Epic y el nick de las ochenta y tantas personas que jugaron esa partida, y su lectura también.
+`tests/fixtures/.gitignore` deja fuera `*.replay` y `*.expected.json`. Por eso, cuando no hay
+ninguna, el test **no falla**: lo dice por escrito en su salida y sigue. En CI se ejecuta igual,
+que es lo que detecta que se rompa el test mismo.
+
+Cuando un cambio del lector es a propósito: repasar la lista de diferencias y volver a lanzarlo
+con `FCC_FIXTURE_UPDATE=1` para apuntar la lectura nueva.
 
 ---
 
@@ -544,8 +641,24 @@ Lo que se ha apretado:
   Ese es el único momento en que se esperan sus cifras y el único en que están llegando.
 - **La comparación ya no desaparece al empezar la partida siguiente.** El hueco entre partidas de
   este jugador es de unos 10 s de mediana, bastante menos de lo que tarda la nube, así que la
-  tarjeta de la partida anterior se queda en *En vivo* hasta 15 minutos después de terminarla.
-  Antes se esfumaba justo antes de que llegaran los datos, que es el peor momento posible.
+  tarjeta de la partida anterior se queda en *En vivo* después de terminarla. Antes se esfumaba
+  justo antes de que llegaran los datos, que es el peor momento posible.
+- **Y ya no se queda toda la partida** *(16/11/2026)*. Quince minutos fijos eran casi toda la
+  partida siguiente mirando la anterior, y jugando con desconocidos eran quince minutos de un
+  giro esperando fichas que nadie iba a publicar. Ahora el hueco lo decide **quién juega
+  contigo**, no el reloj:
+  - Alguien de tu carpeta compartida está en la partida anterior y su ficha sigue llegando → se
+    queda la comparación.
+  - Han llegado todas → se queda 90 s más, para que dé tiempo a leerla, y devuelve el hueco.
+  - No juegas con ellos → **los compañeros de esta partida, en directo**, con el estimado que tu
+    propia repetición va viendo (`≥4`). Nunca hubo nada en camino, así que no hay nada que
+    esperar.
+
+  Los 15 minutos siguen como tope absoluto. El relevo entra en la clave de etapa (`getStageKey`),
+  así que ocurre al segundo y no cuando Fortnite escribe la repetición 20 s después. Para
+  distinguir a un compañero del squad de uno que metió el emparejamiento hizo falta que la
+  partida en curso pasara también por `ResolveSquad` en `/api/state`, con los totales apagados
+  para no contar dos veces los cofres cuando esa partida se guarde.
 
 - **La tarjeta «Por qué no hay contador en directo» está eliminada**, no apartada: ese hueco es
   ahora la comparación del squad de la partida anterior. Explicar por qué no hay contador importa
@@ -588,6 +701,17 @@ hacían lo mismo, cada fila por su cuenta (465, 387, 465, 426 px medidos).
 Las filas son ahora una rejilla de columnas fijas — corona (18px) · nombre y etiquetas (180px) ·
 barra (el resto) · cifra — y la corona tiene su hueco reservado en **todas** las filas, la ocupe
 o no. Medido después: las cuatro barras a 381 px, empezando todas en el mismo píxel.
+
+## El asterisco de las partidas viejas — *16/11/2026*
+
+«84 partidas conservan el recuento antiguo (marcadas con \*): su repetición ya no está» ocupaba
+una línea permanente de la barra de estado para contar algo que **no tiene arreglo posible**: esas
+repeticiones no están y no van a volver. Una línea de prosa siempre a la vista sobre algo que
+nadie puede hacer es una línea que se deja de leer, y de paso tapaba a las que sí piden algo.
+
+Ahora lo cuenta el propio asterisco: pasar el ratón lo dice en una línea, y pulsarlo lo dice
+entero, con cuántas partidas están igual. El asterisco pasó de ser un carácter dentro de la
+celda a un botón en dorado y en voladita, porque una marca que no parece pulsable no se pulsa.
 
 ## Pendientes menores y sospechas
 

@@ -15,3 +15,8 @@ jobs:
         with:
           dotnet-version: "10.0.x"
       - run: dotnet build src/ChestTracker/ChestTracker.csproj -c Release
+
+      # The parser's reference replays are not in the repository (they carry the Epic id and the
+      # nickname of everybody who was in that match), so here the test has nothing to compare and
+      # says so. It still runs: this is what catches the test itself breaking. See tests/README.md.
+      - run: dotnet test src/ChestTracker.Tests/ChestTracker.Tests.csproj -c Release

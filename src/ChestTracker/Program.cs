@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -168,7 +168,13 @@ objApp.MapGet("/api/state", () =>
     }
 
     var dicTotals = new Dictionary<string, SharedPlayer>(StringComparer.OrdinalIgnoreCase);
-    foreach (var objMatch in lstMatches)
+
+    // One match's squad, filled in with what each mate is called today and the card they shared
+    // for that match. bCount is what adds the card to the running totals, and it is off for the
+    // match being played right now: the instant that one is saved it is resolved again as a
+    // saved match, and a mate who died early and has already published has a card for it, so
+    // counting it here would count the same chests twice.
+    void ResolveSquad(MatchSummary objMatch, bool bCount)
     {
         var dicCards = objSquadReader.ForSession(objMatch.SessionId);
         foreach (var objMate in objMatch.Squad)
@@ -189,6 +195,11 @@ objApp.MapGet("/api/state", () =>
             objMate.SharedChests = objCard.Chests + objCard.Special + objCard.Spirit;
             objMate.Sharing = true;
 
+            if (!bCount)
+            {
+                continue;
+            }
+
             if (!dicTotals.TryGetValue(objMate.Id, out var objTotal))
             {
                 objTotal = new SharedPlayer { Id = objMate.Id, Name = objMate.Name };
@@ -200,6 +211,28 @@ objApp.MapGet("/api/state", () =>
             objTotal.Kills += objCard.Kills;
             objTotal.YourChests += objMatch.ChestsTotal;
         }
+    }
+
+    foreach (var objMatch in lstMatches)
+    {
+        ResolveSquad(objMatch, bCount: true);
+    }
+
+    // The match in progress gets the same treatment, and that is what lets the live tab tell a
+    // squadmate playing with you from somebody a fill dropped into your team. Their real figures
+    // cannot arrive until the match ends, but knowing whose are on the way is what decides what
+    // is worth the space meanwhile.
+    var objLiveView = objStore.LiveMatch is { } objLive
+        ? new LiveView
+        {
+            Match = Summarizer.Summarize(objLive, objSettings, objSettings.DemosPath),
+            WrittenUtc = DateTime.SpecifyKind(objLive.FileModifiedUtc, DateTimeKind.Utc),
+            Locked = objLive.IsLocked
+        }
+        : null;
+    if (objLiveView != null)
+    {
+        ResolveSquad(objLiveView.Match, bCount: false);
     }
 
     return new StateResponse
@@ -243,9 +276,7 @@ objApp.MapGet("/api/state", () =>
         Matches = lstMatches,
         Layout = objSettings.Layout,
         Treasure = objStore.Treasure,
-        Live = objStore.LiveMatch is { } objLive
-            ? new LiveView { Match = Summarizer.Summarize(objLive, objSettings, objSettings.DemosPath), WrittenUtc = DateTime.SpecifyKind(objLive.FileModifiedUtc, DateTimeKind.Utc), Locked = objLive.IsLocked }
-            : null
+        Live = objLiveView
     };
 });
 

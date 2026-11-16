@@ -108,6 +108,11 @@ button, input, select { font: inherit; color: inherit; }
     .news li { grid-template-columns: 1fr; }
 }
 
+/* The asterisk on a match number: a mark you can ask about. Raised a little and in the gold of
+   the interface's own prompts, so it reads as an offer and not as part of the figure. */
+td .star { background: none; border: 0; padding: 0 0 0 3px; color: var(--gold); font: inherit; line-height: 1; cursor: help; vertical-align: super; font-size: 12px; }
+td .star:hover, td .star:focus-visible { color: var(--ink); }
+
 .status button.linkish { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-decoration: underline dotted; }
 .update-bar b { color: var(--gold); }
 .update-bar .grow { flex: 1; }
@@ -558,10 +563,23 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 .t-bar .when.soon { border-color: var(--spirit); color: var(--ink); }
 .t-bar .short { color: var(--gold); font-size: 13px; }
 .t-bar .grow { flex: 1; }
+.t-found { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--gold); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 14px; font-size: 13.5px; color: var(--ink-2); }
+.t-found b { color: var(--ink); font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+.t-found .which { color: var(--ink-3); }
+.t-found .grow { flex: 1; }
 .t-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 14px; }
 .t-facts > div { background: var(--card); border-radius: var(--radius); padding: 14px 18px; }
 .t-facts .value { font-size: 40px; }
 .t-facts .label { color: var(--ink-2); font-size: 13.5px; margin-top: 6px; }
+.t-pace { background: var(--card); border-radius: var(--radius); padding: 16px 18px; margin-top: 14px; }
+.t-pace h2 { margin: 0 0 4px; font-size: 19px; font-stretch: 75%; }
+.t-pace .hint { color: var(--ink-2); font-size: 13.5px; margin: 0; }
+.t-pace .rows { display: grid; gap: 4px; margin: 12px 0; max-width: 520px; }
+.t-pace .row { display: grid; grid-template-columns: minmax(0, 1fr) auto 18px auto; align-items: baseline; gap: 8px; font-size: 13.5px; }
+.t-pace .row .who { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t-pace .row .was { color: var(--ink-3); }
+.t-pace .row .arrow { color: var(--ink-3); text-align: center; }
+.t-pace .row .now { color: var(--gold); font-weight: 600; }
 .t-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
 .t-card { background: var(--card); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; position: relative; }
 .t-card .picture { aspect-ratio: 16 / 10; background: var(--card-raised); display: grid; place-items: center; position: relative; overflow: hidden; }
@@ -575,8 +593,16 @@ body:not([data-tab="partidas"]) #elRange, body:not([data-tab="partidas"]) #elEdi
 .t-card .chance { display: flex; flex-direction: column; gap: 4px; }
 .t-card .chance .figure { font-size: 34px; white-space: nowrap; }
 .t-card .chance span { color: var(--ink-2); font-size: 13px; }
-.t-card .meter { height: 6px; border-radius: 3px; background: var(--card-raised); overflow: hidden; }
-.t-card .meter i { display: block; height: 100%; background: var(--gold); border-radius: 3px; }
+/* The cumulative-probability bar. Tall enough to be the thing you look at, because it is: the
+   percentages it carries span four orders of magnitude and the eye cannot tell 0,0015 % from
+   0,017 % written down. A floor of 1,5 % of the width keeps the hopeless ones visible as a
+   sliver rather than as nothing, which is honest both ways: there is something there, and it is
+   almost nothing. */
+.t-card .bar { position: relative; height: 16px; border-radius: 999px; background: var(--card-raised); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+.t-card .bar i { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 999px; background: linear-gradient(90deg, var(--chest), var(--gold)); box-shadow: 0 0 16px rgba(240, 180, 41, 0.5); transition: width 0.6s ease; }
+.t-card .bar i.half { background: linear-gradient(90deg, var(--chest), var(--gold) 60%, #ffe9a8); }
+.t-card .bar .mark { position: absolute; top: 3px; bottom: 3px; left: 50%; width: 1px; background: var(--ink-3); opacity: 0.55; }
+.t-card .odds.left { color: var(--ink); }
 .t-card .foot { margin-top: auto; display: flex; align-items: center; gap: 8px; padding-top: 4px; }
 .t-card .foot .btn { flex: 1; }
 .t-card .stepper { display: flex; align-items: center; gap: 8px; flex: 1; }
@@ -1078,6 +1104,31 @@ const ARR_I18N = [
     ["Cofres de la temporada que el contador no vio", "Season chests the counter did not see", "Coffres de la saison que le compteur n'a pas vus"],
     ["Cofres de esta semana que no vio", "This week's chests it did not see", "Coffres de la semaine qu'il n'a pas vus"],
     ["Horas del tesoro", "Treasure Hours", "Heures du trésor"],
+    ["Te faltan unos {0} cofres para los {1} que cuesta de media", "You are about {0} chests short of the {1} it costs on average", "Il te manque environ {0} coffres sur les {1} qu'il coûte en moyenne"],
+    ["Ya has pasado de los {0} cofres que cuesta de media", "You are already past the {0} chests it costs on average", "Tu as déjà dépassé les {0} coffres qu'il coûte en moyenne"],
+    ["tesoros de la temporada conseguidos", "treasures of the season got", "trésors de la saison obtenus"],
+    ["esperados con tus cofres; llevas {0}: {1}", "expected with your chests; you have {0}: {1}", "attendus avec tes coffres ; tu en as {0} : {1}"],
+    ["todavía es pronto para saber si tienes suerte", "it is still too early to tell whether you are lucky", "il est encore trop tôt pour dire si tu as de la chance"],
+    ["vas con suerte", "you are running lucky", "tu as de la chance"],
+    ["te está costando", "it is going against you", "ça ne tombe pas pour toi"],
+    ["justo lo esperado", "exactly what was expected", "exactement ce qui était attendu"],
+    ["A tu ritmo de {0} cofres al día", "At your rate of {0} chests a day", "À ton rythme de {0} coffres par jour"],
+    ["Hasta el {0} te quedan unos {1} cofres, y unos {2} antes de que termine esta semana.", "You have about {1} chests left until {0}, and about {2} before this week ends.", "Il te reste environ {1} coffres jusqu'au {0}, et environ {2} avant la fin de cette semaine."],
+    ["Para llegar al 50 % en «{0}» harían falta unos {1} cofres al día.", "Reaching 50 % on “{0}” would take about {1} chests a day.", "Atteindre 50 % sur « {0} » demanderait environ {1} coffres par jour."],
+    ["El de arriba del todo es el que más cerca acabaría.", "The one at the top is the one that would end up closest.", "Celui tout en haut est celui qui finirait le plus près."],
+    ["Buscando los tesoros de esta semana…", "Looking for this week's treasures…", "Recherche des trésors de cette semaine…"],
+    ["Esta semana todavía no ha empezado", "This week has not started yet", "Cette semaine n'a pas encore commencé"],
+    ["{0} casilla sin tesoro", "{0} square with no treasure", "{0} case sans trésor"],
+    ["{0} casillas sin tesoro", "{0} squares with no treasure", "{0} cases sans trésor"],
+    ["Sus tesoros entran en el juego el día que empieza, y en cuanto entren se rellenan solas.", "Its treasures go into the game on the day it starts, and they fill themselves in as soon as they do.", "Ses trésors entrent dans le jeu le jour où elle commence, et elles se remplissent toutes seules dès que c'est fait."],
+    ["El juego todavía no los ha publicado. Se rellenan solas en cuanto aparezcan.", "The game has not published them yet. They fill themselves in as soon as they turn up.", "Le jeu ne les a pas encore publiés. Elles se remplissent toutes seules dès qu'ils apparaissent."],
+    ["Buscarlas ahora", "Look for them now", "Les chercher maintenant"],
+    ["Tesoros de la semana encontrados", "This week's treasures found", "Trésors de la semaine trouvés"],
+    ["Una casilla se ha rellenado sola", "One square filled itself in", "Une case s'est remplie toute seule"],
+    ["{0} casillas se han rellenado solas", "{0} squares filled themselves in", "{0} cases se sont remplies toutes seules"],
+    ["{0} con el nombre y la imagen que el juego da. Comprueba que cuadran con lo que ves en Fortnite; puedes cambiarlas en «Editar tesoros».", "{0} with the name and the picture the game gives them. Check that they match what you see in Fortnite; you can change them in “Edit treasures”.", "{0} avec le nom et l'image que donne le jeu. Vérifie qu'elles correspondent à ce que tu vois dans Fortnite ; tu peux les changer dans « Modifier les trésors »."],
+    ["Todavía no están", "Not there yet", "Pas encore là"],
+    ["Los tesoros de una semana llegan al juego el día que empieza. Si la semana ya ha empezado y siguen sin aparecer, escríbelos a mano en «Editar tesoros».", "A week's treasures reach the game on the day it starts. If the week has already started and they are still not there, write them in by hand in “Edit treasures”.", "Les trésors d'une semaine arrivent dans le jeu le jour où elle commence. Si la semaine a déjà commencé et qu'ils ne sont toujours pas là, écris-les à la main dans « Modifier les trésors »."],
     ["Semana {0} de {1}", "Week {0} of {1}", "Semaine {0} sur {1}"],
     ["Actual", "Current", "Actuelle"],
     ["Próximamente", "Coming soon", "Prochainement"],
@@ -1121,7 +1172,7 @@ const ARR_I18N = [
     ["no te falta ningún tesoro esta semana", "you are not missing any treasure this week", "il ne te manque aucun trésor cette semaine"],
     ["de que el próximo cofre te dé {0}", "chance your next chest gives you {0}", "de chances que ton prochain coffre te donne {0}"],
     ["nada nuevo que pueda salir", "nothing new left to drop", "plus rien de nouveau à obtenir"],
-    ["Los dos porcentajes de arriba cuentan solo los tesoros sin tachar. Probabilidades por cofre publicadas por Epic (Fortnite Status, 7 de noviembre de 2026) para partidas normales. El cálculo usa los cofres, cofres especiales y cofres de espíritu de las partidas leídas, abiertos o rotos; Epic no ha dicho si todos los tipos de cofre cuentan igual. El cambio de semana (domingo, 14:00 UTC) y los objetos de cada semana no los publica Epic: ajústalos en «Editar tesoros». Las Horas del tesoro también se apuntan a mano: las horas son las que anunció Epic, pero algunos multiplicadores vienen de la prensa y no de Epic, así que conviene comprobarlos ahí mismo.", "The two percentages above only count treasures you have not crossed out. Per-chest odds published by Epic (Fortnite Status, 7 November 2026) for regular matches. The calculation uses the chests, special chests and spirit chests of the matches read, opened or broken; Epic has not said whether every chest type counts the same. Epic does not publish the weekly reset (Sunday, 14:00 UTC) or each week's items: adjust them in “Edit treasures”. Treasure Hours are written down by hand too: the times are the ones Epic announced, but some multipliers come from the press rather than from Epic, so they are worth checking there as well.", "Les deux pourcentages ci-dessus ne comptent que les trésors non cochés. Probabilités par coffre publiées par Epic (Fortnite Status, 7 novembre 2026) pour les parties normales. Le calcul utilise les coffres, coffres spéciaux et coffres d'esprit des parties lues, ouverts ou cassés ; Epic n'a pas dit si tous les types de coffres comptent pareil. Epic ne publie ni le changement de semaine (dimanche, 14:00 UTC) ni les objets de chaque semaine : ajuste-les dans « Modifier les trésors ». Les Heures du trésor sont aussi notées à la main : les horaires sont ceux annoncés par Epic, mais certains multiplicateurs viennent de la presse et non d'Epic, donc mieux vaut les vérifier au même endroit."],
+    ["Los dos porcentajes de arriba cuentan solo los tesoros sin tachar. Probabilidades por cofre publicadas por Epic (Fortnite Status, 7 de noviembre de 2026) para partidas normales. El cálculo usa los cofres, cofres especiales y cofres de espíritu de las partidas leídas, abiertos o rotos; Epic no ha dicho si todos los tipos de cofre cuentan igual. El cambio de semana (domingo, 14:00 UTC) no lo publica Epic: ajústalo en «Editar tesoros». Los objetos de cada semana tampoco salen en ninguna lista, así que el programa los busca en el catálogo del juego por el identificador interno con el que Epic marca los tesoros y rellena solo las casillas vacías; lo que escribas tú gana siempre. Las Horas del tesoro también se apuntan a mano: las horas son las que anunció Epic, pero algunos multiplicadores vienen de la prensa y no de Epic, así que conviene comprobarlos ahí mismo.", "The two percentages above only count treasures you have not crossed out. Per-chest odds published by Epic (Fortnite Status, 7 November 2026) for regular matches. The calculation uses the chests, special chests and spirit chests of the matches read, opened or broken; Epic has not said whether every chest type counts the same. Epic does not publish the weekly reset (Sunday, 14:00 UTC): adjust it in “Edit treasures”. Each week's items are not published as a list either, so the program looks for them in the game's own catalogue by the internal id Epic marks treasures with, and only fills in squares that are empty; anything you type always wins. Treasure Hours are written down by hand too: the times are the ones Epic announced, but some multipliers come from the press rather than from Epic, so they are worth checking there as well.", "Les deux pourcentages ci-dessus ne comptent que les trésors non cochés. Probabilités par coffre publiées par Epic (Fortnite Status, 7 novembre 2026) pour les parties normales. Le calcul utilise les coffres, coffres spéciaux et coffres d'esprit des parties lues, ouverts ou cassés ; Epic n'a pas dit si tous les types de coffres comptent pareil. Epic ne publie pas le changement de semaine (dimanche, 14:00 UTC) : ajuste-le dans « Modifier les trésors ». Les objets de chaque semaine ne sont pas publiés en liste non plus, donc le programme les cherche dans le catalogue du jeu par l'identifiant interne dont Epic marque les trésors, et ne remplit que les cases vides ; ce que tu écris gagne toujours. Les Heures du trésor sont aussi notées à la main : les horaires sont ceux annoncés par Epic, mais certains multiplicateurs viennent de la presse et non d'Epic, donc mieux vaut les vérifier au même endroit."],
 
     // Live tab
     ["FINALIZADA · BUSCANDO PARTIDA", "FINISHED · SEARCHING", "TERMINÉE · RECHERCHE"],
@@ -1256,7 +1307,12 @@ const ARR_I18N = [
     ["{0}, {1} en la carpeta", "{0}, {1} in the folder", "{0}, {1} dans le dossier"],
     ["Leyendo repeticiones: {0}", "Reading replays: {0}", "Lecture des rediffusions : {0}"],
     ["Partida en curso: síguela en la pestaña En vivo", "Match in progress: follow it in the Live tab", "Partie en cours : suis-la dans l'onglet En direct"],
-    ["{0} {1} el recuento antiguo (marcadas con *): su repetición ya no está", "{0} {1} the old count (marked with *): its replay is gone", "{0} {1} l'ancien décompte (marquées d'un *) : la rediffusion n'existe plus"],
+    ["Recuento de una versión anterior", "Counted by an earlier version", "Décompte d'une version antérieure"],
+    ["Recuento de una versión anterior: su repetición ya no está y no se puede recontar", "Counted by an earlier version: its replay is gone and it cannot be counted again", "Décompte d'une version antérieure : sa rediffusion n'existe plus et elle ne peut pas être recomptée"],
+    ["Por qué esta partida lleva un asterisco", "Why this match has an asterisk", "Pourquoi cette partie porte un astérisque"],
+    ["Esta partida se contó con una versión anterior del lector y su repetición ya no está en la carpeta, así que no se puede volver a contar. Sus cifras valen; puede que no incluyan algo que las versiones nuevas sí cuentan. {0}", "This match was counted by an earlier version of the reader and its replay is no longer in the folder, so it cannot be counted again. Its figures stand; they may be missing something the newer versions do count. {0}", "Cette partie a été comptée par une version antérieure du lecteur et sa rediffusion n'est plus dans le dossier : elle ne peut pas être recomptée. Ses chiffres restent valables ; il leur manque peut-être ce que les versions plus récentes comptent. {0}"],
+    ["Es la única así.", "It is the only one like that.", "C'est la seule dans ce cas."],
+    ["Hay {0} partidas así, marcadas con *.", "There are {0} matches like that, marked with *.", "Il y a {0} parties dans ce cas, marquées d'un *."],
     ["{0}. Ver por qué", "{0}. See why", "{0}. Voir pourquoi"],
     ["Bloques ocultos, pulsa para añadirlos:", "Hidden blocks, click to add them:", "Blocs masqués, clique pour les ajouter :"],
     ["Todos los bloques están a la vista.", "All blocks are visible.", "Tous les blocs sont visibles."],
@@ -1532,6 +1588,14 @@ const ARR_I18N = [
     ["Lo he mirado {0} veces en {1}, una cada {2} s.", "I have looked {0} times in {1}, once every {2} s.", "J'ai regardé {0} fois en {1}, une fois toutes les {2} s."],
     ["Sus cifras vienen de vuestra carpeta compartida, y la nube tarda un poco en traerlas. Aparecen aquí solas.", "Their figures come from your shared folder, and the cloud takes a moment to bring them over. They show up here by themselves.", "Leurs chiffres viennent de votre dossier partagé, et le cloud met un moment à les apporter. Ils apparaissent ici tout seuls."],
     ["estimado", "estimate", "estimation"],
+    ["Comparte contigo, pero su ficha de esta partida todavía no ha llegado: esto es lo que tu repetición le vio abrir cerca de ti", "They share with you, but their card for this match has not arrived: this is what your replay saw them open near you", "Il partage avec toi, mais sa fiche de cette partie n'est pas arrivée : voici ce que ta rediffusion lui a vu ouvrir près de toi"],
+    ["{0} cofres entre los {1}. Los marcados «estimado» son un mínimo: lo que tu repetición les vio abrir cerca de ti, así que abrieron eso o más.", "{0} chests between the {1} of you. The ones marked «estimate» are a floor: what your replay saw them open near you, so they opened that or more.", "{0} coffres à {1}. Ceux marqués « estimation » sont un minimum : ce que ta rediffusion leur a vu ouvrir près de toi, donc ils en ont ouvert autant ou plus."],
+    ["Cofres de tus compañeros ahora mismo", "Your squadmates' chests right now", "Les coffres de tes coéquipiers en ce moment"],
+    ["Cofres de tus compañeros en esta partida", "Your squadmates' chests in this match", "Les coffres de tes coéquipiers dans cette partie"],
+    ["Comparte contigo: su cifra de verdad llega al terminar la partida", "They share with you: their real figure arrives when the match ends", "Il partage avec toi : son vrai chiffre arrive à la fin de la partie"],
+    ["No comparte contigo: es solo lo que tu repetición le ve abrir cerca de ti", "Not sharing with you: it is only what your replay sees them open near you", "Il ne partage pas avec toi : c'est seulement ce que ta rediffusion lui voit ouvrir près de toi"],
+    ["Tu repetición solo graba lo que se abre cerca de ti, así que estas cifras son mínimos. Las de verdad de quien comparte contigo llegan al terminar la partida.", "Your replay only records what is opened near you, so these figures are floors. The real ones, for whoever shares with you, arrive when the match ends.", "Ta rediffusion n'enregistre que ce qui est ouvert près de toi, donc ces chiffres sont des minimums. Les vrais, pour ceux qui partagent avec toi, arrivent à la fin de la partie."],
+    ["Tu repetición solo graba lo que se abre cerca de ti, unos 300 m, así que estas cifras son mínimos: abrieron eso o más.", "Your replay only records what is opened near you, about 300 m, so these figures are floors: they opened that or more.", "Ta rediffusion n'enregistre que ce qui est ouvert près de toi, environ 300 m, donc ces chiffres sont des minimums : ils en ont ouvert autant ou plus."],
     ["No está en tu escuadrón: es lo que tu repetición le vio abrir cerca de ti", "Not in your squad: this is what your replay saw them open near you", "Pas dans ton escouade : c'est ce que ta rediffusion lui a vu ouvrir près de toi"],
     ["No está en tu escuadrón: es lo que tus repeticiones le vieron abrir cerca de ti", "Not in your squad: this is what your replays saw them open near you", "Pas dans ton escouade : c'est ce que tes rediffusions lui ont vu ouvrir près de toi"],
     ["{0} cofres entre los {1}. Los marcados «estimado» no están en tu escuadrón: es solo lo que tu repetición les vio abrir cerca de ti, así que abrieron eso o más.", "{0} chests between the {1} of you. The ones marked «estimate» are not in your squad: it is only what your replay saw them open near you, so they opened that or more.", "{0} coffres à {1}. Ceux marqués « estimation » ne sont pas dans ton escouade : c'est seulement ce que ta rediffusion leur a vu ouvrir près de toi, donc ils en ont ouvert autant ou plus."],
@@ -1829,6 +1893,48 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
     {
+        strVersion: "1.6.0",
+        strDate: "2026-11-16",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Los tesoros de cada semana se ponen solos. Epic no publica la lista en ningún sitio, pero sí marca los tesoros en el nombre interno de cada objeto, así que el programa los busca en el catálogo del juego y rellena la casilla vacía con el nombre oficial en tu idioma y su imagen. Lo que escribas tú gana siempre, y si todavía no han salido, la pestaña lo dice y los vuelve a buscar.",
+                en: "Each week's treasures fill themselves in. Epic publishes the list nowhere, but it does mark treasures inside each item's internal name, so the program looks for them in the game's catalogue and fills an empty square with the official name in your language and its picture. Anything you type always wins, and when they are not out yet the tab says so and looks again.",
+                fr: "Les trésors de chaque semaine se mettent tout seuls. Epic ne publie la liste nulle part, mais il marque bien les trésors dans le nom interne de chaque objet : le programme les cherche donc dans le catalogue du jeu et remplit la case vide avec le nom officiel dans ta langue et son image. Ce que tu écris gagne toujours, et s'ils ne sont pas encore sortis, l'onglet le dit et les recherche à nouveau."
+            },
+            {
+                strTag: "nuevo",
+                es: "Tesoros te dice ahora cuánta suerte estás teniendo: con tus cofres de la temporada, cuántos tesoros deberías llevar y cuántos llevas de verdad. Al lado, cuántos de los de toda la temporada has conseguido.",
+                en: "Treasures now tells you how lucky you are running: with your chests of the season, how many treasures you should have by now and how many you actually have. Next to it, how many of the season's treasures you have got.",
+                fr: "Trésors te dit maintenant quelle chance tu as : avec tes coffres de la saison, combien de trésors tu devrais avoir et combien tu en as vraiment. À côté, combien de ceux de toute la saison tu as obtenus."
+            },
+            {
+                strTag: "nuevo",
+                es: "Cada tesoro dice cuántos cofres te faltan para los que cuesta de media, que se entiende mucho mejor que un 0,176 %. Y abajo, al ritmo al que vas, cuántos cofres te quedan hasta que acabe la temporada y en qué dejaría eso la probabilidad de cada tesoro que te falta.",
+                en: "Each treasure says how many chests you are short of the number it costs on average, which reads far better than 0.176 %. And underneath, at the rate you are going, how many chests you have left until the season ends and where that would leave the odds of each treasure you are missing.",
+                fr: "Chaque trésor indique combien de coffres il te manque sur ceux qu'il coûte en moyenne, ce qui se comprend bien mieux qu'un 0,176 %. Et en dessous, au rythme où tu vas, combien de coffres il te reste jusqu'à la fin de la saison et où cela laisserait les chances de chaque trésor qui te manque."
+            },
+            {
+                strTag: "mejorado",
+                es: "La barra de probabilidad de cada tesoro era un hilo que no se veía. Ahora es una barra de verdad, con una marca en la mitad para tener contra qué medir. Los imposibles salen como una astilla, que es la verdad por los dos lados: hay algo, y es casi nada.",
+                en: "Each treasure's probability bar was a thread you could not see. It is a real bar now, with a mark at the halfway point to measure against. The hopeless ones show as a sliver, which is the truth both ways: there is something there, and it is almost nothing.",
+                fr: "La barre de probabilité de chaque trésor était un fil invisible. C'est maintenant une vraie barre, avec un repère à la moitié pour avoir contre quoi mesurer. Les impossibles apparaissent comme une écharde, ce qui est vrai des deux côtés : il y a quelque chose, et ce n'est presque rien."
+            },
+            {
+                strTag: "mejorado",
+                es: "En vivo: los cofres del squad ya no se quedan toda la partida. Si juegas con gente de tu carpeta compartida, la comparación de la partida anterior se queda mientras siga llegando alguna ficha y un poco más para que te dé tiempo a leerla. Si no juegas con ellos, ese hueco enseña a los compañeros de esta partida con lo que tu repetición les va viendo abrir cerca de ti.",
+                en: "Live: the squad's chests no longer sit there for the whole match. When you are playing with people from your shared folder, the previous match's comparison stays while any card is still arriving, and a little longer so you can read it. When you are not, that space shows this match's teammates with what your replay is seeing them open near you.",
+                fr: "En direct : les coffres de l'escouade ne restent plus toute la partie. Si tu joues avec des gens de votre dossier partagé, la comparaison de la partie précédente reste tant qu'une fiche arrive encore, et un peu plus pour que tu aies le temps de la lire. Sinon, cet emplacement montre les coéquipiers de cette partie avec ce que ta rediffusion leur voit ouvrir près de toi."
+            },
+            {
+                strTag: "mejorado",
+                es: "El aviso de las partidas con recuento antiguo ya no ocupa una línea fija arriba. Lo cuenta el propio asterisco: pasa el ratón por encima o púlsalo y te dice qué significa y a cuántas partidas les pasa.",
+                en: "The notice about matches with an old count no longer takes a fixed line at the top. The asterisk itself tells you: hover over it or click it and it says what it means and how many matches are in that state.",
+                fr: "L'avis sur les parties au décompte ancien n'occupe plus une ligne fixe en haut. C'est l'astérisque lui-même qui le dit : survole-le ou clique dessus et il explique ce qu'il signifie et combien de parties sont dans ce cas."
+            }
+        ]
+    },
+    {
         strVersion: "1.5.2",
         strDate: "2026-11-15",
         arrItems: [
@@ -1984,9 +2090,9 @@ const ARR_NEWS = [
         arrItems: [
             {
                 strTag: "mejorado",
-                es: "Los cofres de tus compañeros ya no se esfuman al empezar la partida siguiente. La comparación de la partida anterior se queda en En vivo hasta un cuarto de hora, así que llegue cuando llegue de la nube, la ves. Ocupa el sitio del texto que explicaba por qué no hay contador en directo.",
-                en: "Your squadmates' chests no longer vanish when the next match starts. The comparison of the previous match stays in Live for up to a quarter of an hour, so whenever the cloud delivers it, you see it. It takes the place of the text explaining why there is no live count.",
-                fr: "Les coffres de tes coéquipiers ne disparaissent plus au début de la partie suivante. La comparaison de la partie précédente reste dans En direct jusqu'à un quart d'heure : quel que soit le moment où le cloud la livre, tu la vois. Elle prend la place du texte expliquant pourquoi il n'y a pas de décompte en direct."
+                es: "Los cofres de tus compañeros ya no se esfuman al empezar la partida siguiente. La comparación de la partida anterior se queda en En vivo mientras siga llegando algo, así que llegue cuando llegue de la nube, la ves. Ocupa el sitio del texto que explicaba por qué no hay contador en directo.",
+                en: "Your squadmates' chests no longer vanish when the next match starts. The comparison of the previous match stays in Live while anything is still on its way, so whenever the cloud delivers it, you see it. It takes the place of the text explaining why there is no live count.",
+                fr: "Les coffres de tes coéquipiers ne disparaissent plus au début de la partie suivante. La comparaison de la partie précédente reste dans En direct tant que quelque chose arrive encore : quel que soit le moment où le cloud la livre, tu la vois. Elle prend la place du texte expliquant pourquoi il n'y a pas de décompte en direct."
             },
             {
                 strTag: "mejorado",
@@ -3491,7 +3597,16 @@ const renderTable = (elBody, { arrMatches, objSelected }) => {
         class: [objMatch === objSelected ? "selected" : "", objMatch.excluded ? "excluded" : ""].join(" ").trim() || null,
         onclick: () => { if (!objMatch.excluded) selectMatch(objMatch.file); }
     }, [
-        el("td", { text: objMatch.excluded ? "–" : `${objMatch.intNumber}${objMatch.outdated ? " *" : ""}`, title: objMatch.outdated ? "Recuento hecho con la versión anterior; su repetición ya no está y no se puede recontar" : null }),
+        el("td", {}, objMatch.excluded ? "–" : [
+            String(objMatch.intNumber),
+            objMatch.outdated ? el("button", {
+                class: "star",
+                text: "*",
+                title: "Recuento de una versión anterior: su repetición ya no está y no se puede recontar",
+                "aria-label": "Por qué esta partida lleva un asterisco",
+                onclick: (objEvent) => { objEvent.stopPropagation(); explainOutdated(); }
+            }) : null
+        ]),
         ...arrColumns.map((objColumn) => {
             const elCell = el("td", { class: OBJ_CELLS[objColumn.strId].bLeft ? "left" : null });
             const varText = OBJ_CELLS[objColumn.strId].fnText(objMatch);
@@ -3562,6 +3677,9 @@ const defaultTreasure = () => ({
         { strId: "gizmo", strName: "Gizmos", dblOneIn: 127, bWeekly: false, bRepeatable: true, bHidden: true }
     ],
     objItems: {},
+    // What the catalogue turned up on its own, keyed like objItems. Kept apart from what you
+    // typed so that neither can quietly eat the other, and saved so that it is there offline.
+    objFound: {},
     objWon: {},
     // The Treasure Hours announced so far, with their multipliers. Each one is a single
     // world-wide instant, kept in UTC: the tab turns it into the clock of whoever is looking,
@@ -3614,22 +3732,37 @@ const OBJ_WEEK_ITEMS = {
     // solo tiene ya el coche, así que los otros cuatro van con el nombre que anunció Epic, en
     // inglés y sin foto. En cuanto salgan, su nombre oficial en español y su icono entran aquí
     // y «Volver al oficial» los recupera.
-    "2026-11-22T14|gold": { strName: "Kasane Teto de oro macizo" },
-    "2026-11-22T14|vehicle": { strName: "Lamborghini Urus SE dorado", strImage: `${STR_ICON}/cars/carbody_wurst/large.png` },
-    "2026-11-22T14|pickaxe": { strName: "Rogue Wave y Tidewalker" },
-    "2026-11-22T14|jam": { strName: "Sea Shanty" },
-    "2026-11-22T14|loading": { strName: "Oscar's Wraps" },
+    // bAnnounced: a name Epic gave before the item was in the game. It holds the square until
+    // the real one reaches the catalogue, and then it steps aside: an announcement in English
+    // with no picture is worse than what the game itself says.
+    "2026-11-22T14|gold": { strName: "Kasane Teto de oro macizo", bAnnounced: true },
+    "2026-11-22T14|vehicle": { strName: "Lamborghini Urus SE dorado", strImage: `${STR_ICON}/cars/carbody_wurst/large.png`, bAnnounced: true },
+    "2026-11-22T14|pickaxe": { strName: "Rogue Wave y Tidewalker", bAnnounced: true },
+    "2026-11-22T14|jam": { strName: "Sea Shanty", bAnnounced: true },
+    "2026-11-22T14|loading": { strName: "Oscar's Wraps", bAnnounced: true },
     // El token no cambia de semana: la temporada entera reparte los dos
     "season|token": { strName: "Acceso a la Tienda pirata (2026 y 2027)" }
 };
 
-// What a square shows: what you wrote, falling back to the official item for that week
-const getItem = (strKey) => ({ ...(OBJ_WEEK_ITEMS[strKey] ?? {}), ...(objApp.objTreasure.objItems[strKey] ?? {}) });
+// What a square shows. Three sources, each beating the one before it: what the game's own
+// catalogue turned up (objFound), what is written down here and was checked by hand against the
+// game (OBJ_WEEK_ITEMS), and what you typed, which always wins.
+//
+// The one exception is an announced entry: a name Epic gave out before the item existed, with no
+// picture. That is a placeholder, so anything found beats it.
+const getItem = (strKey) => {
+    const objOfficial = OBJ_WEEK_ITEMS[strKey] ?? {};
+    const objFound = objApp.objTreasure.objFound?.[strKey] ?? {};
+    const objTyped = objApp.objTreasure.objItems[strKey] ?? {};
+    return objOfficial.bAnnounced
+        ? { ...objOfficial, ...objFound, ...objTyped }
+        : { ...objFound, ...objOfficial, ...objTyped };
+};
 
 const normalizeTreasure = (objSaved) => {
     const objDefault = defaultTreasure();
     if (!objSaved || !Array.isArray(objSaved.arrRewards)) return objDefault;
-    const objOut = { ...objDefault, ...objSaved, objItems: { ...(objSaved.objItems ?? {}) }, objWon: { ...(objSaved.objWon ?? {}) }, objExtraWeek: { ...(objSaved.objExtraWeek ?? {}) }, arrWindows: [...(objSaved.arrWindows ?? [])] };
+    const objOut = { ...objDefault, ...objSaved, objItems: { ...(objSaved.objItems ?? {}) }, objFound: { ...(objSaved.objFound ?? {}) }, objWon: { ...(objSaved.objWon ?? {}) }, objExtraWeek: { ...(objSaved.objExtraWeek ?? {}) }, arrWindows: [...(objSaved.arrWindows ?? [])] };
 
     // Treasure Hours that Epic announced after this copy last saved. Folded in by start time and
     // only once, so a window edited or deleted on purpose does not come back on every start.
@@ -3854,6 +3987,72 @@ const getRewardOdds = (objReward, objWeek, arrMoments) => {
     };
 };
 
+// The season as a whole: squares, the ones crossed off, and how many of them your chests should
+// have given you by now. The expectation is the sum of each square's own odds over its own
+// chests, which is what makes it comparable to the count: for a square that can only drop once,
+// the chance of having got it IS the expected number of them.
+//
+// Weeks that have not started add nothing: they have no chests behind them and counting them
+// would drag the expectation down towards zero and call it luck.
+const getSeasonSummary = (arrMoments) => {
+    const arrWeeks = getEventWeeks();
+    const dblNow = Date.now();
+    let intTotal = 0;
+    let intWon = 0;
+    let dblExpected = 0;
+
+    for (const objReward of getShownRewards()) {
+        if (objReward.bRepeatable) continue;        // a square that keeps dropping is not a tick
+        for (const objWeek of (objReward.bWeekly ? arrWeeks : [arrWeeks[0]])) {
+            intTotal++;
+            if (objApp.objTreasure.objWon[getScopeKey(objReward, objWeek)]) intWon++;
+            if (objWeek.dtStart.getTime() <= dblNow) {
+                dblExpected += getRewardOdds(objReward, objWeek, arrMoments).dblAtLeastOne;
+            }
+        }
+    }
+
+    return { intTotal, intWon, dblExpected };
+};
+
+// Whether the treasures are coming faster or slower than the odds say they should. Said in words
+// and only when there is enough behind it: with less than a third of a treasure expected, having
+// none is the most ordinary thing in the world and calling it bad luck would be noise.
+const describeLuck = (intWon, dblExpected) => {
+    if (dblExpected < 0.3) return "todav\u00eda es pronto para saber si tienes suerte";
+    const dblRatio = intWon / dblExpected;
+    if (dblRatio > 1.25) return "vas con suerte";
+    if (dblRatio < 0.8) return "te est\u00e1 costando";
+    return "justo lo esperado";
+};
+
+// Chests a day, and what that leaves before the event closes. The rate is the season's own, not
+// a lifetime average: how much is played changes, and what is being projected is the rest of
+// this season and nothing else.
+const getPace = (arrMoments, objWeek) => {
+    const { dblFrom, dblTo } = getSeasonBounds();
+    const dblNow = Date.now();
+    const intSoFar = arrMoments.filter((dblMoment) => dblMoment >= dblFrom && dblMoment < dblNow).length;
+    const dblDaysPlayed = Math.max(0.5, (Math.min(dblNow, dblTo) - dblFrom) / 86400000);
+    const dblPerDay = intSoFar / dblDaysPlayed;
+    const dblDaysLeft = Math.max(0, (dblTo - dblNow) / 86400000);
+    const dblWeekLeft = Math.max(0, (Math.min(objWeek.dtEnd.getTime(), dblTo) - dblNow) / 86400000);
+    return {
+        dblPerDay,
+        dblDaysLeft,
+        intSoFar,
+        intLeft: Math.round(dblPerDay * dblDaysLeft),
+        intWeekLeft: Math.round(dblPerDay * dblWeekLeft),
+        bOver: dblDaysLeft <= 0
+    };
+};
+
+// Where a square's odds would stand after a few thousand more chests at the ordinary rate. The
+// Treasure Hours are left out on purpose: the ones to come have not been announced, and counting
+// hours nobody has promised would be inventing the best part of the answer.
+const chanceAfter = (dblNow, objReward, intMoreChests) =>
+    1 - (1 - dblNow) * Math.pow(1 - 1 / objReward.dblOneIn, Math.max(0, intMoreChests));
+
 // Small percentages need more digits than big ones to say anything
 const fmtPercent = (dblShare) => {
     const dblPercent = dblShare * 100;
@@ -3939,6 +4138,224 @@ const loadCatalogues = () => {
         }
     })).then((arrLists) => arrLists.flat());
     return objCataloguesWait;
+};
+
+// ---------------------------------------------------------------------------
+// The treasures of the week, found instead of typed
+//
+// Epic announces the week's five treasures in a blog post and inside the game: there is no list
+// a program can ask for, and writing them down by hand every Sunday is the kind of chore that
+// gets skipped. What can be asked for is the items themselves, which reach the catalogue the day
+// the week starts and carry a mark in Epic's own internal id:
+//
+//   Backpack_FledGravelReward      the pickaxe or backbling square: the suffix "Reward"
+//   loadingscreen_delilahthw3      the loading screen: "thw", for treasure-hunt week
+//   CarSkin_EagleTreasureHunt01    the vehicle square
+//   Character_FledGravel           the gold outfit: the same code name as the backpack, bare
+//
+// and the jam track, which carries no mark at all: it is found by the day it was added, because
+// the week's treasures go in on the first day of the week and the rest of the patch's music does
+// not. Asked in the reader's own language, the API answers with the name already translated,
+// which is the whole difference between this and a list of code names.
+//
+// Everything in here is a guess that knows it is one. It fills a square that has nothing in it,
+// it never touches what you typed, and when it cannot tell which item it is it leaves the square
+// alone rather than putting the wrong thing in it.
+// ---------------------------------------------------------------------------
+const STR_NEW_URL = "https://fortnite-api.com/v2/cosmetics/new";
+const STR_BR_URL = "https://fortnite-api.com/v2/cosmetics/br";
+const STR_CARS_URL = "https://fortnite-api.com/v2/cosmetics/cars";
+
+// The stem of this season's loading-screen ids, so a week can be asked for by name even when the
+// patch that brought it is no longer the last one. It is the season's code name and it will
+// change with the season; when it does, this route stops finding anything and the one through
+// the new-items list keeps working, which is why there are two.
+const STR_SCREEN_STEM = "loadingscreen_delilahthw";
+
+// Hours either side of a week's opening that its treasures can be in the catalogue. Measured:
+// week three's backpack went in on the 14th and the week began on the 15th.
+//
+// The window hangs off the week's start and not off the week itself, which it did first and got
+// wrong: a week ends exactly when the next one begins, so a window covering the whole week swept
+// up the next week's treasures and put them in this one's squares. Week two came out holding
+// week three's five items, all of them right and all of them in the wrong week. Narrow and
+// sometimes empty beats wide and sometimes wrong: an empty square asks to be filled in, a square
+// filled with the wrong thing does not.
+const INT_FOUND_WINDOW_HOURS = 48;
+
+const RE_FOUND_REWARD = /^(?:Backpack|Pickaxe)_(.+?)Reward$/i;
+const RE_FOUND_SCREEN = /loadingscreen_.*thw\d*$/i;
+const RE_FOUND_CAR = /^CarSkin_(.+?)TreasureHunt\d*$/i;
+
+const fetchCosmetics = async (strUrl) => {
+    const objUrl = new URL(strUrl);
+    objUrl.searchParams.set("language", STR_LANG);
+    const objResponse = await fetch(objUrl);
+    if (!objResponse.ok) throw new Error(String(objResponse.status));
+    return (await objResponse.json())?.data ?? null;
+};
+
+// One item by its internal id. Null when the game has not published it yet, which is the normal
+// answer for a week that has not started.
+const fetchCosmeticById = async (strId) => {
+    try { return await fetchCosmetics(`${STR_BR_URL}/${encodeURIComponent(strId)}`); }
+    catch (objError) { return null; }
+};
+
+// What the last patch added: 70 KB, asked for once a run
+let objNewWait = null;
+const loadNewCosmetics = () => {
+    if (!objNewWait) objNewWait = fetchCosmetics(STR_NEW_URL).catch(() => null);
+    return objNewWait;
+};
+
+// The car list with its ids, which the search catalogue throws away. Only fetched when a vehicle
+// square needs one, because it is 1,5 MB: the golden car's own icon is a filler with the
+// Fortnite logo on it, so the picture has to come from the car underneath the paint.
+let objCarsWait = null;
+const loadCarsById = () => {
+    if (!objCarsWait) {
+        objCarsWait = fetchCosmetics(STR_CARS_URL)
+            .then((arrCars) => new Map([].concat(arrCars ?? []).map((objCar) => [String(objCar.id ?? "").toLowerCase(), objCar])))
+            .catch(() => new Map());
+    }
+    return objCarsWait;
+};
+
+// An item of the catalogue as a square: the name the game gives it in this language, its icon,
+// and the id it was recognised by, which is what makes the guess checkable afterwards.
+const asFoundItem = (objItem, strFamily) => {
+    const objRead = readCosmetic(objItem, strFamily);
+    if (!objRead.strName) return null;
+    const objOut = { strName: objRead.strName, strFoundId: objItem.id ?? null };
+    if (objRead.strImage) objOut.strImage = objRead.strImage;
+    return objOut;
+};
+
+/// The five squares of one week, as far as the catalogue can answer for them today.
+const findWeekTreasures = async (objWeek) => {
+    const objOut = {};
+    const objNew = await loadNewCosmetics();
+    const dblFrom = objWeek.dtStart.getTime() - INT_FOUND_WINDOW_HOURS * 3600000;
+    const dblTo = Math.min(objWeek.dtStart.getTime() + INT_FOUND_WINDOW_HOURS * 3600000, objWeek.dtEnd.getTime());
+    const bInWeek = (objItem) => {
+        const dblAdded = Date.parse(objItem?.added ?? "");
+        return dblAdded >= dblFrom && dblAdded < dblTo;
+    };
+
+    const arrBr = (objNew?.items?.br ?? []).filter(bInWeek);
+    const arrCars = (objNew?.items?.cars ?? []).filter(bInWeek);
+    const arrTracks = (objNew?.items?.tracks ?? []).filter(bInWeek);
+
+    // The backpack or pickaxe, and with it the code name the whole week is built on
+    let strCodeName = null;
+    for (const objItem of arrBr) {
+        const arrMatch = RE_FOUND_REWARD.exec(String(objItem.id ?? ""));
+        if (!arrMatch) continue;
+        strCodeName = arrMatch[1];
+        const objFound = asFoundItem(objItem, "br");
+        if (objFound) objOut.pickaxe = objFound;
+        break;
+    }
+
+    // The gold outfit: the same code name without the suffix. Usually it is in the new items
+    // too, and when it is not it can be asked for by id, which is cheap and exact.
+    if (strCodeName) {
+        const strOutfitId = `Character_${strCodeName}`;
+        const objOutfit = arrBr.find((objItem) => String(objItem.id ?? "").toLowerCase() === strOutfitId.toLowerCase())
+            ?? await fetchCosmeticById(strOutfitId);
+        const objFound = objOutfit ? asFoundItem(objOutfit, "br") : null;
+        if (objFound) objOut.gold = objFound;
+    }
+
+    // The loading screen, by its mark among the new items and, failing that, by the id this
+    // season builds them with
+    let objScreen = arrBr.find((objItem) => RE_FOUND_SCREEN.test(String(objItem.id ?? "")));
+    if (!objScreen) {
+        objScreen = await fetchCosmeticById(objWeek.intIndex === 0 ? STR_SCREEN_STEM : `${STR_SCREEN_STEM}${objWeek.intIndex + 1}`);
+    }
+    const objScreenFound = objScreen ? asFoundItem(objScreen, "br") : null;
+    if (objScreenFound) objOut.loading = objScreenFound;
+
+    // The vehicle: the golden paint names the treasure, the car underneath gives the picture
+    const objSkin = arrCars.find((objItem) => RE_FOUND_CAR.test(String(objItem.id ?? "")));
+    if (objSkin) {
+        const objFound = asFoundItem(objSkin, "cars");
+        const strCarName = RE_FOUND_CAR.exec(String(objSkin.id ?? ""))?.[1];
+        if (objFound && strCarName) {
+            const objBody = (await loadCarsById()).get(`carbody_${strCarName}`.toLowerCase());
+            const objBodyRead = objBody ? readCosmetic(objBody, "cars") : null;
+            if (objBodyRead?.strImage) objFound.strImage = objBodyRead.strImage;
+            if (objBodyRead?.strName) objFound.strName = `${objFound.strName} (${objBodyRead.strName})`;
+        }
+        if (objFound) objOut.vehicle = objFound;
+    }
+
+    // The jam track carries no mark, so the only thing that tells it apart is the day: the
+    // week's treasures go in when the week opens and the patch's other music does not. Two on
+    // the same day is a tie this cannot break, and a wrong name in the square is worse than an
+    // empty one, so it leaves it.
+    const strWeekDay = objWeek.dtStart.toISOString().slice(0, 10);
+    const arrSameDay = arrTracks.filter((objItem) => String(objItem.added ?? "").slice(0, 10) === strWeekDay);
+    if (arrSameDay.length === 1) {
+        const objFound = asFoundItem(arrSameDay[0], "tracks");
+        if (objFound) objOut.jam = objFound;
+    }
+
+    return objOut;
+};
+
+// Squares of this week with nothing in them, or holding a name Epic announced before the item
+// existed. These are the ones worth looking for; the rest are already answered.
+const getUnknownSquares = (objWeek) => getShownRewards().filter((objReward) => {
+    if (!objReward.bWeekly) return false;
+    const objItem = getItem(getScopeKey(objReward, objWeek));
+    return !objItem.strName || (objItem.bAnnounced && !objItem.strImage);
+});
+
+// Weeks already looked for in this run, so that redrawing the tab does not ask again
+const setWeeksLookedUp = new Set();
+
+const discoverWeek = async (objWeek, bByHand = false) => {
+    if (objApp.objDiscover?.bBusy) {
+        // Another week is being looked up right now. Forgetting this one puts it back in the
+        // queue: the render that comes with the answer will reach it, and without this it would
+        // count as looked for and never be tried again this run.
+        setWeeksLookedUp.delete(objWeek.strKey);
+        return;
+    }
+    setWeeksLookedUp.add(objWeek.strKey);
+    objApp.objDiscover = { strKey: objWeek.strKey, bBusy: true, intFound: 0, bByHand };
+    renderTreasure();
+
+    let objFound = {};
+    try { objFound = await findWeekTreasures(objWeek); }
+    catch (objError) { objFound = {}; }
+
+    const arrSquares = Object.keys(objFound);
+    if (arrSquares.length) {
+        changeTreasure((objData) => {
+            objData.objFound = objData.objFound ?? {};
+            for (const [strSquare, objValue] of Object.entries(objFound)) {
+                objData.objFound[`${objWeek.strKey}|${strSquare}`] = objValue;
+            }
+        });
+    }
+
+    objApp.objDiscover = { strKey: objWeek.strKey, bBusy: false, intFound: arrSquares.length, bByHand };
+    renderTreasure();
+
+    // Said out loud only when it was asked for by hand, or when it actually filled something in:
+    // a silent look that found nothing is the normal state of a week that has not started.
+    if (arrSquares.length) {
+        showToast("Tesoros de la semana encontrados",
+            `${arrSquares.length === 1 ? "Una casilla se ha rellenado sola" : `${arrSquares.length} casillas se han rellenado solas`} con el nombre y la imagen que el juego da. Comprueba que cuadran con lo que ves en Fortnite; puedes cambiarlas en «Editar tesoros».`,
+            "good", 9000);
+    } else if (bByHand) {
+        showToast("Todavía no están",
+            "Los tesoros de una semana llegan al juego el día que empieza. Si la semana ya ha empezado y siguen sin aparecer, escríbelos a mano en «Editar tesoros».",
+            "info", 9000);
+    }
 };
 
 let objFindAbort = null;
@@ -4108,6 +4525,9 @@ const renderTreasureCard = (objReward, objWeek, arrMoments) => {
     const bWon = objReward.bRepeatable ? false : !!varWon;
     const objOdds = getRewardOdds(objReward, objWeek, arrMoments);
     const strScope = objReward.bWeekly ? "esta semana" : "la temporada";
+    // What it costs on average: one chest in dblOneIn, so dblOneIn chests is the ordinary price
+    const intTypical = Math.round(objReward.dblOneIn);
+    const intToGo = Math.max(0, intTypical - objOdds.intChests);
 
     const elPicture = el("div", { class: "picture" }, [
         objItem.strImage ? el("img", { src: objItem.strImage, alt: objItem.strName ?? objReward.strName }) : el("span", { class: "glyph", text: objReward.strName.trim().charAt(0).toUpperCase() })
@@ -4185,7 +4605,19 @@ const renderTreasureCard = (objReward, objWeek, arrMoments) => {
                 el("div", { class: "figure", text: fmtPercent(objOdds.dblAtLeastOne) }),
                 el("span", { text: `de que ya te haya tocado con tus ${fmtWhole(objOdds.intChests)} cofres de ${strScope}` })
             ]),
-            el("div", { class: "meter", role: "img", "aria-label": `${fmtPercent(objOdds.dblAtLeastOne)} de probabilidad acumulada` }, el("i", { style: { width: `${Math.max(objOdds.dblAtLeastOne * 100, objOdds.dblAtLeastOne > 0 ? 1 : 0)}%` } })),
+            // The bar carries the same figure as the number above it, and it is here because the
+            // number alone does not move: 4,14 % and 5,96 % read as the same thing, while two
+            // bars of different lengths read as progress. The mark at the halfway point gives
+            // the eye something to measure against, which a bar on its own never has.
+            el("div", { class: "bar", role: "img", "aria-label": `${fmtPercent(objOdds.dblAtLeastOne)} de probabilidad acumulada` }, [
+                el("i", { class: objOdds.dblAtLeastOne >= 0.5 ? "half" : null, style: { width: `${Math.min(100, Math.max(objOdds.dblAtLeastOne * 100, objOdds.dblAtLeastOne > 0 ? 1.5 : 0))}%` } }),
+                el("span", { class: "mark" })
+            ]),
+            // What the percentage means in chests, which is the only unit the reader actually
+            // opens. «Te faltan unos 544» is a thing to go and do; «0,176 % por cofre» is not.
+            el("div", { class: "odds left", text: intToGo > 0
+                ? `Te faltan unos ${fmtWhole(intToGo)} cofres para los ${fmtWhole(intTypical)} que cuesta de media`
+                : `Ya has pasado de los ${fmtWhole(intTypical)} cofres que cuesta de media` }),
             el("div", { class: "odds", text: `La mitad de las veces toca antes de ${fmtWhole(objOdds.intForHalf)} cofres${objOdds.intBoosted ? `. ${objOdds.intBoosted} de tus cofres cayeron en Horas del tesoro` : ""}` }),
             elFoot,
             elEditor
@@ -4243,10 +4675,86 @@ const renderTreasureSettings = (objWeek) => {
     ]);
 };
 
+// The squares of this week that nothing can answer yet. The treasures reach the game the day
+// the week opens, so an empty square before that is simply early and an empty square afterwards
+// is something to go and look at. Both are worth one line; neither is worth a paragraph.
+const renderTreasureFound = (objWeek) => {
+    const objDiscover = objApp.objDiscover?.strKey === objWeek.strKey ? objApp.objDiscover : null;
+    const arrUnknown = getUnknownSquares(objWeek);
+    if (!arrUnknown.length) return null;
+
+    const bSoon = getWeekWhen(objWeek).strTone === "soon";
+    return el("div", { class: "t-found" }, [
+        el("b", {}, [
+            objDiscover?.bBusy ? el("span", { class: "spin" }) : null,
+            objDiscover?.bBusy
+                ? "Buscando los tesoros de esta semana…"
+                : bSoon ? "Esta semana todavía no ha empezado" : plural(arrUnknown.length, "casilla sin tesoro", "casillas sin tesoro")
+        ]),
+        el("span", { text: bSoon
+            ? "Sus tesoros entran en el juego el día que empieza, y en cuanto entren se rellenan solas."
+            : "El juego todavía no los ha publicado. Se rellenan solas en cuanto aparezcan." }),
+        el("span", { class: "which", text: arrUnknown.map((objReward) => objReward.strName).join(", ") }),
+        el("span", { class: "grow" }),
+        objDiscover?.bBusy ? null : el("button", { class: "btn small", text: "Buscarlas ahora", onclick: () => discoverWeek(objWeek, true) })
+    ]);
+};
+
+// Where the chests still to come leave each square. The event ends on a day, so the question
+// stops being "how likely is this" and becomes "how likely will this be when it is over", which
+// is the one that decides whether it is worth chasing.
+//
+// Weekly squares are projected to the end of the week and the season ones to the end of the
+// event, because that is when each of them stops being winnable. Treasure Hours are left out:
+// the ones still to come have not been announced, and counting hours nobody has promised would
+// be inventing the best part of the answer.
+const renderTreasurePace = (objPace, objWeek, arrMissing, arrMoments) => {
+    if (objPace.bOver || !arrMissing.length) return null;
+    if (objPace.intSoFar < 25 || objPace.dblPerDay <= 0) return null;    // too little behind it to project anything
+
+    const { dblTo } = getSeasonBounds();
+    const dblWeekDays = Math.max(0, (Math.min(objWeek.dtEnd.getTime(), dblTo) - Date.now()) / 86400000);
+
+    const arrRows = arrMissing.map((objReward) => {
+        const dblNow = getRewardOdds(objReward, objWeek, arrMoments).dblAtLeastOne;
+        const intMore = objReward.bWeekly ? objPace.intWeekLeft : objPace.intLeft;
+        return { objReward, dblNow, intMore, dblThen: chanceAfter(dblNow, objReward, intMore), dblDays: objReward.bWeekly ? dblWeekDays : objPace.dblDaysLeft };
+    }).sort((objLeft, objRight) => objRight.dblThen - objLeft.dblThen);
+
+    // The one worth chasing is the one that would end up closest, and the only useful thing to
+    // say about it is the price of a coin flip: how many chests a day would make it even odds.
+    const objBest = arrRows[0];
+    const dblWanted = Math.log(0.5 / (1 - objBest.dblNow)) / Math.log(1 - 1 / objBest.objReward.dblOneIn);
+    const intPerDay = objBest.dblDays > 0.2 ? Math.ceil(dblWanted / objBest.dblDays) : Infinity;
+    const bWorthSaying = objBest.dblThen < 0.5 && Number.isFinite(intPerDay) && intPerDay > objPace.dblPerDay && intPerDay < 20000;
+
+    return el("div", { class: "t-pace" }, [
+        el("h2", { text: `A tu ritmo de ${fmtNumber(objPace.dblPerDay)} cofres al día` }),
+        el("p", { class: "hint", text: `Hasta el ${fmtDay(new Date(dblTo - 1))} te quedan unos ${fmtWhole(objPace.intLeft)} cofres, y unos ${fmtWhole(objPace.intWeekLeft)} antes de que termine esta semana.` }),
+        el("div", { class: "rows" }, arrRows.map((objRow) => el("div", { class: "row" }, [
+            el("span", { class: "who", text: objRow.objReward.strName }),
+            el("span", { class: "was", text: fmtPercent(objRow.dblNow) }),
+            el("span", { class: "arrow", "data-notr": true, text: "→" }),
+            // Never quite one: it is a probability, and "100 %" promises something the maths
+            // does not. The last tenth stays open however many chests go in.
+            el("b", { class: "now", text: fmtPercent(Math.min(objRow.dblThen, 0.999)) })
+        ]))),
+        bWorthSaying
+            ? el("p", { class: "hint", text: `Para llegar al 50 % en «${objBest.objReward.strName}» harían falta unos ${fmtWhole(intPerDay)} cofres al día.` })
+            : el("p", { class: "hint", text: "El de arriba del todo es el que más cerca acabaría." })
+    ]);
+};
+
 const renderTreasure = () => {
     if (!objApp.objState || !objApp.objTreasure) return;
     const objTreasure = objApp.objTreasure;
     const objWeek = getSelectedWeek();
+    // Looked for once a run, and only when there is something left to look for. Off the render
+    // itself: drawing the tab must never wait on the network.
+    if (!setWeeksLookedUp.has(objWeek.strKey) && getUnknownSquares(objWeek).length) {
+        setWeeksLookedUp.add(objWeek.strKey);
+        setTimeout(() => discoverWeek(objWeek), 0);
+    }
     const strScope = getTreasureScope();
     const arrMoments = getChestMoments(strScope);
     const arrShared = objApp.objState?.shared ?? [];
@@ -4265,6 +4773,8 @@ const renderTreasure = () => {
         dblNoNewPerChest *= 1 - 1 / objReward.dblOneIn;
     }
     const strMissing = arrMissing.length === 1 ? "el que te falta" : `alguno de los ${arrMissing.length} que te faltan`;
+    const objSeason = getSeasonSummary(arrMoments);
+    const objPace = getPace(arrMoments, objWeek);
     const dtLastDay = new Date(objWeek.dtEnd.getTime() - 1);
     const objWhen = getWeekWhen(objWeek);
 
@@ -4281,6 +4791,7 @@ const renderTreasure = () => {
             el("span", { class: "grow" }),
             el("button", { class: `btn${objApp.bTreasureEditing ? " primary" : ""}`, text: objApp.bTreasureEditing ? "Terminar de editar" : "Editar tesoros", onclick: () => { objApp.bTreasureEditing = !objApp.bTreasureEditing; objApp.strPasteTarget = null; objApp.objFind = null; if (objApp.bTreasureEditing) loadCatalogues(); renderTreasure(); } })
         ]),
+        renderTreasureFound(objWeek),
         arrShared.length ? el("div", { class: "t-scope" }, [
             el("button", { class: `btn small${strScope === "squad" ? " primary" : ""}`, text: "Probabilidad total", onclick: () => setTreasureScope("squad") }),
             el("button", { class: `btn small${strScope === "mine" ? " primary" : ""}`, text: "Mi probabilidad", onclick: () => setTreasureScope("mine") }),
@@ -4293,13 +4804,25 @@ const renderTreasure = () => {
                 el("div", {}, [el("div", { class: "value figure", text: fmtWhole(intWeekChests) }), el("div", { class: "label", text: "cofres abiertos esta semana" })]),
                 el("div", {}, [el("div", { class: "value figure", text: fmtWhole(intSeasonChests) }), el("div", { class: "label", text: "cofres abiertos en la temporada" })]),
                 el("div", {}, [el("div", { class: "value figure", text: arrMissing.length ? fmtPercent(1 - dblNoneMissing) : "–" }), el("div", { class: "label", text: arrMissing.length ? `de que ya te hubiera tocado ${strMissing}` : "no te falta ningún tesoro esta semana" })]),
-                el("div", {}, [el("div", { class: "value figure", text: arrMissing.length ? fmtPercent(1 - dblNoNewPerChest) : "–" }), el("div", { class: "label", text: arrMissing.length ? `de que el próximo cofre te dé ${strMissing}` : "nada nuevo que pueda salir" })])
+                el("div", {}, [el("div", { class: "value figure", text: arrMissing.length ? fmtPercent(1 - dblNoNewPerChest) : "–" }), el("div", { class: "label", text: arrMissing.length ? `de que el próximo cofre te dé ${strMissing}` : "nada nuevo que pueda salir" })]),
+                el("div", {}, [
+                    el("div", { class: "value figure", text: `${fmtWhole(objSeason.intWon)} de ${fmtWhole(objSeason.intTotal)}` }),
+                    el("div", { class: "label", text: "tesoros de la temporada conseguidos" })
+                ]),
+                // Expected against got, which is the only figure here that says whether the
+                // season is going well. On its own a count says nothing: four treasures is
+                // wonderful with six hundred chests and unremarkable with sixty mil.
+                el("div", {}, [
+                    el("div", { class: "value figure", text: fmtNumber(objSeason.dblExpected) }),
+                    el("div", { class: "label", text: `esperados con tus cofres; llevas ${objSeason.intWon}: ${describeLuck(objSeason.intWon, objSeason.dblExpected)}` })
+                ])
             ]),
             renderTreasureHours()
         ]),
         el("div", { class: "t-grid" }, getShownRewards().map((objReward) => renderTreasureCard(objReward, objWeek, arrMoments))),
+        renderTreasurePace(objPace, objWeek, arrMissing, arrMoments),
         objApp.bTreasureEditing ? renderTreasureSettings(objWeek) : null,
-        el("p", { class: "t-note", text: "Los dos porcentajes de arriba cuentan solo los tesoros sin tachar. Probabilidades por cofre publicadas por Epic (Fortnite Status, 7 de noviembre de 2026) para partidas normales. El cálculo usa los cofres, cofres especiales y cofres de espíritu de las partidas leídas, abiertos o rotos; Epic no ha dicho si todos los tipos de cofre cuentan igual. El cambio de semana (domingo, 14:00 UTC) y los objetos de cada semana no los publica Epic: ajústalos en «Editar tesoros». Las Horas del tesoro también se apuntan a mano: las horas son las que anunció Epic, pero algunos multiplicadores vienen de la prensa y no de Epic, así que conviene comprobarlos ahí mismo." })
+        el("p", { class: "t-note", text: "Los dos porcentajes de arriba cuentan solo los tesoros sin tachar. Probabilidades por cofre publicadas por Epic (Fortnite Status, 7 de noviembre de 2026) para partidas normales. El cálculo usa los cofres, cofres especiales y cofres de espíritu de las partidas leídas, abiertos o rotos; Epic no ha dicho si todos los tipos de cofre cuentan igual. El cambio de semana (domingo, 14:00 UTC) no lo publica Epic: ajústalo en «Editar tesoros». Los objetos de cada semana tampoco salen en ninguna lista, así que el programa los busca en el catálogo del juego por el identificador interno con el que Epic marca los tesoros y rellena solo las casillas vacías; lo que escribas tú gana siempre. Las Horas del tesoro también se apuntan a mano: las horas son las que anunció Epic, pero algunos multiplicadores vienen de la prensa y no de Epic, así que conviene comprobarlos ahí mismo." })
     ].filter(Boolean));
     if (bFindFocus) {
         bFindFocus = false;
@@ -4539,6 +5062,11 @@ const waitingNotes = (objMatch) => {
         .filter((objMate) => !objMate.isYou && objMate.pending)
         .map((objMate) => objMate.id.toLowerCase()));
 
+    // Nobody in this match is waited for: whoever played it is either in the card with their own
+    // figure or never shared at all. Explaining a cloud that is not delivering would be a warning
+    // about nothing, on a card that has everything it is ever going to have.
+    if (!setPending.size) return [];
+
     const arrOut = [cloudWarning()];
     // All of them frozen at once is not a squad that stopped playing: it is this PC not receiving
     if (arrPublishers.length > 1 && arrQuiet.length === arrPublishers.length) {
@@ -4566,36 +5094,147 @@ const sharingNote = () => {
     return el("p", { class: "quiet", text: `Lo he mirado ${objSharing.waitReads} veces en ${fmtClock(dblWaited)}, una cada ${intEvery} s.` });
 };
 
-// How the squad finished, once the match is over and everybody has published. While a match is
-// running nobody has published anything yet, so this only appears afterwards; and until the last
-// card syncs it says who is missing rather than crowning somebody on half the figures.
-const squadScoreCard = (objMatch, bLive, strSize = "half") => {
-    // Their cards come through the cloud, which takes as long as it takes: often longer than the
-    // few seconds between leaving one match and dropping into the next. Waiting for them with
-    // the card on screen only to have it vanish when the next match starts is the worst of both,
-    // so during a live match the comparison of the one just finished stays up until it is stale.
-    let bPrevious = false;
-    if (bLive) {
-        const objDone = getNumberedMatches().at(-1);
-        if (!objDone || objDone.file === objMatch.file) return null;
-        const dblMinutes = (Date.now() - new Date(objDone.startedAt).getTime() - objDone.durationSec * 1000) / 60000;
-        if (dblMinutes > 15) return null;
-        objMatch = objDone;
-        bPrevious = true;
+// Seconds the comparison of the match just played keeps the live slot once every figure has
+// landed. Before this it sat there for a quarter of an hour whether or not anything was still on
+// the way, so most of a match was spent looking at the previous one.
+const INT_SQUAD_SEEN_SECONDS = 90;
+
+// Minutes after a match ends that its comparison is worth the slot at all. A figure that lands
+// later lands for nothing: by then nobody is looking at that match any more.
+const INT_SQUAD_STALE_MINUTES = 15;
+
+// This match's teammates, you aside.
+const matesOf = (objMatch) => (objMatch?.squad ?? []).filter((objMate) => !objMate.isYou);
+
+// Of those, the ones who are in your shared folder: they publish, so their real figures are here
+// or on the way. Somebody a fill dropped into your team never will, and telling the two apart is
+// the whole question of whether there is anything to wait for.
+const sharingMates = (objMatch) => matesOf(objMatch)
+    .filter((objMate) => objMate.pending || objMate.sharedChests != null);
+
+// When a match's comparison stopped having anything pending, by this PC's clock. It is asked
+// every second from the stage key, and the first ask after the last figure lands is what starts
+// the countdown that hands the slot back to the match being played.
+const squadSettledAt = (objMatch) => {
+    const strKey = objMatch.sessionId ?? objMatch.file;
+    objApp.dicSquadSettled ??= {};
+    objApp.dicSquadSettled[strKey] ??= Date.now();
+    return objApp.dicSquadSettled[strKey];
+};
+
+// The match just played, while its squad comparison is still a better thing to have on screen
+// than what is happening right now. That holds as long as a squadmate's real figure is on its
+// way, and for a moment after the last one lands so that it can be read. It never holds when
+// nobody in that match shares with you: nothing was ever coming, and whatever your own replay
+// saw of them it saw during the match, so the match being played wins the slot.
+const previousSquadMatch = (objLiveMatch) => {
+    const objDone = getNumberedMatches().at(-1);
+    if (!objDone || objDone.file === objLiveMatch.file) return null;
+
+    const arrSharing = sharingMates(objDone);
+    if (!arrSharing.length) return null;
+
+    const dblMinutes = (Date.now() - new Date(objDone.startedAt).getTime() - objDone.durationSec * 1000) / 60000;
+    if (dblMinutes > INT_SQUAD_STALE_MINUTES) return null;
+
+    if (arrSharing.every((objMate) => objMate.sharedChests != null)
+        && (Date.now() - squadSettledAt(objDone)) / 1000 > INT_SQUAD_SEEN_SECONDS) {
+        return null;
     }
 
-    if (!objMatch.squad?.length) return null;
+    return objDone;
+};
 
-    const arrMates = objMatch.squad.filter((objMate) => !objMate.isYou);
+// The slot the squad shares with the pace chart in the live tab. Which of the two things belongs
+// in it depends on who you are playing with. With your squad, the comparison of the match just
+// played is the one thing that cannot be seen anywhere else and that is still arriving, so it
+// keeps the slot while it arrives. Playing without them nothing is coming at all, and what
+// matters is the match in progress.
+const squadSlot = (objMatch, bLive, strSize = "half") => {
+    if (!bLive) return squadScoreCard(objMatch, strSize);
+    const objPrevious = previousSquadMatch(objMatch);
+    return objPrevious ? squadScoreCard(objPrevious, strSize, true) : liveMatesCard(objMatch, strSize);
+};
+
+// Which of the two the slot holds, as a word for the stage key, so the hand-over happens on the
+// second it falls due instead of waiting for the next reading of the replay.
+const squadSlotChoice = (objContext) =>
+    objContext?.bLive ? (previousSquadMatch(objContext.objMatch) ? "prev" : "now") : "match";
+
+// Your teammates while the match runs. Nobody has published anything for a match still being
+// played, so the only figures that exist are the ones your own replay caught: the chests opened
+// within its range, about 300 m of you. A floor and never a total, and the only live answer
+// there is to what the rest of your team is doing.
+const liveMatesCard = (objMatch, strSize) => {
+    const arrMates = matesOf(objMatch);
     if (!arrMates.length) return null;
 
-    // Nothing shared yet. If you are in a squad their cards are on the way, and the cloud takes
-    // its time: an empty space where the comparison will be looks like it is never coming, so
-    // the card goes up straight away saying it is waiting.
-    if (!arrMates.some((objMate) => objMate.sharedChests != null)) {
-        if (!objApp.objState?.inSquad) return null;      // not in a squad: nothing to wait for
+    const arrRows = [
+        { strName: objMatch.ownerName ?? "Tú", intChests: objMatch.chestsTotal, bYou: true, bGuess: false },
+        ...arrMates.map((objMate) => ({
+            strName: objMate.name ?? objMate.id.slice(0, 8),
+            intChests: objMate.nearbyChests ?? 0,
+            bYou: false,
+            bGuess: true,
+            // They share with you, so this floor is standing in for something: their own count
+            // lands when the match ends and their file reaches your folder
+            bPending: !!objMate.pending
+        }))
+    ].sort((objLeft, objRight) => objRight.intChests - objLeft.intChests);
+
+    // At the drop everybody is on nothing, and a bar is only as long as the best figure there is
+    const intTop = Math.max(1, ...arrRows.map((objRow) => objRow.intChests));
+    const bSharing = arrRows.some((objRow) => objRow.bPending);
+
+    return el("div", { class: `l-card ${strSize} l-squad` }, [
+        el("h2", { text: "Cofres de tus compañeros ahora mismo" }),
+        el("div", { class: "l-score" }, arrRows.map((objRow) => el("div", { class: `l-row${objRow.bYou ? " you" : ""}${objRow.bGuess ? " guess" : ""}` }, [
+            // No crown while the match runs: every figure but yours is a floor, so there is
+            // nothing to crown. It lands on the finished card, where the figures are real.
+            el("span", { class: "crownslot" }),
+            el("span", { class: "whocell" }, [
+                el("span", { class: "who", "data-notr": true, text: objRow.strName }),
+                objRow.bYou ? el("span", { class: "tag", text: "tú" }) : null,
+                objRow.bGuess ? el("span", {
+                    class: "tag",
+                    title: objRow.bPending
+                        ? "Comparte contigo: su cifra de verdad llega al terminar la partida"
+                        : "No comparte contigo: es solo lo que tu repetición le ve abrir cerca de ti",
+                    text: "estimado"
+                }) : null
+            ]),
+            el("span", { class: "track" }, el("i", { style: { width: `${(objRow.intChests / intTop) * 100}%` } })),
+            el("b", { class: "figure", "data-notr": true, text: `${objRow.bGuess ? "≥" : ""}${objRow.intChests}` })
+        ]))),
+        el("p", { class: "hint", text: bSharing
+            ? "Tu repetición solo graba lo que se abre cerca de ti, así que estas cifras son mínimos. Las de verdad de quien comparte contigo llegan al terminar la partida."
+            : "Tu repetición solo graba lo que se abre cerca de ti, unos 300 m, así que estas cifras son mínimos: abrieron eso o más." })
+    ]);
+};
+
+// How the squad finished, once the match is over. Their cards come through the cloud, so until
+// the last one lands this says who is missing rather than crowning somebody on half the figures.
+const squadScoreCard = (objMatch, strSize = "half", bPrevious = false) => {
+    if (!objMatch.squad?.length) return null;
+
+    const arrMates = matesOf(objMatch);
+    if (!arrMates.length) return null;
+
+    // Nobody shares, and your replay saw none of them open anything near you: there is not one
+    // figure to put in the card, and four dashes say less than no card at all
+    if (!arrMates.some((objMate) => objMate.sharedChests != null || objMate.pending || objMate.nearbyChests)) return null;
+
+    const strTitle = bPrevious ? "Cofres del squad en la partida anterior"
+        : sharingMates(objMatch).length ? "Cofres del squad en esta partida" : "Cofres de tus compañeros en esta partida";
+
+    // Nothing shared yet, and somebody in this match does share: their card is on its way and
+    // the cloud takes its time. An empty space where the comparison will be looks like it is
+    // never coming, so the card goes up straight away saying it is waiting. Nobody sharing is
+    // the opposite case and not a wait at all: nothing is on its way, what your own replay saw
+    // of them is all there will ever be, and that is what the rows below show.
+    if (!arrMates.some((objMate) => objMate.sharedChests != null) && arrMates.some((objMate) => objMate.pending)) {
         return el("div", { class: `l-card ${strSize} l-squad` }, [
-            el("h2", { text: bPrevious ? "Cofres del squad en la partida anterior" : "Cofres del squad en esta partida" }),
+            el("h2", { text: strTitle }),
             el("div", { class: "waiting" }, [
                 el("b", {}, [el("span", { class: "spin" }), "Leyendo lo que ha publicado tu squad…"]),
                 el("p", { class: "quiet", text: "Sus cifras vienen de vuestra carpeta compartida, y la nube tarda un poco en traerlas. Aparecen aquí solas." }),
@@ -4630,7 +5269,7 @@ const squadScoreCard = (objMatch, bLive, strSize = "half") => {
     if (bFirstTime) objApp.strCrownShown = strKey;
 
     return el("div", { class: `l-card ${strSize} l-squad` }, [
-        el("h2", { text: bPrevious ? "Cofres del squad en la partida anterior" : "Cofres del squad en esta partida" }),
+        el("h2", { text: strTitle }),
         el("div", { class: "l-score" }, arrRows.map((objRow) => {
             // An estimate can never win: it is a floor, and crowning it would be made up
             const bWinner = objRow.intChests === intTop && arrRows.length > 1 && !objRow.bGuess;
@@ -4645,7 +5284,13 @@ const squadScoreCard = (objMatch, bLive, strSize = "half") => {
                 el("span", { class: "whocell" }, [
                     el("span", { class: `who${bWinner ? " champ" : ""}`, "data-notr": true, text: objRow.strName }),
                     objRow.bYou ? el("span", { class: "tag", text: "tú" }) : null,
-                    objRow.bGuess && !objRow.bNone ? el("span", { class: "tag", text: "estimado" }) : null,
+                    objRow.bGuess && !objRow.bNone ? el("span", {
+                        class: "tag",
+                        title: objRow.bPending
+                            ? "Comparte contigo, pero su ficha de esta partida todavía no ha llegado: esto es lo que tu repetición le vio abrir cerca de ti"
+                            : "No está en tu escuadrón: es lo que tu repetición le vio abrir cerca de ti",
+                        text: "estimado"
+                    }) : null,
                     objRow.bNone ? el("span", {
                         class: "tag",
                         title: objRow.bPending
@@ -4660,9 +5305,11 @@ const squadScoreCard = (objMatch, bLive, strSize = "half") => {
                     : el("b", { class: "figure", "data-notr": true, text: `${objRow.bGuess ? "≥" : ""}${objRow.intChests}` })
             ]);
         })),
-        el("p", { class: "hint", text: arrGuessed.length
-            ? `${intTotal} cofres entre los ${arrRows.length}. Los marcados «estimado» no están en tu escuadrón: es solo lo que tu repetición les vio abrir cerca de ti, así que abrieron eso o más.`
-            : `${intTotal} cofres entre los ${arrRows.length}. Los de tus compañeros vienen de vuestra carpeta compartida.` }),
+        el("p", { class: "hint", text: !arrGuessed.length
+            ? `${intTotal} cofres entre los ${arrRows.length}. Los de tus compañeros vienen de vuestra carpeta compartida.`
+            : arrGuessed.some((objRow) => objRow.bPending)
+                ? `${intTotal} cofres entre los ${arrRows.length}. Los marcados «estimado» son un mínimo: lo que tu repetición les vio abrir cerca de ti, así que abrieron eso o más.`
+                : `${intTotal} cofres entre los ${arrRows.length}. Los marcados «estimado» no están en tu escuadrón: es solo lo que tu repetición les vio abrir cerca de ti, así que abrieron eso o más.` }),
         // Somebody is still missing from a card that is otherwise filled in: same question, same answer
         ...waitingNotes(objMatch)
     ]);
@@ -4862,7 +5509,7 @@ const drawLivePace = (elHost, objMatch, objHabits, dblNow, bLive = false, bLocke
     ]));
 };
 
-const getStageKey = (objContext) => objContext ? `${objContext.strStage}|${objContext.objMatch.file}|${objContext.strPill}|${objContext.bLocked}` : "none";
+const getStageKey = (objContext) => objContext ? `${objContext.strStage}|${objContext.objMatch.file}|${objContext.strPill}|${objContext.bLocked}|${squadSlotChoice(objContext)}` : "none";
 
 const renderLive = () => {
     if (!objApp.objState) return;
@@ -4975,7 +5622,7 @@ const renderLive = () => {
                 // Explaining why there is no live count belonged here when there was nothing
                 // better to put in its place. How the squad did in the match just played is
                 // better, every time, so that is what this slot is for now.
-                ]) : squadScoreCard(objMatch, true, "side")
+                ]) : squadSlot(objMatch, true, "side")
             ])
         );
         drawLivePace(elUsualPace, { openings: [] }, objHabits, dblNow, true, true);
@@ -5011,7 +5658,7 @@ const renderLive = () => {
             tile(bLive ? "–" : fmtPosition(objMatch.position), "puesto", bLive ? "Se sabe al terminar" : `${objMatch.totalPlayers ? `de ${objMatch.totalPlayers}` : ""}${objHabits.dblMeanPosition != null ? `${objMatch.totalPlayers ? "; " : ""}tu media, ${fmtNumber(objHabits.dblMeanPosition)}` : ""}` || null, bLive ? null : (objMatch.position === 1 ? "gold" : getTone(objMatch.position, objHabits.dblMeanPosition, true))),
             tile(objMatch.firstChestSec != null ? fmtClock(objMatch.firstChestSec) : "–", "primer cofre", objMatch.firstChestSec != null ? (objHabits.dblMeanFirstChest != null ? `Tu media: ${fmtClock(objHabits.dblMeanFirstChest)}` : "Minuto en que cayó") : "Todavía ninguno", getTone(objMatch.firstChestSec, objHabits.dblMeanFirstChest, true)),
             elRush,
-            squadScoreCard(objMatch, bLive),
+            squadSlot(objMatch, bLive),
             el("div", { class: "l-card half" }, [el("h2", { text: "Cofres minuto a minuto" }), elPace])
         ].filter(Boolean)),
         el("p", { class: "t-note", text: bLive ? "Fortnite escribe la repetición cada 20 segundos: lo que ves llega con ese retraso. El puesto y las estadísticas oficiales se cierran al terminar la partida." : null })
@@ -5982,8 +6629,6 @@ const renderChrome = () => {
             el("i", { class: `dot${objGame.logFound ? "" : " off"}` }),
             el("button", { class: "linkish", text: objGame.logFound ? "Leyendo el registro de Fortnite" : "Registro de Fortnite no encontrado", onclick: openLogSettings })
         ]));
-        const intOutdated = objApp.objState.matches.filter((objMatch) => objMatch.outdated).length;
-        if (intOutdated && !objStatus.pendingCount) elStatus.append(el("span", { text: `${intOutdated} ${intOutdated === 1 ? "partida conserva" : "partidas conservan"} el recuento antiguo (marcadas con *): su repetición ya no está` }));
         if (objStatus.errors.length) elStatus.append(el("button", {
             class: "btn small ghost warn", style: { padding: "0 6px" },
             text: `${objStatus.errors.length} ${objStatus.errors.length === 1 ? "repetición no se pudo leer" : "repeticiones no se pudieron leer"}. Ver por qué`,
@@ -6363,6 +7008,18 @@ const callLeaveTime = (objLive, intBestMinute) => {
 };
 
 const OBJ_TOAST_ICONS = { good: "✓", gold: "★", warn: "!", info: "●" };
+// The asterisk on a match number. Counted by an older version of the reader, and its replay is
+// no longer in the folder, so there is nothing to recount it from. Said on demand rather than in
+// the status bar: it is unfixable by design, and a line of prose that is always on screen about
+// something nobody can act on is a line that stops being read.
+const explainOutdated = () => {
+    const intOutdated = (objApp.objState?.matches ?? []).filter((objMatch) => objMatch.outdated).length;
+    showToast(
+        "Recuento de una versión anterior",
+        `Esta partida se contó con una versión anterior del lector y su repetición ya no está en la carpeta, así que no se puede volver a contar. Sus cifras valen; puede que no incluyan algo que las versiones nuevas sí cuentan. ${intOutdated === 1 ? "Es la única así." : `Hay ${intOutdated} partidas así, marcadas con *.`}`,
+        "info", 9000);
+};
+
 const showToast = (strTitle, strText = null, strKind = "info", intMs = 6000) => {
     const elToasts = document.getElementById("elToasts");
     const close = () => { elToast.classList.add("out"); setTimeout(() => elToast.remove(), 320); };
