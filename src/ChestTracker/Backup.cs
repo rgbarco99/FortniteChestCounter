@@ -29,8 +29,12 @@ public static class Backup
     /// Writes today's copy when there is none, or when the one there has gone stale. Returns true
     /// when a copy was made. Failing is never fatal: a copy that cannot be written is logged and
     /// the program carries on.
+    ///
+    /// The matches arrive as something to call, not as text: most calls here decide there is
+    /// nothing to do, and building that text means serialising every match the reader has ever
+    /// played. It is asked for once the decision is made.
     /// </summary>
-    public static bool Write(string strDataFolder, string strJson, Action<string>? fnLog = null, bool bForce = false)
+    public static bool Write(string strDataFolder, Func<string> fnJson, Action<string>? fnLog = null, bool bForce = false)
     {
         try
         {
@@ -48,7 +52,7 @@ public static class Backup
             using (var objFile = File.Create(strTemp))
             using (var objZip = new GZipStream(objFile, CompressionLevel.Optimal))
             {
-                var arrBytes = Encoding.UTF8.GetBytes(strJson);
+                var arrBytes = Encoding.UTF8.GetBytes(fnJson());
                 objZip.Write(arrBytes, 0, arrBytes.Length);
             }
             File.Move(strTemp, strPath, overwrite: true);

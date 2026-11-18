@@ -23,7 +23,7 @@ cofre tiene una recompensa visible al momento.
 | 2 | Copia de seguridad (guardar, CSV y restaurar) | **Hecho** |
 | 3 | Pestaña Mapa | **Primera versión hecha** · calor, zonas y reparto |
 | 4 | Comparativa de mejora por días/semanas/meses | **Hecho** |
-| 5 | `matches.json` partido por partida | Pendiente |
+| 5 | `matches.json` partido por partida | **Hecho** · un registro por línea, 49 KB por partida en vez de 10,7 MB |
 | 6 | Tests del parser | **Hecho** · referencia de una repetición real, con el diff en palabras |
 | 7 | Imágenes y nombres desde la API (2.1) | **Hecho** · buscador sobre los cuatro catálogos |
 | 8 | Semanas cortadas al final del evento | **Hecho** · cinco semanas, la última acaba el 5 de diciembre |
@@ -509,14 +509,62 @@ para guardar una al momento.
 de un borrado accidental y de un archivo roto, pero no de perder el disco. Para eso sigue haciendo
 falta llevarse de vez en cuando una copia manual fuera del PC.
 
-## 5. `matches.json` partido por partida
+## 5. `matches.json` partido por partida — **hecho el 16/11/2026**
 
-Hoy es un único archivo de 6,6 MB que se reescribe **entero** cada vez que termina una partida.
-A tu ritmo no molesta, pero crece lineal: con 500 partidas serían unos 25 MB reescritos cada vez.
+Hoy es un único archivo que se reescribe **entero** cada vez que termina una partida, y crece
+lineal. Medido en el PC del proyecto:
 
-Qué hacer: un archivo por partida, o añadir al final en vez de reescribir. Hay que mantener la
-escritura a archivo temporal y renombrado que ya existe, que es lo que evita quedarse con medio
-archivo si se corta la luz.
+| Fecha | Partidas | `matches.json` | Por partida |
+|---|---|---|---|
+| 14/11/2026 | ~130 | 6,6 MB | ~51 KB |
+| **16/11/2026** | **209** | **10,7 MB** | ~51 KB |
+
+Dos días y 4 MB más. La proyección de entonces se confirma: a 51 KB por partida, 500 partidas son
+**25 MB reescritos cada quince minutos**, que es lo que dura una partida. Y no es solo el disco:
+ese archivo se copia entero a `copias` una vez al día, y el proceso lo serializa en memoria antes
+de escribirlo.
+
+**Qué se hizo:** `matches.jsonl`, **una partida por línea**, y terminar una partida es añadir su
+línea al final. Se descartó el archivo por partida porque medio millar de archivos sueltos se
+rompen más fácil a mano y no aportan nada sobre esto.
+
+| | Antes | Ahora |
+|---|---|---|
+| Terminar una partida | serializar 10,7 MB + escribirlos + volverlos a leer para la copia | **añadir 49 KB** |
+| Crece con | todo lo que hayas jugado | nada |
+
+Lo que hace que un archivo que solo crece por el final funcione aquí es que **una partida nunca se
+borra sola**: excluir una es un ajuste (`Settings.ExcludedFiles`), no un borrado, y borrar una
+repetición no toca su registro. Lo único que un añadido no sabe decir es «esta partida se ha
+vuelto a guardar» —releída, o con su clase corregida—, y eso se resuelve escribiendo otra línea
+para la misma repetición: **al leer gana la última**. Cuando las líneas muertas pasan de 50 o de
+un cuarto del total, el archivo se reescribe compactado; es la única vez que se escribe entero.
+
+Lo que se exportó, se copió y se importó sigue siendo **un único array JSON**, que es lo que
+guardan todas las copias ya hechas. Solo que ahora se construye de memoria en vez de leerse del
+disco. Y `Backup.Write` recibe las partidas como *algo que llamar*, no como texto: casi todas las
+llamadas deciden que no toca copia, y antes se serializaban los 10,7 MB igualmente para tirarlos.
+
+**El paso del formato viejo al nuevo se verifica antes de tocar nada:** se escribe `matches.jsonl`,
+se vuelve a leer, y solo si cuadra el número de partidas se renombra el anterior a
+`matches.json.anterior`. Si algo no cuadra, el archivo viejo se queda donde estaba.
+
+Probado contra las 209 partidas reales (10,7 MB), con copia aparte y sin tocar la carpeta del
+usuario:
+
+| Prueba | Resultado |
+|---|---|
+| Migración | 209 líneas, y el export comparado registro a registro con el original: **idénticos** |
+| Partida nueva | 210 líneas, archivo +49.656 bytes. Ni una reescritura |
+| Gana la última línea | una partida repetida con un campo cambiado: se lee el valor nuevo |
+| Compactación | 272 líneas → 209 en el siguiente guardado, dicho en el registro |
+| Archivo destrozado (300 KB de basura) | copia a `.bak`, 209 partidas recuperadas de `copias`, y a seguir |
+
+Un detalle que importa: **un archivo con líneas ilegibles no es un archivo vacío**. Si no se
+entiende ni una sola línea se trata como dañado y se recupera de la copia; si el archivo está
+vacío de verdad, eso es alguien que borró sus partidas a propósito y se respeta. Una última línea
+cortada a medias —la luz se fue entre escribirla y terminarla— se descarta sola, se avisa, y esa
+partida se vuelve a leer de su repetición si sigue en la carpeta.
 
 ---
 
@@ -801,12 +849,144 @@ inglés salía **«3 left h 4 min»**. Los patrones se ordenan por longitud del 
 primero que encaja**, así que cuando una frase compuesta se traduzca mal, la salida es darle al
 patrón de fuera un literal más largo: aquí, `caducan en {0}`.
 
+## Un `.exe` de archivo único movido mientras corre — *16/11/2026*
+
+Síntoma: recién instalada la 1.7.0, el panel de pavos decía «No se pudieron leer las alertas de
+Salvar el Mundo» y **el registro no decía nada**, ni éxito ni fallo. `GET /api/vbucks` contestaba
+**500 en 1,4 ms**: ni siquiera intentaba la red.
+
+La causa no estaba en el código. El proceso había arrancado desde `Downloads\FortniteChestCounter.exe`
+y ese archivo ya no existía: se había movido al escritorio **con el programa abierto**. Un `.exe`
+de archivo único lleva .NET y todo el código dentro y **va sacando las piezas del archivo según las
+necesita**; en cuanto el archivo no está donde el proceso lo dejó, cualquier camino todavía no
+estrenado deja de poder cargarse. El panel de pavos era justo eso: código que se estrena al pulsar
+el botón.
+
+Comprobado en los dos sentidos, que es lo que lo convierte en diagnóstico y no en sospecha:
+
+| Prueba | Resultado |
+|---|---|
+| El `.exe` de la release, descargado de GitHub, en una carpeta de datos limpia | 200, dos misiones, 100 pavos |
+| El mismo publicado en local con las banderas de CI | 200 |
+| El proceso del usuario, con su `.exe` desaparecido | **500 en 1,4 ms**, sin línea de registro |
+| Copia en marcha a la que se le mueve el `.exe` a propósito | **500 en 6 ms**, y `/api/revision` sigue dando 200 |
+
+Lo último es la prueba limpia: lo ya cargado sigue, lo nuevo no puede cargarse.
+
+**Esto no se puede arreglar desde dentro** —cuando falta el archivo ya no hay de dónde cargar
+nada—, pero sí se puede dejar de disfrazar. Quedan dos cosas pendientes de ahí:
+
+1. **Un 500 del programa no es un fallo de la fuente.** El panel de pavos dice lo mismo si
+   freethevbucks no contesta que si revienta el propio programa, y son cosas distintas: la primera
+   se arregla sola, la segunda no. `api()` ya guarda el código en `objError.intStatus`; basta
+   mirarlo y decir «el programa no pudo responder» cuando sea 5xx. Aplica a todo el panel, no solo
+   a los pavos.
+2. **Que el programa se dé cuenta de que lo han movido.** `Environment.ProcessPath` al arrancar y
+   una comprobación periódica de que ese archivo sigue existiendo: si desaparece, un aviso claro
+   —«te has llevado el programa de sitio con él abierto; ciérralo y ábrelo desde su carpeta»— en
+   vez de fallos sueltos que parecen de otra cosa. Barato: una comprobación de existencia cada
+   pocos minutos.
+
+## `bTossedFromContainer`: la sospecha, medida — *16/11/2026, cerrada*
+
+La sospecha decía: esa bandera **no significa «vino de un cofre»**, porque el botín del suelo de la
+isla previa también viene marcado, y la atribución de «roto de rebote» (`collapse`) la da por
+buena. Se midió instrumentando el lector y pasando **ocho partidas reales** de 644 a 1.101
+segundos, 1.171 aperturas en total.
+
+**La premisa es cierta.** Hay 1.400–2.000 botines marcados por partida, y entre **126 y 147 caen en
+el segundo 0**, en la isla previa, sin un solo cofre de por medio.
+
+**El efecto es ninguno, y ahora se sabe por qué.** Esa bandera solo se consulta para los
+*huérfanos*: contenedores que se rompen sin que conste quién los buscaba. Y de los 32 huérfanos de
+las ocho partidas:
+
+| Medida | Resultado |
+|---|---|
+| Huérfanos en la isla previa | **0**. El primero de cada partida aparece en el segundo 81 |
+| Aperturas antes del segundo 60, de cualquier tipo | **0** |
+| Distancia al jugador más cercano | mediana **1,73 m**, máxima **3,78 m** (el límite son 10 m) |
+| Huérfanos con un **segundo** jugador también a menos de 10 m | **1 de 32**, y es un caso real de dos jugadores en el mismo cofre |
+| Huérfanos sin botín en su ventana de 0,05 s | 2, y no se cuentan |
+
+La ventana de 0,05 s es lo que salva la atribución: el botín del segundo 0 solo podría confundirse
+con un huérfano del segundo 0, y ahí no hay ninguno. Y cuando sí hay huérfano, el jugador que lo
+rompió está a menos de 4 m mientras el siguiente está a decenas o cientos: no es un empate que se
+resuelva por los pelos, es una separación de dos órdenes de magnitud.
+
+**Decisión: no se toca el código.** Se estudió añadir dos guardas y las dos se descartaron con
+datos:
+
+- *Exigir que el botín esté cerca de la posición del propio contenedor*: sería código muerto. La
+  posición del huérfano es **null en los 32 casos** —si se supiera dónde estaba, no sería huérfano—.
+- *No atribuir cuando hay dos jugadores igual de cerca*: costaría una apertura real de cada 32 y no
+  evitaría ninguna falsa de las medidas.
+
+Queda como riesgo **latente, no activo**: si algún día un modo rompiera contenedores en la isla
+previa, la bandera volvería a ser ambigua. El aviso temprano sería una apertura `collapse` con
+tiempo por debajo del segundo 60, que hoy no existe en ninguna partida.
+
+## El tesoro sí está en la repetición, pero sin decir cuál — *18/11/2026, aparcada*
+
+**De dónde sale.** Una partida (18 nov, 00:14) abrió un cofre especial en el minuto 2:10 con la
+animación de recompensa —el brillo azul— y no dio ningún tesoro. La pregunta era si eso se ve en
+el archivo.
+
+**Se ve, y con nombre y apellidos.** El replay lleva un actor que el lector hoy ni mira:
+
+```
+/DelilahTreasureHuntGameplay/Gameplay/Actors/BGA_DelilahTreasureHuntAnimatedChest.BGA_DelilahTreasureHuntAnimatedChest_C
+```
+
+Nace cuando el cofre se abre, vive menos de dos segundos y se destruye. Sus campos de red:
+
+| Campo | Qué trae | Ejemplo medido |
+|---|---|---|
+| `Instigator`, `OpeningPawn` | el pawn que abrió el cofre | `132989`, el mismo `SearchingPawn` del cofre |
+| `SourceContainer` | referencia al contenedor | `22155` |
+| `bSuccess` | **si la tirada ganó** | `1` |
+| `PrizeTemplateId` | el premio, como texto | `DelilahPrize:dpid_item22` |
+| `Tier`, `TierData` | nivel del premio | `0`, `26335` |
+| `OwnerPersistentID` | dueño (heredado del actor de construcción) | `2` |
+
+`PrizeTemplateId` llega en crudo y hay que decodificarlo: dentro de los bits hay ASCII
+(`...44656C696C61685072697A65...` → `DelilahPrize:dpid_item22`). La secuencia completa, medida:
+el cofre normal se oculta (`bHidden = 1`), el cofre animado vive 1,8 s, se destruye, el cofre
+vuelve a ser visible y el botín corriente sale aparte —el tesoro no sustituye al botín—.
+
+**Por qué está aparcada y no hecha.** `dpid_item22` es un índice de la tabla de premios de la
+temporada y **no hay forma pública de traducirlo** a «Gizmo», «pantalla de carga» o «atuendo
+dorado»: no está en fortnite-api.com (no son cosméticos de tienda) ni en ningún datamine
+localizable. Un panel que dijera «has ganado dpid_item22» no sirve de nada, y por eso se decidió
+no tocar el lector. **Si algún día aparece ese mapeo, esto pasa de aparcado a media tarde de
+trabajo**, porque la parte difícil —encontrar el actor y leer sus bits— ya está resuelta aquí.
+
+**Cómo volver a medirlo.** Se hizo con una herramienta de usar y tirar que hereda de
+`FortniteReplayReader.ReplayReader` con `ParseMode.Full`, sobrescribe `ReceiveProperties` para
+censar **todos** los `group.PathName` (el lector del programa solo modela siete tipos de actor;
+los cofres y este no están entre ellos) y lee las propiedades a mano con el mismo bucle
+«handle, bits, payload» que usa `ReadTappedUpdate` en `ReplayParser.cs`. Filtrando por
+`DelilahTreasureHunt` salen las tres líneas del evento.
+
+**Cuánto aparece.** Una sola vez en **23 repeticiones** del 17 y 18 de noviembre. O sea, este
+actor **no** es la animación del Gizmo corriente (1 entre 127): es bastante más raro.
+
+**Lo que dice Epic, que es lo que cierra el caso.** Hay un artículo de soporte oficial sobre
+exactamente este síntoma: «We investigated the issue where players may receive a message: "You
+found [Treasure]" after opening a chest or dropping from the Battle Bus, but did not receive any
+treasure. This issue is now fixed and the missing treasures have been granted to their respective
+players.» El rumor de que el premio se le da a un compañero que no lo tiene **no está confirmado
+por Epic**: sale de un post de Fortnite.gg News en X del 16/11/2026, y choca con lo que Epic sí ha
+dicho (mismas probabilidades por cofre para todos; sin duplicados salvo Gizmos). En el caso
+medido, además, `OpeningPawn` e `Instigator` son el pawn del propio jugador con `bSuccess = 1`.
+
+**Lo que no se pudo cerrar.** Qué jugador es `OwnerPersistentID = 2`: el `FortPlayerStateAthena`
+del replay no publica ningún id persistente con el que cruzarlo. Y la concesión a la cuenta no
+está en el replay ni en `FortniteGame.log` —se buscó en la ventana 00:14–00:33 y no hay una sola
+línea—: eso va por el backend.
+
 ## Pendientes menores y sospechas
 
-- **`bTossedFromContainer` no significa «vino de un cofre».** El botín del suelo de la isla previa
-  viene marcado con esa bandera por el propio Fortnite (104 casos en una partida, todos en el
-  segundo 3, sin ningún cofre cerca). La atribución de «roto de rebote» da por hecho que sí.
-  Hoy funciona, pero conviene revisarlo cuando haya tests.
 - **«Tu ID de Epic» en Ajustes.** Es el respaldo de `Summarizer.GetOwnerId` cuando la repetición
   no dice quién grabó. En 126 partidas no ha hecho falta **ni una vez**. Propuesta: dejarlo
   visible como dato, quitar la caja de edición.

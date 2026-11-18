@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 
 namespace ChestTracker;
@@ -18,6 +19,7 @@ public sealed class Store
     private readonly object _objLock = new();
     private readonly string _strSettingsFile;
     private readonly string _strMatchesFile;
+    private readonly string _strMatchesLog;
     private readonly string _strTreasureFile;
     private Dictionary<string, MatchRecord> _dicMatches = new(StringComparer.OrdinalIgnoreCase);
     private long _lngRevision = 1;
@@ -35,6 +37,7 @@ public sealed class Store
         Directory.CreateDirectory(DataFolder);
         _strSettingsFile = Path.Combine(DataFolder, "settings.json");
         _strMatchesFile = Path.Combine(DataFolder, "matches.json");
+        _strMatchesLog = Path.Combine(DataFolder, "matches.jsonl");
         _strTreasureFile = Path.Combine(DataFolder, "tesoros.json");
 
         Settings = ReadJson<TrackerSettings>(_strSettingsFile) ?? new TrackerSettings();
@@ -79,7 +82,7 @@ public sealed class Store
             Console.WriteLine($"No se pudo leer {_strTreasureFile}: {objError.Message}");
         }
 
-        var lstMatches = ReadJson<List<MatchRecord>>(_strMatchesFile) ?? RecoverMatches();
+        var lstMatches = ReadMatchLog() ?? MigrateWholeFile() ?? RecoverMatches();
         foreach (var objMatch in lstMatches)
         {
             _dicMatches[objMatch.File] = objMatch;
@@ -88,6 +91,191 @@ public sealed class Store
         // What was already here does not count as new: the copy follows what is read from now on
         _intMatchesAtLastCopy = _dicMatches.Count;
     }
+
+    // -----------------------------------------------------------------------------------------
+    // How the matches sit on disk: one match per line, and a new one is written by adding its own
+    // line at the end.
+    //
+    // They used to be a single JSON array rewritten whole every time a match finished. That is
+    // fine at a hundred matches and silly at five hundred: with 209 matches the file was already
+    // 10,7 MB, every one of them serialised, written and read back after each match, for one new
+    // record of 51 KB. The cost grew with everything the reader had ever played.
+    //
+    // A match is never deleted on its own (excluding one is a setting, not a deletion), so the
+    // only thing an append cannot express is a match being saved again — read a second time, or
+    // its class corrected. That writes a second line for the same replay, and reading takes the
+    // last line for each one. When those leftovers are worth more than a rewrite, the file is
+    // written out compacted; that is the only time the whole thing is written at all.
+    //
+    // What is exported, backed up and imported is still one JSON array, which is what every copy
+    // already saved holds, and it is built from memory instead of read back from disk.
+    // -----------------------------------------------------------------------------------------
+
+    /// <summary>How many lines the file holds, to know when the leftovers are worth a rewrite.</summary>
+    private int _intLinesOnDisk;
+
+    /// <summary>Leftover lines tolerated before compacting, on top of a quarter of the matches.</summary>
+    private const int INT_COMPACT_SLACK = 50;
+
+    /// <summary>
+    /// The matches as the log tells them, newest line winning for each replay. Null when there is
+    /// no log to read, or when there is one and not a single line of it could be understood, which
+    /// is a damaged file and not an empty one: an empty file is somebody having deleted them on
+    /// purpose and reads perfectly well as no matches.
+    /// </summary>
+    private List<MatchRecord>? ReadMatchLog()
+    {
+        if (!File.Exists(_strMatchesLog))
+        {
+            return null;
+        }
+
+        var dicByFile = new Dictionary<string, MatchRecord>(StringComparer.OrdinalIgnoreCase);
+        var intLines = 0;
+        var intBroken = 0;
+        try
+        {
+            foreach (var strLine in File.ReadLines(_strMatchesLog))
+            {
+                if (strLine.Length == 0)
+                {
+                    continue;
+                }
+                intLines++;
+                try
+                {
+                    var objMatch = JsonSerializer.Deserialize<MatchRecord>(strLine, objJsonOptions);
+                    if (objMatch != null && !string.IsNullOrEmpty(objMatch.File))
+                    {
+                        dicByFile[objMatch.File] = objMatch;
+                    }
+                    else
+                    {
+                        intBroken++;
+                    }
+                }
+                catch (JsonException)
+                {
+                    // A line cut in half: the power went out between writing it and finishing it.
+                    // Only the last line can be in that state, and its match is read again from
+                    // its replay if the file is still in the folder.
+                    intBroken++;
+                }
+            }
+        }
+        catch (Exception objError)
+        {
+            Console.WriteLine($"No se pudo leer {_strMatchesLog}: {objError.Message}");
+            return null;
+        }
+
+        if (intLines > 0 && dicByFile.Count == 0)
+        {
+            Console.WriteLine($"{_strMatchesLog} tiene {intLines} líneas y ninguna se entiende. Se guarda una copia y se recupera.");
+            try { File.Copy(_strMatchesLog, _strMatchesLog + ".bak", overwrite: true); } catch { }
+            return null;
+        }
+        if (intBroken > 0)
+        {
+            _strRecoveryNote = $"{intBroken} línea(s) del archivo de partidas estaban a medias y se han descartado; esas partidas se vuelven a leer de su repetición si sigue en la carpeta.";
+        }
+
+        _intLinesOnDisk = intLines;
+        return dicByFile.Values.OrderBy(objItem => objItem.StartedAt).ToList();
+    }
+
+    /// <summary>
+    /// The one-off move from the old single file. The log is written and read back before the old
+    /// file is touched: if anything does not add up, the old file stays exactly where it is and
+    /// the program carries on with what it read from it.
+    /// </summary>
+    private List<MatchRecord>? MigrateWholeFile()
+    {
+        var lstOld = ReadJson<List<MatchRecord>>(_strMatchesFile);
+        if (lstOld == null)
+        {
+            return null;
+        }
+
+        var lstMatches = lstOld.Where(objItem => !string.IsNullOrEmpty(objItem.File))
+            .GroupBy(objItem => objItem.File, StringComparer.OrdinalIgnoreCase)
+            .Select(objGroup => objGroup.Last())
+            .OrderBy(objItem => objItem.StartedAt)
+            .ToList();
+
+        try
+        {
+            WriteMatchLog(lstMatches);
+            if (ReadMatchLog() is not { } lstBack || lstBack.Count != lstMatches.Count)
+            {
+                Console.WriteLine("Las partidas pasadas al archivo nuevo no cuadran: se deja el anterior como estaba.");
+                return lstMatches;
+            }
+            File.Move(_strMatchesFile, _strMatchesFile + ".anterior", overwrite: true);
+            _strRecoveryNote = $"Las {lstMatches.Count} partidas se han pasado a matches.jsonl, que se escribe partida a partida en vez de entero. El archivo anterior queda como matches.json.anterior.";
+        }
+        catch (Exception objError)
+        {
+            Console.WriteLine($"No se pudieron pasar las partidas al archivo nuevo: {objError.Message}");
+        }
+        return lstMatches;
+    }
+
+    /// <summary>One line per match, through a temporary file so a crash never leaves it half written.</summary>
+    private void WriteMatchLog(IEnumerable<MatchRecord> lstMatches)
+    {
+        var strTemp = _strMatchesLog + ".tmp";
+        var intLines = 0;
+        using (var objWriter = new StreamWriter(strTemp, append: false, new UTF8Encoding(false)))
+        {
+            foreach (var objMatch in lstMatches)
+            {
+                objWriter.Write(JsonSerializer.Serialize(objMatch, objCompactJsonOptions));
+                objWriter.Write('\n');
+                intLines++;
+            }
+        }
+        File.Move(strTemp, _strMatchesLog, overwrite: true);
+        _intLinesOnDisk = intLines;
+    }
+
+    /// <summary>One match, added at the end. This is what finishing a match costs now.</summary>
+    private void AppendMatchLog(MatchRecord objMatch)
+    {
+        using (var objWriter = new StreamWriter(_strMatchesLog, append: true, new UTF8Encoding(false)))
+        {
+            objWriter.Write(JsonSerializer.Serialize(objMatch, objCompactJsonOptions));
+            objWriter.Write('\n');
+        }
+        _intLinesOnDisk++;
+    }
+
+    /// <summary>
+    /// Rewrites the file without the lines that a later one has replaced, when there are enough of
+    /// them to be worth it. A reader who never re-reads their folder never gets here.
+    /// </summary>
+    private void CompactIfWorthIt()
+    {
+        if (_intLinesOnDisk <= _dicMatches.Count + Math.Max(INT_COMPACT_SLACK, _dicMatches.Count / 4))
+        {
+            return;
+        }
+        try
+        {
+            var intBefore = _intLinesOnDisk;
+            WriteMatchLog(_dicMatches.Values.OrderBy(objItem => objItem.StartedAt));
+            Log($"Archivo de partidas compactado: {intBefore} líneas a {_intLinesOnDisk}");
+        }
+        catch (Exception objError)
+        {
+            // Nothing is lost by failing here: the leftovers are harmless, only wasteful
+            Log($"No se pudo compactar el archivo de partidas: {objError.Message}");
+        }
+    }
+
+    /// <summary>Every match as one JSON array, which is what a copy, an export and an import speak.</summary>
+    private string BuildMatchesJson() =>
+        JsonSerializer.Serialize(_dicMatches.Values.OrderBy(objItem => objItem.StartedAt).ToList(), objCompactJsonOptions);
 
     /// <summary>
     /// The matches file is not there, or could not be read: the matches whose replay Fortnite has
@@ -110,7 +298,7 @@ public sealed class Store
                 return lstRecovered;
             }
 
-            WriteJson(_strMatchesFile, lstRecovered, bCompact: true);
+            WriteMatchLog(lstRecovered);
             _strRecoveryNote = $"No estaban las partidas guardadas: se han recuperado {lstRecovered.Count} de la copia de seguridad más reciente.";
             return lstRecovered;
         }
@@ -188,13 +376,13 @@ public sealed class Store
     {
         lock (_objLock)
         {
-            // Write first, keep second: if this record cannot be saved, nothing else is affected
-            var lstToSave = _dicMatches.Values.Where(objItem => !objItem.File.Equals(objMatch.File, StringComparison.OrdinalIgnoreCase))
-                .Append(objMatch).OrderBy(objItem => objItem.StartedAt).ToList();
-            WriteJson(_strMatchesFile, lstToSave, bCompact: true);
+            // Write first, keep second: if this record cannot be saved, nothing else is affected.
+            // One line, whatever the reader has played before.
+            AppendMatchLog(objMatch);
 
             _dicMatches[objMatch.File] = objMatch;
             _lngRevision++;
+            CompactIfWorthIt();
             KeepCopy();
 
             // The first replay with a known owner teaches us who the user is
@@ -221,7 +409,8 @@ public sealed class Store
         // But a folder being read for the first time saves dozens in a row, and a copy holding
         // only the first of them would be worth nothing: enough new matches and it is rewritten.
         var bEnoughNew = _dicMatches.Count - _intMatchesAtLastCopy >= INT_MATCHES_PER_COPY;
-        if (Backup.Write(DataFolder, File.Exists(_strMatchesFile) ? File.ReadAllText(_strMatchesFile) : "[]", Log, bForce: bEnoughNew))
+        // The text is built only if a copy is really going to be written: most calls decide not to
+        if (Backup.Write(DataFolder, BuildMatchesJson, Log, bForce: bEnoughNew))
         {
             _intMatchesAtLastCopy = _dicMatches.Count;
         }
@@ -235,7 +424,7 @@ public sealed class Store
     {
         lock (_objLock)
         {
-            return _dicMatches.Count > 0 && Backup.Write(DataFolder, File.ReadAllText(_strMatchesFile), Log, bForce: true);
+            return _dicMatches.Count > 0 && Backup.Write(DataFolder, BuildMatchesJson, Log, bForce: true);
         }
     }
 
@@ -244,7 +433,7 @@ public sealed class Store
     {
         lock (_objLock)
         {
-            return File.Exists(_strMatchesFile) ? File.ReadAllText(_strMatchesFile) : "[]";
+            return BuildMatchesJson();
         }
     }
 
@@ -266,14 +455,15 @@ public sealed class Store
                 {
                     continue;
                 }
+                AppendMatchLog(objMatch);
                 _dicMatches[objMatch.File] = objMatch;
                 intAdded++;
             }
 
             if (intAdded > 0)
             {
-                WriteJson(_strMatchesFile, _dicMatches.Values.OrderBy(objItem => objItem.StartedAt).ToList(), bCompact: true);
                 _lngRevision++;
+                CompactIfWorthIt();
                 KeepCopy();
             }
 
@@ -288,7 +478,7 @@ public sealed class Store
         {
             _dicMatches.Clear();
             _lngRevision++;
-            WriteJson(_strMatchesFile, new List<MatchRecord>());
+            WriteMatchLog(Array.Empty<MatchRecord>());
         }
     }
 

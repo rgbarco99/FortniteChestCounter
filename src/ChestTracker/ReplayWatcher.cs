@@ -17,11 +17,20 @@ public sealed class ReplayWatcher : BackgroundService
     // When the header does not say "recording", one full write cycle without growth is enough
     private static readonly TimeSpan tsClosedWindow = TimeSpan.FromSeconds(25);
 
+    // Fortnite writes the replay key when it closes the file, and that can land a minute or two
+    // after the last write of the match (the end-of-match screen, the way back to the lobby). A
+    // replay without its key is only worth telling the reader about once nothing touches it any
+    // more: before that it is a match still in the game's hands, not a file that went wrong.
+    private static readonly TimeSpan tsKeyGrace = TimeSpan.FromMinutes(4);
+
+    /// <summary>Why a replay cannot be read when the game never got round to writing its key.</summary>
+    private const string STR_NO_KEY = "Fortnite no llegó a cerrar esta repetición (el juego se cerró a mitad de partida) y quedó cifrada sin clave: no se puede leer.";
+
     private readonly Store _objStore;
     private readonly GameLogTail _objGameLog;
     private readonly SemaphoreSlim _objWakeUp = new(0, 1);
     private readonly object _objFailuresLock = new();
-    private readonly Dictionary<string, (string Fingerprint, string Message, int Attempts, long Size, DateTime ModifiedUtc)> _dicFailures = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, (string Fingerprint, string Message, int Attempts, long Size, DateTime ModifiedUtc, bool WaitingForKey)> _dicFailures = new(StringComparer.OrdinalIgnoreCase);
     private volatile bool _bForceAll;
     private volatile bool _bRetryFailed;
 
@@ -147,14 +156,23 @@ public sealed class ReplayWatcher : BackgroundService
 
             var strFingerprint = $"{objFile.Length}|{objFile.LastWriteTimeUtc.Ticks}";
             var objCached = _objStore.FindMatch(objFile.Name);
-            var bUpToDate = objCached != null
+            var bUpToDate = objCached is { IsLocked: false }
                 && objCached.FileSize == objFile.Length
                 && objCached.FileModifiedUtc == objFile.LastWriteTimeUtc
                 && objCached.ParserVersion == ReplayParser.PARSER_VERSION;
 
-            if (bUpToDate && !bForceAll)
+            if (bUpToDate)
             {
-                continue;
+                // This one is read and saved. If it failed earlier, that was a half-written copy
+                // of the same file: the failure is about a file that no longer exists as it was.
+                lock (_objFailuresLock)
+                {
+                    _dicFailures.Remove(objFile.Name);
+                }
+                if (!bForceAll)
+                {
+                    continue;
+                }
             }
 
             // Do not retry a file that already failed unless it changed
@@ -326,6 +344,12 @@ public sealed class ReplayWatcher : BackgroundService
                     // We watched the game close the file: the match is over, save it right away
                     _objStore.SaveMatch(objRecord);
                     _objStore.SetLiveMatch(null);
+                    // The same file may have failed minutes ago, when the key was not written yet
+                    lock (_objFailuresLock)
+                    {
+                        _dicFailures.Remove(objFile.Name);
+                    }
+                    PublishErrors();
                     _objStore.Log($"Partida terminada y leída: {objFile.Name}");
                 }
                 else
@@ -354,8 +378,14 @@ public sealed class ReplayWatcher : BackgroundService
             var objRecord = ParseProcess.Parse(objFile.FullName);
             if (objRecord.IsLocked)
             {
-                // Nobody is writing it any more and the key never arrived: the game closed mid-match
-                throw new InvalidDataException("Fortnite no llegó a cerrar esta repetición (el juego se cerró a mitad de partida) y quedó cifrada sin clave: no se puede leer.");
+                // The key is not there yet. It arrives when the game closes the replay, so this is
+                // only a real failure once the file has been left alone (see tsKeyGrace): it is
+                // remembered quietly, and read again as soon as the game writes to it.
+                if (RememberFailure(objFile, strFingerprint, STR_NO_KEY, bWaitingForKey: true) == 1)
+                {
+                    _objStore.Log($"Todavía sin clave {objFile.Name}: Fortnite la escribe al cerrar la repetición, se reintentará");
+                }
+                return;
             }
             _objStore.SaveMatch(objRecord);
 
@@ -369,12 +399,19 @@ public sealed class ReplayWatcher : BackgroundService
         }
         catch (Exception objError)
         {
-            lock (_objFailuresLock)
-            {
-                var intAttempts = _dicFailures.TryGetValue(objFile.Name, out var objBefore) ? objBefore.Attempts + 1 : 1;
-                _dicFailures[objFile.Name] = (strFingerprint, objError.Message, intAttempts, objFile.Length, objFile.LastWriteTimeUtc);
-            }
+            RememberFailure(objFile, strFingerprint, objError.Message, bWaitingForKey: false);
             _objStore.Log($"No se pudo leer {objFile.Name}: {objError.Message}");
+        }
+    }
+
+    /// <summary>Writes down a failed read and returns how many times this file has failed.</summary>
+    private int RememberFailure(FileInfo objFile, string strFingerprint, string strMessage, bool bWaitingForKey)
+    {
+        lock (_objFailuresLock)
+        {
+            var intAttempts = _dicFailures.TryGetValue(objFile.Name, out var objBefore) ? objBefore.Attempts + 1 : 1;
+            _dicFailures[objFile.Name] = (strFingerprint, strMessage, intAttempts, objFile.Length, objFile.LastWriteTimeUtc, bWaitingForKey);
+            return intAttempts;
         }
     }
 
@@ -390,10 +427,13 @@ public sealed class ReplayWatcher : BackgroundService
 
     public void PublishErrors()
     {
+        var dtNow = DateTime.UtcNow;
         lock (_objFailuresLock)
         {
             _objStore.Status.Errors = _dicFailures
                 .Where(objPair => !_objStore.Settings.IgnoredFiles.Contains(objPair.Key))
+                // Still waiting for the game to write the key: not something to worry the reader with
+                .Where(objPair => !objPair.Value.WaitingForKey || dtNow - objPair.Value.ModifiedUtc >= tsKeyGrace)
                 .Select(objPair => new ScanError { File = objPair.Key, Message = objPair.Value.Message, Attempts = objPair.Value.Attempts, Size = objPair.Value.Size, ModifiedUtc = objPair.Value.ModifiedUtc })
                 .OrderByDescending(objError => objError.File)
                 .ToList();

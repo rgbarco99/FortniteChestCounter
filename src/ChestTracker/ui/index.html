@@ -61,18 +61,24 @@ button, input, select { font: inherit; color: inherit; }
 .segmented.lang button { min-width: 38px; font-size: 13px; }
 .update-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 0 24px 14px; padding: 10px 16px; border-radius: var(--radius); background: var(--card); border-left: 4px solid var(--gold); }
 .update-bar[hidden], .fail-bar[hidden] { display: none; }
-.fail-bar { margin: 0 24px 14px; padding: 12px 16px; border-radius: var(--radius); background: var(--card); border-left: 4px solid var(--danger); }
-.fail-bar .head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
-.fail-bar .head .icon { width: 24px; height: 24px; border-radius: 50%; background: var(--danger); color: #1e1938; font-weight: 800; display: grid; place-items: center; flex: none; }
-.fail-bar .head b { font-size: 15px; }
-.fail-bar .head .why { color: var(--ink-2); font-size: 13.5px; flex-basis: 100%; padding-left: 36px; }
+.fail-bar { margin: 0 24px 10px; padding: 9px 14px; border-radius: var(--radius); background: var(--card); border-left: 4px solid var(--danger); }
+.fail-bar .head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.fail-bar .head .icon { width: 20px; height: 20px; border-radius: 50%; background: var(--danger); color: #1e1938; font-weight: 800; font-size: 13px; display: grid; place-items: center; flex: none; }
+.fail-bar .head b { font-size: 14.5px; }
+/* The reason goes under the title: folded it is one line, opened it is read whole */
+.fail-bar .head .why { color: var(--ink-2); font-size: 13px; flex-basis: 100%; min-width: 0; padding-left: 30px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fail-bar .grow { flex: 1; }
 .fail-bar .x { background: none; border: 0; color: var(--ink-3); font-size: 18px; cursor: pointer; padding: 0 4px; }
-.fail-bar ul { list-style: none; margin: 12px 0 0 36px; padding: 0; display: grid; gap: 10px; }
-.fail-bar li { background: var(--card-raised); border-radius: 8px; padding: 10px 12px; display: grid; gap: 6px; }
-.fail-bar li .file { font-weight: 600; word-break: break-all; }
-.fail-bar li .meta { color: var(--ink-3); font-size: 12.5px; }
-.fail-bar li .msg { color: var(--ink-2); font-size: 13px; word-break: break-word; }
+/* However many there are, the list never takes more than a corner of the screen */
+.fail-bar .list { margin-top: 8px; max-height: min(34vh, 290px); overflow-y: auto; overscroll-behavior: contain; }
+.fail-bar.open .head .why { white-space: normal; }
+.fail-bar ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.fail-bar li { background: var(--card-raised); border-radius: 7px; padding: 5px 9px; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; }
+.fail-bar li .file { font-weight: 600; font-size: 13px; flex: 1 1 220px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fail-bar li .meta { color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+.fail-bar li .msg { color: var(--ink-2); font-size: 12.5px; flex-basis: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fail-bar li .btn.small { padding: 2px 8px; font-size: 12px; }
+.fail-bar .foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
 .fail-bar .row { display: flex; flex-wrap: wrap; gap: 8px; }
 
 /* Salvar el Mundo: the V-Bucks on offer today, hanging from a button in the header */
@@ -1573,6 +1579,13 @@ const ARR_I18N = [
     ["No se pudo hacer", "That did not work", "Impossible de le faire"],
     ["Ver detalles", "Show details", "Voir les détails"],
     ["Ocultar detalles", "Hide details", "Masquer les détails"],
+    ["Ver cuál es", "See which one", "Voir laquelle"],
+    ["Ver cuáles son", "See which ones", "Voir lesquelles"],
+    ["Ocultar", "Hide", "Masquer"],
+    ["No reintentar", "Stop trying", "Ne plus essayer"],
+    ["Borrar", "Delete", "Supprimer"],
+    ["No volver a intentarlo con ninguna", "Stop trying with all of them", "Ne plus essayer avec aucune"],
+    ["Los archivos se quedan en la carpeta, pero el programa deja de leerlos", "The files stay in the folder, but the program stops reading them", "Les fichiers restent dans le dossier, mais le programme arrête de les lire"],
     ["Ocultar este aviso hasta que haya un error nuevo", "Hide this notice until there is a new error", "Masquer cet avis jusqu'à une nouvelle erreur"],
     ["La más reciente: {0}.", "The most recent: {0}.", "La plus récente : {0}."],
     ["{0}: {1}", "{0}: {1}", "{0} : {1}"],
@@ -1951,6 +1964,36 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // so there is nothing to look up in ARR_I18N.
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
+    {
+        strVersion: "1.8.0",
+        strDate: "2026-11-18",
+        arrItems: [
+            {
+                strTag: "arreglado",
+                es: "Algunas repeticiones salían como error aunque la partida se hubiera leído bien. Pasaba al final de la partida: Fortnite tarda a veces un par de minutos en cerrar la repetición y escribirle la clave, y el programa la daba por rota antes de tiempo. Ahora espera a que el archivo quede de verdad abandonado, y si al final se lee, el aviso desaparece solo.",
+                en: "Some replays showed up as errors even though the match had been read fine. It happened at the end of a match: Fortnite can take a couple of minutes to close the replay and write its key, and the program gave up on it too early. Now it waits until the file has really been left alone, and if it does get read in the end, the warning clears itself.",
+                fr: "Certaines rediffusions apparaissaient en erreur alors que la partie avait bien été lue. Cela arrivait en fin de partie : Fortnite met parfois une ou deux minutes à fermer la rediffusion et à y écrire sa clé, et le programme la déclarait cassée trop tôt. Il attend désormais que le fichier soit vraiment abandonné, et si elle finit par être lue, l’avertissement disparaît tout seul."
+            },
+            {
+                strTag: "mejorado",
+                es: "El aviso de repeticiones con error ocupa mucho menos. El motivo se dice una vez en vez de repetirlo en cada archivo, cada repetición es una línea con sus dos botones, y la lista nunca pasa de un tercio de la pantalla por muchas que haya. Cinco errores caben ahora en la mitad de lo que ocupaban tres.",
+                en: "The failed-replays notice takes up far less room. The reason is given once instead of repeated for every file, each replay is one line with its two buttons, and the list never takes more than a third of the screen however many there are. Five errors now fit in half the space three used to take.",
+                fr: "L’avis des rediffusions en erreur prend beaucoup moins de place. La raison est donnée une seule fois au lieu d’être répétée pour chaque fichier, chaque rediffusion tient sur une ligne avec ses deux boutons, et la liste ne dépasse jamais un tiers de l’écran, quel qu’en soit le nombre. Cinq erreurs tiennent maintenant dans la moitié de la place qu’en prenaient trois."
+            },
+            {
+                strTag: "mejorado",
+                es: "Guardar una partida ya no reescribe todas. Las partidas pasan a un archivo que se escribe línea a línea: con 239 partidas guardadas, terminar una obligaba a reescribir 12 MB y ahora cuesta una línea. El cambio se hace solo al arrancar y el archivo de antes se queda a tu lado como matches.json.anterior.",
+                en: "Saving a match no longer rewrites them all. Matches now go into a file written line by line: with 239 saved matches, finishing one meant rewriting 12 MB and now costs a single line. The change happens by itself on startup and the previous file stays beside it as matches.json.anterior.",
+                fr: "Enregistrer une partie ne réécrit plus toutes les autres. Les parties vont désormais dans un fichier écrit ligne par ligne : avec 239 parties enregistrées, en terminer une obligeait à réécrire 12 Mo et ne coûte plus qu’une ligne. Le changement se fait tout seul au démarrage et le fichier précédent reste à côté sous le nom matches.json.anterior."
+            },
+            {
+                strTag: "arreglado",
+                es: "La Hora del tesoro de la madrugada del 15 de noviembre figuraba con el token al doble. No fue así: Epic no anunció ninguna subida para esa sesión y fue con los mismos multiplicadores que la de la tarde. Corregido, salvo que tú lo hayas cambiado a mano.",
+                en: "The Treasure Hour in the early hours of 15 November was listed with double odds on the token. It was not: Epic announced no boost for that session and it ran with the same multipliers as the afternoon one. Corrected, unless you changed it by hand.",
+                fr: "L’Heure du trésor de la nuit du 15 novembre était notée avec le jeton au double. Ce n’était pas le cas : Epic n’a annoncé aucune hausse pour cette session, qui a eu les mêmes multiplicateurs que celle de l’après-midi. Corrigé, sauf si tu l’as modifiée à la main."
+            }
+        ]
+    },
     {
         strVersion: "1.7.0",
         strDate: "2026-11-16",
@@ -3762,7 +3805,7 @@ const renderTable = (elBody, { arrMatches, objSelected }) => {
 // Everything here can be edited from the tab, so a new season only needs new numbers.
 // Bumped when this file brings data an older copy cannot have: on loading, normalizeTreasure
 // folds in what is new (today's Treasure Hours) without touching what the player edited.
-const INT_TREASURE_VERSION = 6;
+const INT_TREASURE_VERSION = 7;
 
 const defaultTreasure = () => ({
     intVersion: INT_TREASURE_VERSION,
@@ -3792,14 +3835,18 @@ const defaultTreasure = () => ({
     // world-wide instant, kept in UTC: the tab turns it into the clock of whoever is looking,
     // which is why nothing here is written in Spanish time.
     arrWindows: [
+        // 7 Nov, the "Fortune" ones. The night session was the boosted one: double on the token.
         { strStart: "2026-11-07T19:00:00Z", strEnd: "2026-11-07T21:00:00Z", objMultipliers: { token: 1.5, gold: 7.5, vehicle: 10 } },
         { strStart: "2026-11-08T02:00:00Z", strEnd: "2026-11-08T04:00:00Z", objMultipliers: { token: 2, gold: 10 } },
-        // 14 Nov, the "Cursed" ones. Epic gave the starting hours (19:00 UTC, and 02:00 UTC the
-        // day after). The first one ran four hours, not two: Fortnite had trouble and extended
-        // it to 23:00 UTC. The multipliers are what the press reported, and the second window's
-        // 2x is last week's pattern rather than a figure Epic confirmed. Editable.
+        // 14 Nov, the "Cursed" ones. The afternoon window ran four hours and not two, and that
+        // is Epic's own doing, not a guess: players were being kicked out mid-match, and once it
+        // was fixed the window was extended "two additional hours til 6 PM ET" — 23:00 UTC —
+        // "to account for this" (@FortniteStatus, 14 Nov 2026).
         { strStart: "2026-11-14T19:00:00Z", strEnd: "2026-11-14T23:00:00Z", objMultipliers: { token: 1.5, gold: 7.5, vehicle: 10 } },
-        { strStart: "2026-11-15T02:00:00Z", strEnd: "2026-11-15T04:00:00Z", objMultipliers: { token: 2, gold: 10 } }
+        // The night session ran with the same multipliers as the afternoon one. It first went in
+        // here with the double token of the week before, which was a guess and a wrong one: Epic
+        // announced no bigger boost for that night, and what followed it live gives 1.5x.
+        { strStart: "2026-11-15T02:00:00Z", strEnd: "2026-11-15T04:00:00Z", objMultipliers: { token: 1.5, gold: 7.5, vehicle: 10 } }
     ]
 });
 
@@ -3910,6 +3957,17 @@ const normalizeTreasure = (objSaved) => {
     if (intSaved < 6) {
         for (const [strKey, objOfficial] of Object.entries(OBJ_WEEK_ITEMS)) {
             if (objOfficial.strImage && (strKey.startsWith("2026-11-15T14|") || strKey.startsWith("2026-11-22T14|"))) delete objOut.objItems[strKey];
+        }
+    }
+    // The night session of 15 Nov was written down with the double token of the week before,
+    // which Epic never announced for it: it ran with the same multipliers as the afternoon one.
+    // Corrected only where those wrong figures are still there, so a window changed by hand or
+    // a multiplier typed in the tab stays as it was.
+    if (intSaved < 7) {
+        for (const objWindow of objOut.arrWindows) {
+            if (objWindow.strStart === "2026-11-15T02:00:00Z" && Number(objWindow.objMultipliers?.token) === 2) {
+                objWindow.objMultipliers = { token: 1.5, gold: 7.5, vehicle: 10 };
+            }
         }
     }
     if (intSaved < INT_TREASURE_VERSION) objOut.intVersion = INT_TREASURE_VERSION;
@@ -7233,10 +7291,18 @@ const renderFailures = () => {
     // Do not redraw under the user's fingers while a confirmation is open
     if (!elBar.hidden && elBar.querySelector(".btn.danger.solid")) return;
     elBar.hidden = false;
+    // Folded, the reason is one line with an ellipsis; opened, it is read whole
+    elBar.classList.toggle("open", !!objApp.bFailDetails);
 
     const arrFiles = arrErrors.map((objError) => objError.file);
     const intRepeated = arrErrors.filter((objError) => objError.attempts > 1).length;
     const objFirst = arrErrors[0];
+    // Nearly always they failed for the same reason: say it once instead of once per file
+    const bSameReason = arrErrors.every((objError) => objError.message === objFirst.message);
+    const strSummary = arrErrors.length === 1 || bSameReason
+        ? objFirst.message
+        : `La más reciente: ${objFirst.file}.${intRepeated ? " Alguna ya ha fallado más de una vez." : ""}`;
+
     // The detail list is null while it is folded; replaceChildren would print it as the text "null"
     elBar.replaceChildren(...[
         el("div", { class: "head" }, [
@@ -7244,33 +7310,26 @@ const renderFailures = () => {
             el("b", { text: arrErrors.length === 1 ? "Una repetición no se pudo leer" : `${arrErrors.length} repeticiones no se pudieron leer` }),
             el("span", { class: "grow" }),
             el("button", { class: "btn small", text: "Reintentar", onclick: (objEvent) => { objEvent.target.classList.add("working"); retryReplays(); } }),
-            el("button", { class: "btn small", text: "No volver a intentarlo", title: "El archivo se queda en la carpeta, pero el programa deja de leerlo", onclick: () => replayAction("/api/replays/ignore", arrFiles, "No se volverán a intentar") }),
-            deleteButton(arrFiles, arrErrors.length === 1 ? "Borrar el archivo" : "Borrar los archivos"),
-            el("button", { class: "btn small ghost", text: objApp.bFailDetails ? "Ocultar detalles" : "Ver detalles", onclick: () => { objApp.bFailDetails = !objApp.bFailDetails; renderFailures(); } }),
+            el("button", { class: "btn small ghost", text: objApp.bFailDetails ? "Ocultar" : `Ver ${arrErrors.length === 1 ? "cuál es" : "cuáles son"}`, onclick: () => { objApp.bFailDetails = !objApp.bFailDetails; renderFailures(); } }),
             el("button", { class: "x", text: "×", title: "Ocultar este aviso hasta que haya un error nuevo", "aria-label": "Ocultar este aviso hasta que haya un error nuevo", onclick: () => { try { sessionStorage.setItem("fcc-failures-hidden", getFailKey(arrErrors)); } catch (objError) { /* storage unavailable */ } renderFailures(); } }),
-            el("span", { class: "why" }, [
-                arrErrors.length === 1 ? `${objFirst.file}: ${objFirst.message.slice(0, 180)}` : `La más reciente: ${objFirst.file}.`,
-                intRepeated ? ` ${intRepeated === arrErrors.length ? "Ya han fallado más de una vez: lo más probable es que sigan fallando." : "Alguna ya ha fallado más de una vez."}` : null
-            ])
+            el("span", { class: "why", title: strSummary, text: strSummary })
         ]),
-        objApp.bFailDetails ? el("ul", {}, [
-            ...arrErrors.map((objError) => el("li", {}, [
-                el("span", { class: "file", text: objError.file }),
-                el("span", { class: "meta", text: `${fmtMegabytes(objError.size)} · ${fmtDate(objError.modifiedUtc)} · ${objError.attempts === 1 ? "1 intento" : `${objError.attempts} intentos`}` }),
-                el("span", { class: "msg", text: objError.message }),
-                el("div", { class: "row" }, [
-                    el("button", { class: "btn small", text: "No volver a intentarlo", onclick: () => replayAction("/api/replays/ignore", [objError.file], "No se volverá a intentar") }),
-                    deleteButton([objError.file], "Borrar el archivo")
-                ])
-            ])),
-            el("li", {}, el("div", { class: "row" }, [
-                el("button", { class: "btn small", text: "Copiar detalles", onclick: async () => {
-                    try { await navigator.clipboard.writeText(arrErrors.map(describeFailure).join("\n\n")); showToast("Detalles copiados", "Pégalos donde quieras para reportar el problema.", "good"); }
-                    catch (objError) { showToast("No se pudo copiar", null, "warn"); }
-                } }),
-                el("span", { class: "meta", style: { alignSelf: "center" }, text: "El detalle también queda en chestcounter.log, en la carpeta de datos." })
-            ]))
-        ]) : null
+        objApp.bFailDetails ? el("div", { class: "list" }, el("ul", {}, arrErrors.map((objError) => el("li", {}, [
+            el("span", { class: "file", title: objError.file, text: objError.file }),
+            el("span", { class: "meta", text: `${fmtMegabytes(objError.size)} · ${fmtDate(objError.modifiedUtc)} · ${objError.attempts === 1 ? "1 intento" : `${objError.attempts} intentos`}` }),
+            el("button", { class: "btn small", text: "No reintentar", title: "El archivo se queda en la carpeta, pero el programa deja de leerlo", onclick: () => replayAction("/api/replays/ignore", [objError.file], "No se volverá a intentar") }),
+            deleteButton([objError.file], "Borrar"),
+            bSameReason ? null : el("span", { class: "msg", title: objError.message, text: objError.message })
+        ].filter(Boolean)))) ) : null,
+        objApp.bFailDetails ? el("div", { class: "foot" }, [
+            arrErrors.length === 1 ? null : el("button", { class: "btn small", text: "No volver a intentarlo con ninguna", title: "Los archivos se quedan en la carpeta, pero el programa deja de leerlos", onclick: () => replayAction("/api/replays/ignore", arrFiles, "No se volverán a intentar") }),
+            arrErrors.length === 1 ? null : deleteButton(arrFiles, "Borrar los archivos"),
+            el("button", { class: "btn small ghost", text: "Copiar detalles", onclick: async () => {
+                try { await navigator.clipboard.writeText(arrErrors.map(describeFailure).join("\n\n")); showToast("Detalles copiados", "Pégalos donde quieras para reportar el problema.", "good"); }
+                catch (objError) { showToast("No se pudo copiar", null, "warn"); }
+            } }),
+            el("span", { class: "meta", text: "El detalle también queda en chestcounter.log, en la carpeta de datos." })
+        ].filter(Boolean)) : null
     ].filter(Boolean));
 };
 
