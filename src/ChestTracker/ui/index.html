@@ -598,6 +598,7 @@ main.live { padding: 0 24px 14px; }
 .t-facts > div { background: var(--card); border-radius: var(--radius); padding: 11px 15px; }
 .t-facts .value { font-size: 34px; }
 .t-facts .label { color: var(--ink-2); font-size: 13px; margin-top: 3px; }
+.t-facts .label small { display: block; color: var(--ink-3); font-size: 11.5px; margin-top: 2px; }
 .t-pace { background: var(--card); border-radius: var(--radius); padding: 12px 16px; }
 .t-pace h2 { margin: 0 0 4px; font-size: 19px; font-stretch: 75%; }
 .t-pace .hint { color: var(--ink-2); font-size: 13.5px; margin: 0; }
@@ -1206,12 +1207,17 @@ const ARR_I18N = [
     ["Editar tesoros", "Edit treasures", "Modifier les trésors"],
     ["cofres abiertos esta semana", "chests opened this week", "coffres ouverts cette semaine"],
     ["cofres abiertos en la temporada", "chests opened this season", "coffres ouverts cette saison"],
+    ["{0} contados + {1} estimados de {2}", "{0} counted + {1} estimated from {2}", "{0} compt\u00e9s + {1} estim\u00e9s \u00e0 partir de {2}"],
+    ["compa\u00f1ero sin datos", "squadmate with no data", "co\u00e9quipier sans donn\u00e9es"],
+    ["compa\u00f1eros sin datos", "squadmates with no data", "co\u00e9quipiers sans donn\u00e9es"],
+    ["Los huecos de quien no comparte se estiman a {0} cofres por partida, la media de quien s\u00ed.", "Slots of players who do not share are estimated at {0} chests a match, the average of those who do.", "Les places de ceux qui ne partagent pas sont estim\u00e9es \u00e0 {0} coffres par partie, la moyenne de ceux qui partagent."],
     ["casillas tachadas", "squares crossed out", "cases cochées"],
     ["de que ya te hubiera tocado {0}", "chance you should already have got {0}", "de chances d'avoir déjà obtenu {0}"],
     ["no te falta ningún tesoro esta semana", "you are not missing any treasure this week", "il ne te manque aucun trésor cette semaine"],
     ["de que el próximo cofre te dé {0}", "chance your next chest gives you {0}", "de chances que ton prochain coffre te donne {0}"],
     ["nada nuevo que pueda salir", "nothing new left to drop", "plus rien de nouveau à obtenir"],
     ["Los dos porcentajes de arriba cuentan solo los tesoros sin tachar. Probabilidades por cofre publicadas por Epic (Fortnite Status, 7 de noviembre de 2026) para partidas normales. El cálculo usa los cofres, cofres especiales y cofres de espíritu de las partidas leídas, abiertos o rotos; Epic no ha dicho si todos los tipos de cofre cuentan igual. El cambio de semana (domingo, 14:00 UTC) no lo publica Epic: ajústalo en «Editar tesoros». Los objetos de cada semana tampoco salen en ninguna lista, así que el programa los busca en el catálogo del juego por el identificador interno con el que Epic marca los tesoros y rellena solo las casillas vacías; lo que escribas tú gana siempre. Las Horas del tesoro también se apuntan a mano: las horas son las que anunció Epic, pero algunos multiplicadores vienen de la prensa y no de Epic, así que conviene comprobarlos ahí mismo.", "The two percentages above only count treasures you have not crossed out. Per-chest odds published by Epic (Fortnite Status, 7 November 2026) for regular matches. The calculation uses the chests, special chests and spirit chests of the matches read, opened or broken; Epic has not said whether every chest type counts the same. Epic does not publish the weekly reset (Sunday, 14:00 UTC): adjust it in “Edit treasures”. Each week's items are not published as a list either, so the program looks for them in the game's own catalogue by the internal id Epic marks treasures with, and only fills in squares that are empty; anything you type always wins. Treasure Hours are written down by hand too: the times are the ones Epic announced, but some multipliers come from the press rather than from Epic, so they are worth checking there as well.", "Les deux pourcentages ci-dessus ne comptent que les trésors non cochés. Probabilités par coffre publiées par Epic (Fortnite Status, 7 novembre 2026) pour les parties normales. Le calcul utilise les coffres, coffres spéciaux et coffres d'esprit des parties lues, ouverts ou cassés ; Epic n'a pas dit si tous les types de coffres comptent pareil. Epic ne publie pas le changement de semaine (dimanche, 14:00 UTC) : ajuste-le dans « Modifier les trésors ». Les objets de chaque semaine ne sont pas publiés en liste non plus, donc le programme les cherche dans le catalogue du jeu par l'identifiant interne dont Epic marque les trésors, et ne remplit que les cases vides ; ce que tu écris gagne toujours. Les Heures du trésor sont aussi notées à la main : les horaires sont ceux annoncés par Epic, mais certains multiplicateurs viennent de la presse et non d'Epic, donc mieux vaut les vérifier au même endroit."],
+    ["En «Probabilidad total» no se puede contar el cuarto hueco del escuadrón: casi cada partida lo llena alguien distinto, y la mayoría no usa el programa. Esos huecos se estiman a la media de cofres por partida de quien sí comparte, medida sobre vuestras partidas y no fijada en el programa. Las cifras que llevan algo estimado salen con «~» y dicen debajo de qué están hechas. Si la media se queda corta, tus probabilidades salen más bajas de lo que son, que es el lado bueno del que equivocarse.", "In “Total chance” the squad's fourth seat cannot be counted: almost every match somebody different fills it, and most of them do not use the program. Those seats are estimated at the average chests per match of the people who do share, measured over your own matches and not written into the program. Any figure carrying an estimate is shown with “~” and says underneath what it is made of. If that average falls short, your odds come out lower than they really are, which is the good side to be wrong on.", "Dans « Probabilité totale », la quatrième place de l'escouade ne peut pas être comptée : presque chaque partie, c'est quelqu'un de différent qui l'occupe, et la plupart n'utilisent pas le programme. Ces places sont estimées à la moyenne de coffres par partie de ceux qui partagent, mesurée sur vos parties et non inscrite dans le programme. Tout chiffre comportant une estimation s'affiche avec « ~ » et dit en dessous de quoi il est fait. Si cette moyenne est trop basse, tes probabilités sortent plus faibles qu'elles ne le sont, ce qui est le bon côté de l'erreur."],
 
     // Live tab
     ["FINALIZADA · BUSCANDO PARTIDA", "FINISHED · SEARCHING", "TERMINÉE · RECHERCHE"],
@@ -1794,7 +1800,7 @@ const ARR_I18N = [
     // The Save the World mission names. No public service gives them translated, so here they are
     ["Lucha contra la tormenta", "Fight the Storm", "Combattre la temp\u00eate"],
     ["Recupera los datos", "Retrieve the Data", "R\u00e9cup\u00e9rer les donn\u00e9es"],
-    ["Surca el rel\u00e1mpago", "Ride the Lightning", "Chevaucher la foudre"],
+    ["Monta el rayo", "Ride the Lightning", "Chevaucher la foudre"],
     ["Repara el refugio", "Repair the Shelter", "R\u00e9parer l'abri"],
     ["Evac\u00faa el refugio", "Evacuate the Shelter", "\u00c9vacuer l'abri"],
     ["Rescata a los supervivientes", "Rescue the Survivors", "Sauver les survivants"],
@@ -1805,6 +1811,10 @@ const ARR_I18N = [
     ["Abastece la base", "Fuel the Homebase", "Ravitailler la base"],
     ["Lanza el cohete", "Launch the Rocket", "Lancer la fus\u00e9e"],
     ["Reabastecimiento", "Resupply", "Ravitaillement"],
+    ["Lucha contra una tormenta de categor\u00eda 1", "Category 1 Storm", "Temp\u00eate de cat\u00e9gorie 1"],
+    ["Lucha contra una tormenta de categor\u00eda 2", "Category 2 Storm", "Temp\u00eate de cat\u00e9gorie 2"],
+    ["Lucha contra una tormenta de categor\u00eda 3", "Category 3 Storm", "Temp\u00eate de cat\u00e9gorie 3"],
+    ["Lucha contra una tormenta de categor\u00eda 4", "Category 4 Storm", "Temp\u00eate de cat\u00e9gorie 4"],
 
     ["No se pudo iniciar el lector.", "The reader could not be started.", "Impossible de lancer le lecteur."],
     ["La lectura tardó más de {0} segundos y se canceló.", "Reading took more than {0} seconds and was cancelled.", "La lecture a pris plus de {0} secondes et a été annulée."],
@@ -1964,6 +1974,30 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // so there is nothing to look up in ARR_I18N.
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
+    {
+        strVersion: "1.9.0",
+        strDate: "2026-11-18",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Las probabilidades del escuadrón ya no se quedan cortas cuando un compañero no comparte sus tesoros. Cada hueco sin ficha se estima con la media de cofres por partida de los que sí comparten, medida en tus propias partidas y no fijada de antemano. Y la cifra dice de qué está hecha: «2.793 contados + 3.025 estimados de 74 compañeros sin datos», con una tilde (~) delante para que no se confunda con un dato medido. En «Mi probabilidad» no se estima nada.",
+                en: "Squad odds no longer fall short when a squadmate does not share their treasures. Every slot with no card is estimated from the average chests per match of those who do share, measured on your own matches rather than fixed in advance. And the figure says what it is made of: “2,793 counted + 3,025 estimated from 74 squadmates with no data”, with a tilde (~) in front so it is not taken for a measured one. Nothing is estimated under “My odds”.",
+                fr: "Les probabilités de l’escouade ne sont plus sous-estimées quand un coéquipier ne partage pas ses trésors. Chaque place sans fiche est estimée à partir de la moyenne de coffres par partie de ceux qui partagent, mesurée sur tes propres parties et non fixée d’avance. Et le chiffre dit de quoi il est fait : « 2 793 comptés + 3 025 estimés à partir de 74 coéquipiers sans données », avec un tilde (~) devant pour qu’on ne le prenne pas pour une mesure. Rien n’est estimé dans « Ma probabilité »."
+            },
+            {
+                strTag: "arreglado",
+                es: "El panel de Pavos daba la misión equivocada. Salía «Nivel 52, Recupera los datos» cuando la de verdad era «Repara el refugio», y lo mismo con la segunda. Las dos alertas que pagan pavos van resaltadas en la página de la que se leen, y ese resaltado hacía que cada una se quedase con el nombre y la zona de la alerta de arriba. Ahora cada alerta se lee por su propio icono: de 41 alertas leídas se pasa a las 62 que hay.",
+                en: "The V-Bucks panel gave the wrong mission. It said “Power 52, Retrieve the Data” when the real one was “Repair the Shelter”, and the same for the second. The two alerts that pay V-Bucks are highlighted on the page they are read from, and that highlight left each one with the name and zone of the alert above it. Every alert is now read from its own icon: from 41 alerts read to the 62 that are there.",
+                fr: "Le panneau V-Bucks donnait la mauvaise mission. Il affichait « Niveau 52, Récupère les données » alors que la vraie était « Répare l’abri », et de même pour la seconde. Les deux alertes qui rapportent des V-Bucks sont surlignées sur la page d’où elles sont lues, et ce surlignage laissait chacune avec le nom et la zone de l’alerte du dessus. Chaque alerte se lit désormais par sa propre icône : de 41 alertes lues on passe aux 62 qui existent."
+            },
+            {
+                strTag: "arreglado",
+                es: "Dos nombres de misión de Salvar el Mundo. «Ride the Lightning» es «Monta el rayo» en el juego, no «Surca el relámpago», que era traducción nuestra; y las alertas de tormenta salían en inglés, «Category 3 Storm». Las cuatro categorías entran ya con su nombre.",
+                en: "Two Save the World mission names were wrong outside English. “Ride the Lightning” carried a translation of our own in Spanish instead of the game’s, and the storm alerts had no translation at all, so “Category 3 Storm” showed up in English everywhere. All four categories now carry their name in the three languages.",
+                fr: "Deux noms de mission de Sauver le monde. « Ride the Lightning » portait une traduction de notre cru au lieu de celle du jeu, et les alertes de tempête n’étaient pas traduites du tout : « Category 3 Storm » s’affichait en anglais. Les quatre catégories portent désormais leur nom."
+            }
+        ]
+    },
     {
         strVersion: "1.8.0",
         strDate: "2026-11-18",
@@ -4056,32 +4090,80 @@ const getSelectedWeek = () => {
     return arrWeeks[intWanted];
 };
 
-// Every chest of the matches that count, with the real moment it was opened. With "squad" it
-// also counts what your squadmates opened in those same matches: a treasure that drops for any
-// of you is a treasure the group got, so the odds that matter are the ones over all your chests.
+// Every chest the tab counts, in one pass, together with what each figure is made of. With
+// "squad" it also counts what your squadmates opened in those same matches: a treasure that
+// drops for any of you is a treasure the group got, so the odds that matter are the ones over
+// all your chests.
 //
 // Their cards carry counts, not timestamps, so their chests are placed at the start of the match.
 // A match lasts about ten minutes and a Treasure Hour two, so this only shifts a chest across a
 // window's edge in the few minutes either side of it.
-const getChestMoments = (strScope) => {
+//
+// And then there is the seat nobody shares. Counted over one week of 65 matches, the 192 squad
+// slots were 55 covered by somebody sharing, 46 of regulars who cannot share (one of them plays
+// on PlayStation) and 91 of ninety-one different strangers, one match each: matchmaking fills
+// that seat with somebody new almost every time, so "squad" cannot be exact by design and not
+// for want of adoption. Counting those slots as no chests at all left the denominator at about
+// half of the real one, so each of them is worth the average of the people who do share. That
+// makes it an estimate, which is why arrEstimated and arrGaps travel with the moments: a figure
+// that is part estimate has to be able to say so wherever it is shown.
+const getChestTally = (strScope) => {
     const arrMoments = [];
+    const arrEstimated = [];
+    const arrGaps = [];                     // the start of the match of every slot nobody shared
     const bSquad = strScope === "squad";
+    let intSharedChests = 0;                // what the squadmates who do share opened...
+    let intSharedCards = 0;                 // ...and in how many matches, which is their average
+    let intYourChests = 0;
+    let intYourMatches = 0;
 
     for (const objMatch of (objApp.objState?.matches ?? [])) {
         if (objMatch.excluded) continue;
         const dblStart = new Date(objMatch.startedAt).getTime();
         for (const objOpening of objMatch.openings) {
-            if (ARR_CHEST_CATEGORIES.includes(objOpening.category)) arrMoments.push(dblStart + objOpening.t * 1000);
+            if (!ARR_CHEST_CATEGORIES.includes(objOpening.category)) continue;
+            arrMoments.push(dblStart + objOpening.t * 1000);
+            intYourChests++;
         }
+        intYourMatches++;
         if (!bSquad) continue;
         for (const objMate of (objMatch.squad ?? [])) {
-            if (objMate.isYou || objMate.sharedChests == null) continue;
+            if (objMate.isYou) continue;
+            if (objMate.sharedChests == null) { arrGaps.push(dblStart); continue; }
+            intSharedChests += objMate.sharedChests;
+            intSharedCards++;
             for (let intChest = 0; intChest < objMate.sharedChests; intChest++) arrMoments.push(dblStart);
         }
     }
 
-    return arrMoments;
+    // What a slot nobody shared is worth. Worked out here every time and never written down: how
+    // much people play changes from week to week, and a number frozen in the code would go stale
+    // without telling anybody. With nobody sharing, your own matches are the only measure there is.
+    const dblAverage = intSharedCards ? intSharedChests / intSharedCards
+        : intYourMatches ? intYourChests / intYourMatches
+        : 0;
+
+    // Chests do not come in halves, so what one slot leaves over is carried to the next instead
+    // of being rounded away: forty slots of 37,5 are 1.500 chests and not 1.520.
+    let dblOwed = 0;
+    for (const dblStart of arrGaps) {
+        dblOwed += dblAverage;
+        while (arrEstimated.length < Math.round(dblOwed)) arrEstimated.push(dblStart);
+    }
+    for (const dblMoment of arrEstimated) arrMoments.push(dblMoment);
+
+    return { arrMoments, arrEstimated, arrGaps, dblAverage };
 };
+
+// How many of a list of moments fall inside a stretch of time
+const countBetween = (arrMoments, dblFrom, dblTo) => arrMoments.filter((dblMoment) => dblMoment >= dblFrom && dblMoment < dblTo).length;
+
+// What an estimated figure is made of, which travels with the figure wherever it is shown. A
+// number that reads as measured when a good part of it was worked out from an average is worse
+// than no number at all.
+const sayEstimated = (intTotal, intEstimated, intGaps) => intEstimated
+    ? `${fmtWhole(intTotal - intEstimated)} contados + ${fmtWhole(intEstimated)} estimados de ${plural(intGaps, "compañero sin datos", "compañeros sin datos")}`
+    : null;
 
 // How many squads' worth of chests the treasure tab is counting
 const getTreasureScope = () => {
@@ -4124,12 +4206,12 @@ const chanceAt = (objReward, dblMoment) => {
 };
 
 // Odds of a reward over the chests in its scope: this week for weekly rewards, the season for the rest
-const getRewardOdds = (objReward, objWeek, arrMoments) => {
+const getRewardOdds = (objReward, objWeek, objTally) => {
     const objTreasure = objApp.objTreasure;
     const objBounds = getSeasonBounds();
     const dblFrom = objReward.bWeekly ? objWeek.dtStart.getTime() : objBounds.dblFrom;
     const dblTo = objReward.bWeekly ? objWeek.dtEnd.getTime() : objBounds.dblTo;
-    const arrInScope = arrMoments.filter((dblMoment) => dblMoment >= dblFrom && dblMoment < dblTo);
+    const arrInScope = objTally.arrMoments.filter((dblMoment) => dblMoment >= dblFrom && dblMoment < dblTo);
     const intExtra = Math.max(0, Number(objReward.bWeekly ? objTreasure.objExtraWeek[objWeek.strKey] : objTreasure.intExtraSeason) || 0);
     const dblBase = 1 / objReward.dblOneIn;
 
@@ -4144,6 +4226,9 @@ const getRewardOdds = (objReward, objWeek, arrMoments) => {
     }
     return {
         intChests: arrInScope.length + intExtra,
+        // How much of that denominator nobody counted, and over how many squad slots
+        intEstimated: countBetween(objTally.arrEstimated, dblFrom, dblTo),
+        intGaps: countBetween(objTally.arrGaps, dblFrom, dblTo),
         intBoosted,
         dblPerChest: dblBase,
         dblAtLeastOne: 1 - dblNone,
@@ -4159,7 +4244,7 @@ const getRewardOdds = (objReward, objWeek, arrMoments) => {
 //
 // Weeks that have not started add nothing: they have no chests behind them and counting them
 // would drag the expectation down towards zero and call it luck.
-const getSeasonSummary = (arrMoments) => {
+const getSeasonSummary = (objTally) => {
     const arrWeeks = getEventWeeks();
     const dblNow = Date.now();
     let intTotal = 0;
@@ -4172,7 +4257,7 @@ const getSeasonSummary = (arrMoments) => {
             intTotal++;
             if (objApp.objTreasure.objWon[getScopeKey(objReward, objWeek)]) intWon++;
             if (objWeek.dtStart.getTime() <= dblNow) {
-                dblExpected += getRewardOdds(objReward, objWeek, arrMoments).dblAtLeastOne;
+                dblExpected += getRewardOdds(objReward, objWeek, objTally).dblAtLeastOne;
             }
         }
     }
@@ -4681,15 +4766,17 @@ const hitGrid = (strKey, arrHits) => el("div", { class: "hits" }, arrHits.map((o
     el("span", { text: objHit.strName })
 ])));
 
-const renderTreasureCard = (objReward, objWeek, arrMoments) => {
+const renderTreasureCard = (objReward, objWeek, objTally) => {
     const objTreasure = objApp.objTreasure;
     const strKey = getScopeKey(objReward, objWeek);
     const objItem = getItem(strKey);
     const varWon = objTreasure.objWon[strKey];
     const intCount = objReward.bRepeatable ? (Number(varWon) || 0) : 0;
     const bWon = objReward.bRepeatable ? false : !!varWon;
-    const objOdds = getRewardOdds(objReward, objWeek, arrMoments);
+    const objOdds = getRewardOdds(objReward, objWeek, objTally);
     const strScope = objReward.bWeekly ? "esta semana" : "la temporada";
+    // A count that is part estimate wears a tilde and carries its make-up in the tooltip
+    const strMade = sayEstimated(objOdds.intChests, objOdds.intEstimated, objOdds.intGaps);
     // What it costs on average: one chest in dblOneIn, so dblOneIn chests is the ordinary price
     const intTypical = Math.round(objReward.dblOneIn);
     const intToGo = Math.max(0, intTypical - objOdds.intChests);
@@ -4768,7 +4855,7 @@ const renderTreasureCard = (objReward, objWeek, arrMoments) => {
             el("div", { class: "odds" }, ["Por cofre: ", el("b", { text: fmtPercent(objOdds.dblPerChest) }), ` (1 entre ${fmtWhole(objReward.dblOneIn)})`]),
             el("div", { class: "chance" }, [
                 el("div", { class: "figure", text: fmtPercent(objOdds.dblAtLeastOne) }),
-                el("span", { text: `de que ya te haya tocado con tus ${fmtWhole(objOdds.intChests)} cofres de ${strScope}` })
+                el("span", { title: strMade, text: `de que ya te haya tocado con tus ${strMade ? "~" : ""}${fmtWhole(objOdds.intChests)} cofres de ${strScope}` })
             ]),
             // The bar carries the same figure as the number above it, and it is here because the
             // number alone does not move: 4,14 % and 5,96 % read as the same thing, while two
@@ -4873,7 +4960,7 @@ const renderTreasureFound = (objWeek) => {
 // event, because that is when each of them stops being winnable. Treasure Hours are left out:
 // the ones still to come have not been announced, and counting hours nobody has promised would
 // be inventing the best part of the answer.
-const renderTreasurePace = (objPace, objWeek, arrMissing, arrMoments) => {
+const renderTreasurePace = (objPace, objWeek, arrMissing, objTally) => {
     if (objPace.bOver || !arrMissing.length) return null;
     if (objPace.intSoFar < 25 || objPace.dblPerDay <= 0) return null;    // too little behind it to project anything
 
@@ -4881,7 +4968,7 @@ const renderTreasurePace = (objPace, objWeek, arrMissing, arrMoments) => {
     const dblWeekDays = Math.max(0, (Math.min(objWeek.dtEnd.getTime(), dblTo) - Date.now()) / 86400000);
 
     const arrRows = arrMissing.map((objReward) => {
-        const dblNow = getRewardOdds(objReward, objWeek, arrMoments).dblAtLeastOne;
+        const dblNow = getRewardOdds(objReward, objWeek, objTally).dblAtLeastOne;
         const intMore = objReward.bWeekly ? objPace.intWeekLeft : objPace.intLeft;
         return { objReward, dblNow, intMore, dblThen: chanceAfter(dblNow, objReward, intMore), dblDays: objReward.bWeekly ? dblWeekDays : objPace.dblDaysLeft };
     }).sort((objLeft, objRight) => objRight.dblThen - objLeft.dblThen);
@@ -4921,25 +5008,30 @@ const renderTreasure = () => {
         setTimeout(() => discoverWeek(objWeek), 0);
     }
     const strScope = getTreasureScope();
-    const arrMoments = getChestMoments(strScope);
+    const objTally = getChestTally(strScope);
     const arrShared = objApp.objState?.shared ?? [];
     const dblScroll = window.scrollY;
 
-    const intWeekChests = arrMoments.filter((dblMoment) => dblMoment >= objWeek.dtStart.getTime() && dblMoment < objWeek.dtEnd.getTime()).length + (Number(objTreasure.objExtraWeek[objWeek.strKey]) || 0);
+    const dblWeekFrom = objWeek.dtStart.getTime(), dblWeekTo = objWeek.dtEnd.getTime();
+    const intWeekChests = countBetween(objTally.arrMoments, dblWeekFrom, dblWeekTo) + (Number(objTreasure.objExtraWeek[objWeek.strKey]) || 0);
     const { dblFrom: dblSeasonFrom, dblTo: dblSeasonTo } = getSeasonBounds();
-    const intSeasonChests = arrMoments.filter((dblMoment) => dblMoment >= dblSeasonFrom && dblMoment < dblSeasonTo).length + (Number(objTreasure.intExtraSeason) || 0);
+    const intSeasonChests = countBetween(objTally.arrMoments, dblSeasonFrom, dblSeasonTo) + (Number(objTreasure.intExtraSeason) || 0);
+    // The two big counts say what they are made of, or they would be passing an estimate off as
+    // a measurement, which is the one thing worse than not having the figure at all
+    const strWeekMade = sayEstimated(intWeekChests, countBetween(objTally.arrEstimated, dblWeekFrom, dblWeekTo), countBetween(objTally.arrGaps, dblWeekFrom, dblWeekTo));
+    const strSeasonMade = sayEstimated(intSeasonChests, countBetween(objTally.arrEstimated, dblSeasonFrom, dblSeasonTo), countBetween(objTally.arrGaps, dblSeasonFrom, dblSeasonTo));
 
     // Odds over the squares still open, each over its own chests. Gizmos and crossed squares stay out.
     const arrMissing = getMissingRewards(objWeek);
     let dblNoneMissing = 1;
     let dblNoNewPerChest = 1;
     for (const objReward of arrMissing) {
-        dblNoneMissing *= 1 - getRewardOdds(objReward, objWeek, arrMoments).dblAtLeastOne;
+        dblNoneMissing *= 1 - getRewardOdds(objReward, objWeek, objTally).dblAtLeastOne;
         dblNoNewPerChest *= 1 - 1 / objReward.dblOneIn;
     }
     const strMissing = arrMissing.length === 1 ? "el que te falta" : `alguno de los ${arrMissing.length} que te faltan`;
-    const objSeason = getSeasonSummary(arrMoments);
-    const objPace = getPace(arrMoments, objWeek);
+    const objSeason = getSeasonSummary(objTally);
+    const objPace = getPace(objTally.arrMoments, objWeek);
     const dtLastDay = new Date(objWeek.dtEnd.getTime() - 1);
     const objWhen = getWeekWhen(objWeek);
 
@@ -4962,12 +5054,22 @@ const renderTreasure = () => {
             el("button", { class: `btn small${strScope === "mine" ? " primary" : ""}`, text: "Mi probabilidad", onclick: () => setTreasureScope("mine") }),
             el("span", { class: "hint", text: strScope === "squad"
                 ? `Cuenta tus cofres y los de ${plural(arrShared.length, "compañero", "compañeros")} en vuestras partidas juntos.`
-                : "Cuenta solo los cofres que has abierto tú." })
+                : "Cuenta solo los cofres que has abierto tú." }),
+            // The seat that is somebody different every match: said where the choice is made
+            strScope === "squad" && objTally.arrGaps.length
+                ? el("span", { class: "hint", text: `Los huecos de quien no comparte se estiman a ${fmtNumber(objTally.dblAverage)} cofres por partida, la media de quien sí.` })
+                : null
         ]) : null,
         el("div", { class: "t-top" }, [
             el("div", { class: "t-facts" }, [
-                el("div", {}, [el("div", { class: "value figure", text: fmtWhole(intWeekChests) }), el("div", { class: "label", text: "cofres abiertos esta semana" })]),
-                el("div", {}, [el("div", { class: "value figure", text: fmtWhole(intSeasonChests) }), el("div", { class: "label", text: "cofres abiertos en la temporada" })]),
+                el("div", {}, [
+                    el("div", { class: "value figure", text: `${strWeekMade ? "~" : ""}${fmtWhole(intWeekChests)}` }),
+                    el("div", { class: "label" }, ["cofres abiertos esta semana", strWeekMade ? el("small", { text: strWeekMade }) : null])
+                ]),
+                el("div", {}, [
+                    el("div", { class: "value figure", text: `${strSeasonMade ? "~" : ""}${fmtWhole(intSeasonChests)}` }),
+                    el("div", { class: "label" }, ["cofres abiertos en la temporada", strSeasonMade ? el("small", { text: strSeasonMade }) : null])
+                ]),
                 el("div", {}, [el("div", { class: "value figure", text: arrMissing.length ? fmtPercent(1 - dblNoneMissing) : "–" }), el("div", { class: "label", text: arrMissing.length ? `de que ya te hubiera tocado ${strMissing}` : "no te falta ningún tesoro esta semana" })]),
                 el("div", {}, [el("div", { class: "value figure", text: arrMissing.length ? fmtPercent(1 - dblNoNewPerChest) : "–" }), el("div", { class: "label", text: arrMissing.length ? `de que el próximo cofre te dé ${strMissing}` : "nada nuevo que pueda salir" })]),
                 el("div", {}, [
@@ -4983,14 +5085,15 @@ const renderTreasure = () => {
                 ])
             ]),
             renderTreasureHours(),
-            renderTreasurePace(objPace, objWeek, arrMissing, arrMoments)
+            renderTreasurePace(objPace, objWeek, arrMissing, objTally)
         ].filter(Boolean)),
-        el("div", { class: "t-grid" }, getShownRewards().map((objReward) => renderTreasureCard(objReward, objWeek, arrMoments))),
+        el("div", { class: "t-grid" }, getShownRewards().map((objReward) => renderTreasureCard(objReward, objWeek, objTally))),
         objApp.bTreasureEditing ? renderTreasureSettings(objWeek) : null,
         // El pie de página: ocho renglones de matices que importan la primera vez y ninguna de
         // las siguientes. Plegado, son una línea; abierto, está todo.
         el("details", { class: "t-note" }, [
             el("summary", { text: "Cómo se calcula" }),
+            objTally.arrGaps.length ? el("p", { text: "En «Probabilidad total» no se puede contar el cuarto hueco del escuadrón: casi cada partida lo llena alguien distinto, y la mayoría no usa el programa. Esos huecos se estiman a la media de cofres por partida de quien sí comparte, medida sobre vuestras partidas y no fijada en el programa. Las cifras que llevan algo estimado salen con «~» y dicen debajo de qué están hechas. Si la media se queda corta, tus probabilidades salen más bajas de lo que son, que es el lado bueno del que equivocarse." }) : null,
             el("p", { text: "Los dos porcentajes de arriba cuentan solo los tesoros sin tachar. Probabilidades por cofre publicadas por Epic (Fortnite Status, 7 de noviembre de 2026) para partidas normales. El cálculo usa los cofres, cofres especiales y cofres de espíritu de las partidas leídas, abiertos o rotos; Epic no ha dicho si todos los tipos de cofre cuentan igual. El cambio de semana (domingo, 14:00 UTC) no lo publica Epic: ajústalo en «Editar tesoros». Los objetos de cada semana tampoco salen en ninguna lista, así que el programa los busca en el catálogo del juego por el identificador interno con el que Epic marca los tesoros y rellena solo las casillas vacías; lo que escribas tú gana siempre. Las Horas del tesoro también se apuntan a mano: las horas son las que anunció Epic, pero algunos multiplicadores vienen de la prensa y no de Epic, así que conviene comprobarlos ahí mismo." })
         ])
     ].filter(Boolean));
@@ -7408,7 +7511,7 @@ document.getElementById("elNewsDialog").addEventListener("click", (objEvent) => 
 const OBJ_STW_MISSIONS = {
     "Fight the Storm": "Lucha contra la tormenta",
     "Retrieve the Data": "Recupera los datos",
-    "Ride the Lightning": "Surca el rel\u00e1mpago",
+    "Ride the Lightning": "Monta el rayo",
     "Repair the Shelter": "Repara el refugio",
     "Evacuate the Shelter": "Evac\u00faa el refugio",
     "Rescue the Survivors": "Rescata a los supervivientes",
@@ -7418,7 +7521,12 @@ const OBJ_STW_MISSIONS = {
     "Build the Radar Grid": "Construye la red de radares",
     "Fuel the Homebase": "Abastece la base",
     "Launch the Rocket": "Lanza el cohete",
-    "Resupply": "Reabastecimiento"
+    "Resupply": "Reabastecimiento",
+    // The storm alerts are named by category, here as the game itself names them
+    "Category 1 Storm": "Lucha contra una tormenta de categor\u00eda 1",
+    "Category 2 Storm": "Lucha contra una tormenta de categor\u00eda 2",
+    "Category 3 Storm": "Lucha contra una tormenta de categor\u00eda 3",
+    "Category 4 Storm": "Lucha contra una tormenta de categor\u00eda 4"
 };
 
 let objVbucksView = null;

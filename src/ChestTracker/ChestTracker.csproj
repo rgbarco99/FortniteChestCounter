@@ -38,6 +38,12 @@
     <ProjectReference Include="..\..\vendor\FortniteReplayDecompressor\src\FortniteReplayReader\FortniteReplayReader.csproj" />
   </ItemGroup>
 
+  <!-- The tests read the Save the World alert page's parse. That page is somebody else's HTML and
+       its shape is the only thing that can break the alerts, so it is worth reaching into. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="ChestTracker.Tests" />
+  </ItemGroup>
+
   <!--
     The published .exe has to carry .NET inside it. Nobody downloading it should have to install
     anything, and this is the only place that can be guaranteed: if the runtime were missing,

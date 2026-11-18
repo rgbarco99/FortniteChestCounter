@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net;
 using System.Text.RegularExpressions;
 
@@ -35,9 +35,27 @@ public sealed class Vbucks
     private static readonly Regex reZone = new("<p class=\"jrfont\"[^>]*>([^<]+)</p>", RegexOptions.Compiled);
     private static readonly Regex reExpiry = new("expirationDates\\s*=\\s*\\[([^\\]]*)\\]", RegexOptions.Compiled);
     private static readonly Regex reDate = new("\"([^\"]+)\"", RegexOptions.Compiled);
-    // Inside a zone, one mission per paragraph: its icon, then its power level in bold
+    /// <summary>
+    /// One alert, which on that page is one paragraph opening with the icon of its mission.
+    ///
+    /// Anchoring on the icon and not on the paragraph is the whole lesson of this file: the
+    /// alerts that pay V-Bucks are the highlighted ones, so their paragraph carries a style
+    /// attribute and never reads as a plain &lt;p&gt;&lt;img&gt;. Reading them that way swallowed
+    /// each of them into the paragraph above, which is how the panel came to pair 50 V-Bucks
+    /// with the name and the place of a different mission.
+    ///
+    /// Group 1 is the icon's own tag, which carries the name and the place. Group 2 is its file,
+    /// which is the mission as well (Ride_the_Lightning.png) and would still be there if the tag
+    /// ever stopped carrying a name. The rewards of an alert bring pictures of their own, but
+    /// those live under /ingame/ and are not these.
+    /// </summary>
+    private static readonly Regex reAlert = new(
+        "<p[^>]*>\\s*(<img[^>]*?/wp-content/uploads/([^\"/]+)\\.png\"[^>]*>)", RegexOptions.Compiled);
+
+    // Inside the icon's tag: the mission on its own, and the mission with the place after it
     private static readonly Regex reTitle = new("title=\"([^\"]*)\"", RegexOptions.Compiled);
     private static readonly Regex reAlt = new("alt=\"([^\"]*)\"", RegexOptions.Compiled);
+    // From the icon on: the power level in bold first, then what the alert pays
     private static readonly Regex rePower = new("<b>(\\d+)</b>", RegexOptions.Compiled);
     private static readonly Regex rePay = new("V-Bucks</b>\\s*\\(x(\\d+)\\)", RegexOptions.Compiled);
 
@@ -130,7 +148,7 @@ public sealed class Vbucks
     /// Everything the panel draws: how many V-Bucks are up today, until when, and which mission
     /// pays each one.
     /// </summary>
-    private static VbucksView Parse(string strBody)
+    internal static VbucksView Parse(string strBody)
     {
         var objView = new VbucksView { FetchedUtc = DateTime.UtcNow };
 
@@ -139,14 +157,29 @@ public sealed class Vbucks
 
         objView.ExpiresUtc = ReadExpiry(strZones);
 
+        // The grid of alerts ends where the page's own countdown script begins. After it comes
+        // the article explaining what an alert is, screenshots of alerts included, and the last
+        // alert of the last zone would otherwise be read with that prose hanging off it.
+        var intEnd = strZones.IndexOf("var expirationDates", StringComparison.Ordinal);
+        if (intEnd > 0)
+        {
+            strZones = strZones[..intEnd];
+        }
+
         // Split on the zone headings: odd parts are the names, even parts what is under them
         var arrParts = reZone.Split(strZones);
         for (var intPart = 1; intPart + 1 < arrParts.Length; intPart += 2)
         {
             var strZone = Title(WebUtility.HtmlDecode(arrParts[intPart]).Trim());
-            foreach (var strChunk in arrParts[intPart + 1].Split("<p><img src=").Skip(1))
+            var strUnder = arrParts[intPart + 1];
+            var arrAlerts = reAlert.Matches(strUnder);
+            for (var intAlert = 0; intAlert < arrAlerts.Count; intAlert++)
             {
-                Add(objView, strZone, strChunk);
+                // An alert owns the page from its icon to the next alert's: in there are its
+                // power level and its rewards, and nothing of its neighbours
+                var intFrom = arrAlerts[intAlert].Index;
+                var intTo = intAlert + 1 < arrAlerts.Count ? arrAlerts[intAlert + 1].Index : strUnder.Length;
+                Add(objView, strZone, arrAlerts[intAlert], strUnder[intFrom..intTo]);
             }
         }
 
@@ -161,14 +194,15 @@ public sealed class Vbucks
     }
 
     /// <summary>
-    /// One paragraph of a zone. Every alert counts towards what was seen, which is how a changed
-    /// page tells itself apart from a day without V-Bucks; only the ones that pay are kept.
+    /// One alert of a zone: its icon, and the page from that icon to the next alert's, which is
+    /// where its power level and its rewards are. Every alert counts towards what was seen,
+    /// which is how a changed page tells itself apart from a day without V-Bucks; only the ones
+    /// that pay are kept.
     /// </summary>
-    private static void Add(VbucksView objView, string strZone, string strChunk)
+    private static void Add(VbucksView objView, string strZone, Match objAlert, string strChunk)
     {
-        var objTitle = reTitle.Match(strChunk);
         var objPower = rePower.Match(strChunk);
-        if (!objTitle.Success || !objPower.Success)
+        if (!objPower.Success)
         {
             return;
         }
@@ -180,18 +214,28 @@ public sealed class Vbucks
             return;
         }
 
-        // The title is "Mission - Where", and the icon's alt is the mission on its own
-        var strTitle = WebUtility.HtmlDecode(objTitle.Groups[1].Value).Trim();
-        var intDash = strTitle.IndexOf(" - ", StringComparison.Ordinal);
-        var strAlt = reAlt.Match(strChunk) is { Success: true } objAlt
+        // Which mission it is and where comes from the icon's own tag, never from the stretch of
+        // page around it: in there are also the rewards, each with a picture and a name of its own
+        var strTag = objAlert.Groups[1].Value;
+        var strTitle = reTitle.Match(strTag) is { Success: true } objTitle
+            ? WebUtility.HtmlDecode(objTitle.Groups[1].Value).Trim()
+            : "";
+        var strAlt = reAlt.Match(strTag) is { Success: true } objAlt
             ? WebUtility.HtmlDecode(objAlt.Groups[1].Value).Trim()
             : "";
+        // The icon's file is the mission too, with underscores where the spaces go
+        var strFile = objAlert.Groups[2].Value.Replace('_', ' ').Trim();
+        // The title is "Mission - Where"
+        var intDash = strTitle.IndexOf(" - ", StringComparison.Ordinal);
+        var strMission = strAlt.Length > 0 ? strAlt
+            : intDash > 0 ? strTitle[..intDash]
+            : strFile;
 
         objView.Missions.Add(new VbucksMission
         {
             Vbucks = int.Parse(objPay.Groups[1].Value, CultureInfo.InvariantCulture),
             Power = int.Parse(objPower.Groups[1].Value, CultureInfo.InvariantCulture),
-            Mission = strAlt.Length > 0 ? strAlt : intDash > 0 ? strTitle[..intDash] : strTitle,
+            Mission = strMission.Length > 0 ? strMission : strFile,
             Area = intDash > 0 ? strTitle[(intDash + 3)..] : "",
             Zone = strZone
         });

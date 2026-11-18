@@ -382,6 +382,13 @@ multiplicadores de esas dos no los confirmó Epic**, los dio la prensa, y el ×2
 patrón de la semana anterior y no un dato. Se pueden corregir en «Editar tesoros», y la pestaña lo
 avisa en su nota al pie.
 
+**Las del 21 y 22 de noviembre, miradas el 18/11/2026: Epic no las ha publicado.** Lo que hay es
+prensa repitiendo el patrón (sábado 19:00–21:00 UTC y domingo 02:00–04:00 UTC) y discrepando en
+los multiplicadores: unos dan ×1,5 en las dos franjas y otros ×2 en la segunda. Ninguno enseña el
+anuncio de Epic, y varios lo dan por «previsto»; la propia prensa espera el aviso para el jueves
+19. Así que no entran: apuntar una franja que Epic no ha dado es inventarse el dato más vistoso
+de la pestaña, y encima con el multiplicador en discusión. Se vuelve a mirar cuando Epic lo diga.
+
 Las franjas nuevas que trae una versión se **mezclan una sola vez** con las que ya tenías
 (`INT_TREASURE_VERSION` en `normalizeTreasure`, comparando por hora de inicio). Así una franja que
 borraste a propósito no vuelve en cada arranque.
@@ -1056,8 +1063,8 @@ sus bits, resolver las referencias— ya está resuelta aquí.
 ### 5. Lo que esto le hace al denominador de la pestaña Tesoros
 
 Si los tesoros se comparten con el escuadrón, los cofres que cuentan para tus probabilidades son
-los de todo el grupo. `getChestMoments("squad")` ya lo hace: suma los `sharedChests` de las fichas
-que comparten los compañeros. Pero solo puede sumar lo que alguien comparte.
+los de todo el grupo. El ámbito «squad» ya lo hacía: suma los `sharedChests` de las fichas que
+comparten los compañeros. Pero solo puede sumar lo que alguien comparte.
 
 Medido en la semana 3:
 
@@ -1082,16 +1089,49 @@ partida. **El ámbito «squad» no puede ser exacto por diseño**, no por falta 
 **Decidido el 18/11/2026: se incluye una estimación.** Por cada hueco de compañero sin ficha,
 sumar la media de cofres por partida de los que sí comparten (37,5 en el momento de medirlo,
 **calculada en vivo, no fija en el código**). Deja de ser exacto y pasa a ser una estimación, pero
-una estimación honesta es mejor que un denominador que se sabe que es la mitad. El dato ya tiene
-sitio donde vivir: `objExtraWeek` en `tesoros.json`.
+una estimación honesta es mejor que un denominador que se sabe que es la mitad.
 
-Dos avisos para cuando se implemente:
+### 5.1 Hecho el 18/11/2026
+
+`getChestMoments` pasó a ser **`getChestTally`** y ya no devuelve una lista de momentos, sino lo
+que la pestaña necesita para poder decir de qué está hecha cada cifra:
+
+| Campo | Qué es |
+|---|---|
+| `arrMoments` | todos los cofres que cuentan, reales y estimados, con su instante |
+| `arrEstimated` | solo los estimados, para poder restarlos en cualquier tramo |
+| `arrGaps` | un instante por hueco de compañero sin ficha: cuántos huecos y de qué partida |
+| `dblAverage` | la media con la que se rellenan, medida en esa misma pasada |
+
+Detalles que no conviene deshacer:
+
+- La media sale de las fichas de los compañeros de **esas** partidas, no de una constante. Si
+  nadie comparte nada, se cae a tus propias partidas, que es la única medida que queda.
+- Los cofres no vienen por mitades: lo que sobra de un hueco se **arrastra al siguiente**
+  (`dblOwed`), así que cuarenta huecos de 37,5 son 1.500 cofres y no 1.520.
+- Los estimados se colocan **al principio de la partida**, igual que los compartidos, así que las
+  Horas del tesoro los multiplican igual.
+- `getRewardOdds` devuelve además `intEstimated` e `intGaps` **de su propio tramo**: la semana
+  para las casillas semanales y la temporada para las demás. Sin eso, cada cifra tendría que
+  recalcular el rango por su cuenta.
+- «Mi probabilidad» no estima nada: sin huecos, `arrEstimated` y `arrGaps` quedan vacíos y la
+  pestaña vuelve a ser exacta sin una sola rama aparte.
+
+Y en pantalla, que era la mitad del acuerdo: toda cifra con algo estimado lleva **«~»** delante y
+dice debajo «2.793 contados + 3.025 estimados de 74 compañeros sin datos»; las tarjetas lo llevan
+en el título emergente; bajo el selector de ámbito sale a cuántos cofres por partida se estima cada
+hueco; y el pie «Cómo se calcula» explica el porqué, pero solo cuando hay algún hueco que explicar.
+
+Los dos avisos del acuerdo, cumplidos:
 
 - El jugador considera que 37,5 **se queda corto** respecto a lo que se suele abrir. Puede ser:
   la media incluye partidas de muerte temprana. Pero errar por lo bajo es el lado bueno del que
-  equivocarse — subestima tus probabilidades en vez de prometerte de más.
-- Hay que **enseñar de qué está hecho el número**: «cuenta ~4.550 reales + ~5.100 estimados de
-  137 huecos sin ficha». Un número estimado que se presenta como medido es peor que no tenerlo.
+  equivocarse — subestima tus probabilidades en vez de prometerte de más, y así lo dice el pie.
+- **Enseñar de qué está hecho el número** no es opcional: un número estimado que se presenta
+  como medido es peor que no tenerlo.
+
+Lo que **no** se tocó: `objExtraWeek` e `intExtraSeason` siguen siendo tuyos, los cofres que
+escribes tú a mano. La estimación se suma aparte y no los pisa.
 
 ### Cómo volver a medir todo esto
 
@@ -1107,12 +1147,47 @@ Con una herramienta de usar y tirar que:
 Un barrido de 99 repeticiones tarda unos minutos. **Si se va a repetir esto más de una vez, vale
 la pena guardar esa herramienta en el repo** en vez de reescribirla cada vez.
 
+## La alerta que paga está resaltada — *18/11/2026*
+
+El panel de pavos daba el número bueno con la misión equivocada: «Nivel 52, Recupera los datos»
+cuando la de verdad era «Repara el refugio», y «Nivel 70, Evalúa el refugio» cuando era «Monta
+el rayo». Contrastado contra <https://fnzone.es/save-the-world-alerts>, que sí las daba bien.
+
+**Por qué.** El lector partía la página por `"<p><img src="`, una alerta por trozo. Pero las dos
+alertas que pagan pavos son justo las **resaltadas**, y su párrafo lleva estilo:
+
+```html
+<p style="background-color:rgba(255, 215, 0, 0.26);..."><img src=".../Repair_the_Shelter.png" ...>
+```
+
+Con estilo dentro, ese párrafo no abre trozo: se queda pegado **al final del trozo anterior**.
+Así que el trozo tenía los pavos de la alerta buena y el nombre y el sitio de la de arriba. Y no
+se notaba, porque el nivel sí salía bien: las recompensas de algunas alertas traen `<p><img` dentro
+de su propio título emergente, así que el corte caa donde caía. Un fallo que da cifras coherentes
+es de los que duran meses.
+
+**Arreglo.** Una alerta se ancla en **el icono de su misión** (`reAlert`), no en su párrafo, y:
+
+- el nombre y el sitio salen **del propio `<img>`**, no del trozo de página alrededor, que también
+  lleva los iconos y los nombres de las recompensas;
+- el icono vale además como respaldo del nombre: el archivo es la misión (`Ride_the_Lightning.png`);
+- las recompensas viven en `/ingame/`, así que no se confunden con iconos de misión;
+- la rejilla se corta en `var expirationDates`, que es donde la página pasa a explicar qué es una
+  alerta — con capturas de alertas dentro.
+
+De 41 alertas leídas se pasó a 62, que son las que hay, y las dos de pavos salen con su misión.
+
+**Y una prueba, que es lo que faltaba.** `VbucksPageTests` lleva la página en miniatura con cada
+forma a propósito: una alerta normal, una con `<p><img` metido en su título emergente, las dos
+resaltadas que pagan, el script del contador y el artículo de debajo con su captura. No es copia
+de la suya: son sus formas. `Parse` es `internal` y el `.csproj` abre los internos a los tests.
+
+**De paso, dos nombres de misión.** «Ride the Lightning» es **«Monta el rayo»** en el juego, no
+«Surca el relámpago», que era traducción nuestra; y las alertas de tormenta («Category 3 Storm»)
+no estaban en la tabla y salían en inglés. Las cuatro categorías entran con su nombre.
+
 ## Pendientes menores y sospechas
 
-- **Estimar los cofres del escuadrón que nadie comparte.** Decidido el 18/11/2026, sin
-  implementar. Por cada hueco de compañero sin ficha, sumar la media de cofres por partida de
-  los que sí comparten, y enseñar el número desglosado en reales y estimados. El porqué, los
-  números y los dos avisos están en «Los tesoros, por dentro», apartado 5.
 - **«Tu ID de Epic» en Ajustes.** Es el respaldo de `Summarizer.GetOwnerId` cuando la repetición
   no dice quién grabó. En 126 partidas no ha hecho falta **ni una vez**. Propuesta: dejarlo
   visible como dato, quitar la caja de edición.

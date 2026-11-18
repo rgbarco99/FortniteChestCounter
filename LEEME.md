@@ -164,6 +164,12 @@ probabilidades por cofre que publicó Epic el 7 de noviembre de 2026.
   llevas: los de la semana para los tesoros semanales, los de la temporada para el resto.
 - Los dos porcentajes de arriba (que ya te hubiera tocado alguno, y que te lo dé el próximo cofre)
   cuentan solo los tesoros sin tachar, y nunca los Gizmos.
+- Si compartes carpeta con alguien, arriba eliges entre **«Probabilidad total»** y **«Mi
+  probabilidad»**. La total cuenta también los cofres de tus compañeros en vuestras partidas
+  juntos, porque un tesoro que encuentra uno le llega al grupo. Los huecos del escuadrón que
+  nadie comparte —casi cada partida los llena alguien distinto— se estiman con la media de cofres
+  por partida de quien sí comparte: las cifras que llevan algo estimado salen con «~» y dicen
+  debajo cuántos cofres son contados y cuántos estimados.
 - «Lo tengo» tacha la casilla y la deja en gris. Los Gizmos, que pueden repetirse, llevan contador.
 - Las casillas semanales se guardan por semana; con «Semana anterior» ves las pasadas.
 - «Editar tesoros»: nombre y foto del objeto de la semana (pega una captura con Ctrl+V, suelta una
