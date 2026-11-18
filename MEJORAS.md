@@ -926,67 +926,193 @@ Queda como riesgo **latente, no activo**: si algún día un modo rompiera conten
 previa, la bandera volvería a ser ambigua. El aviso temprano sería una apertura `collapse` con
 tiempo por debajo del segundo 60, que hoy no existe en ninguna partida.
 
-## El tesoro sí está en la repetición, pero sin decir cuál — *18/11/2026, aparcada*
+## Los tesoros, por dentro: qué dice la repetición — *18/11/2026*
 
-**De dónde sale.** Una partida (18 nov, 00:14) abrió un cofre especial en el minuto 2:10 con la
-animación de recompensa —el brillo azul— y no dio ningún tesoro. La pregunta era si eso se ve en
-el archivo.
+Lo que empezó como «abrí un cofre especial, salió la animación azul y no me dio nada» acabó en
+tres hallazgos que cambian cosas del programa. Todo lo de aquí está **medido sobre 99
+repeticiones** del 14 al 18 de noviembre, no deducido.
 
-**Se ve, y con nombre y apellidos.** El replay lleva un actor que el lector hoy ni mira:
+### 1. El actor que lleva el premio
+
+El replay lleva dos clases que el lector hoy ni mira:
 
 ```
 /DelilahTreasureHuntGameplay/Gameplay/Actors/BGA_DelilahTreasureHuntAnimatedChest.BGA_DelilahTreasureHuntAnimatedChest_C
+/DelilahTreasureHuntGameplay/Gameplay/Actors/BGA_DelilahTreasureHuntAnimatedChest_Sprite.BGA_DelilahTreasureHuntAnimatedChest_Sprite_C
 ```
 
-Nace cuando el cofre se abre, vive menos de dos segundos y se destruye. Sus campos de red:
+La segunda es para cofres de espíritu y enterrados. Nace al abrirse el cofre, vive menos de dos
+segundos y se destruye. Sus campos:
 
-| Campo | Qué trae | Ejemplo medido |
+| Campo | Qué trae | Cómo leerlo |
 |---|---|---|
-| `Instigator`, `OpeningPawn` | el pawn que abrió el cofre | `132989`, el mismo `SearchingPawn` del cofre |
-| `SourceContainer` | referencia al contenedor | `22155` |
-| `bSuccess` | **si la tirada ganó** | `1` |
-| `PrizeTemplateId` | el premio, como texto | `DelilahPrize:dpid_item22` |
-| `Tier`, `TierData` | nivel del premio | `0`, `26335` |
-| `OwnerPersistentID` | dueño (heredado del actor de construcción) | `2` |
+| `Instigator`, `OpeningPawn` | el pawn que abrió el cofre | referencia de objeto, `ReadIntPacked` |
+| `SourceContainer` | **el cofre exacto** del que salió | ídem; resuelve con `TryGetPathName` |
+| `bSuccess` | si la tirada ganó | 1 bit |
+| `PrizeTemplateId` | el premio | 288 bits con ASCII dentro |
+| `Tier`, `TierData` | el **aspecto** del cofre, no el premio | `TierData` resuelve a `MR_Athena_Chest_Parent` |
+| `OwnerPersistentID` | de quién es el actor | entero pequeño, **sin tabla para traducirlo** |
 
-`PrizeTemplateId` llega en crudo y hay que decodificarlo: dentro de los bits hay ASCII
-(`...44656C696C61685072697A65...` → `DelilahPrize:dpid_item22`). La secuencia completa, medida:
-el cofre normal se oculta (`bHidden = 1`), el cofre animado vive 1,8 s, se destruye, el cofre
-vuelve a ser visible y el botín corriente sale aparte —el tesoro no sustituye al botín—.
+`PrizeTemplateId` hay que decodificarlo: dentro de los bits hay texto
+(`...44656C696C61685072697A65...` → `DelilahPrize:dpid_item22`).
 
-**Por qué está aparcada y no hecha.** `dpid_item22` es un índice de la tabla de premios de la
-temporada y **no hay forma pública de traducirlo** a «Gizmo», «pantalla de carga» o «atuendo
-dorado»: no está en fortnite-api.com (no son cosméticos de tienda) ni en ningún datamine
-localizable. Un panel que dijera «has ganado dpid_item22» no sirve de nada, y por eso se decidió
-no tocar el lector. **Si algún día aparece ese mapeo, esto pasa de aparcado a media tarde de
-trabajo**, porque la parte difícil —encontrar el actor y leer sus bits— ya está resuelta aquí.
+**Importante sobre las referencias de objeto:** van empaquetadas (`ReadIntPacked`), no en bits de
+ancho fijo. Leerlas a lo bruto da números que parecen coherentes entre sí pero que **no son el
+guid** y no resuelven a ningún nombre. Con `ReadIntPacked`, `SourceContainer` resuelve al actor
+del cofre y se puede cruzar con las aperturas que ya guarda el programa.
 
-**Cómo volver a medirlo.** Se hizo con una herramienta de usar y tirar que hereda de
-`FortniteReplayReader.ReplayReader` con `ParseMode.Full`, sobrescribe `ReceiveProperties` para
-censar **todos** los `group.PathName` (el lector del programa solo modela siete tipos de actor;
-los cofres y este no están entre ellos) y lee las propiedades a mano con el mismo bucle
-«handle, bits, payload» que usa `ReadTappedUpdate` en `ReplayParser.cs`. Filtrando por
-`DelilahTreasureHunt` salen las tres líneas del evento.
+### 2. Los cofres del tesoro NO están colocados: nacen siendo cofres normales
 
-**Cuánto aparece.** Una sola vez en **23 repeticiones** del 17 y 18 de noviembre. O sea, este
-actor **no** es la animación del Gizmo corriente (1 entre 127): es bastante más raro.
+Este es el hallazgo gordo, y responde a la pregunta de si el tesoro está puesto de antemano en el
+mapa, lo que tiraría por tierra todo el cálculo de probabilidades de la pestaña.
 
-**Lo que dice Epic, que es lo que cierra el caso.** Hay un artículo de soporte oficial sobre
-exactamente este síntoma: «We investigated the issue where players may receive a message: "You
-found [Treasure]" after opening a chest or dropping from the Battle Bus, but did not receive any
-treasure. This issue is now fixed and the missing treasures have been granted to their respective
-players.» El rumor de que el premio se le da a un compañero que no lo tiene **no está confirmado
-por Epic**: sale de un post de Fortnite.gg News en X del 16/11/2026, y choca con lo que Epic sí ha
-dicho (mismas probabilidades por cofre para todos; sin duplicados salvo Gizmos). En el caso
-medido, además, `OpeningPawn` e `Instigator` son el pawn del propio jugador con `bSuccess = 1`.
+| Cofre | Entra en vista como | Pasa a nivel 2 | Se abre | Siendo normal |
+|---|---|---|---|---|
+| `5573` (18 nov) | **nivel 0** en t=96,65 | t=129,60 | t=130,95 | 33 s |
+| `16501` (16 nov) | **nivel 0** en t=569,86 | t=684,84 | t=685,85 | 115 s |
+| `18433` (16 nov) | **nivel 0** en t=524,18 | t=597,19 | t=598,39 | 73 s |
 
-**Lo que no se pudo cerrar.** Qué jugador es `OwnerPersistentID = 2`: el `FortPlayerStateAthena`
-del replay no publica ningún id persistente con el que cruzarlo. Y la concesión a la cuenta no
-está en el replay ni en `FortniteGame.log` —se buscó en la ventana 00:14–00:33 y no hay una sola
-línea—: eso va por el backend.
+Y el orden dentro del instante lo cierra:
+
+```
+t=129,45   nace el actor del tesoro (bSuccess=1, dpid_item22)
+t=129,60   el cofre pasa de nivel 0 a nivel 2  +  bHidden=1
+t=130,95   bAlreadySearched = 1
+t=131,28   muere el actor del tesoro
+t=131,94   bHidden = 0
+```
+
+**El premio se decide primero y el cofre se vuelve azul después** (0,15 s, 0,47 s y 0,29 s en los
+tres casos). El cambio de nivel es parte de la animación: el cofre se disfraza y se esconde
+mientras se reproduce. Contraejemplo en la misma partida: el cofre `5747` era **nivel 2 desde que
+apareció** y no dio ningún tesoro.
+
+**Conclusión: la tirada ocurre al abrir.** El modelo de probabilidad de la pestaña es correcto.
+
+**Efecto secundario real en el programa:** como el cofre acaba en nivel 2, se guarda y se cuenta
+como «cofre especial» aunque fuera normal hasta ese instante. Cada tesoro que te toca **infla en
+uno tu cuenta de especiales**. Con 240 especiales en 114 partidas el ruido es despreciable, pero
+está ahí, y hace que «cofres especiales» no sirva como denominador limpio.
+
+### 3. Los tesoros se comparten con el escuadrón
+
+El recuento de la semana 3 (desde el 15 nov a las 15:00 hora local) no deja mucho margen:
+
+- **65 partidas** jugadas, **63 con repetición** conservada (solo faltan dos, del 17).
+- En todas ellas, un cofre **propio** sacó tesoro exactamente **dos veces**: el vehículo (16 nov,
+  20:58, recibido) y el del 18 nov a las 00:14 (**no recibido**).
+- Pero el jugador tiene **cuatro** tesoros de la semana 3 marcados y confirmados en el casillero.
+- Los otros tres (pantalla de carga, pista, mochila) llegaron **sin que ningún cofre suyo tirara
+  el dado**. El día que los consiguió, el 15, hay **15 partidas de semana 3, las 15 con
+  repetición, y cero eventos de tesoro**.
+- Esa primera partida de semana 3 (15 nov, 16:50) la jugó con `Star_Ghost123`, que sacó **tres**
+  recompensas: pantalla de carga, pista y mochila. Las mismas tres.
+
+Tres tesoros que aparecen en una cuenta sin que esa persona tirara, iguales a los que encontró un
+compañero en la misma partida. **Los encuentra uno y los recibe el escuadrón.**
+
+Y entonces el evento del 18 encaja solo: ya tenía los cuatro, su cofre tiró, `bSuccess = 1`, y a
+él no le llegó nada porque el premio era para un compañero que no lo tenía. La animación la ve
+quien abre el cofre, no quien se lleva el premio. Eso explica además por qué el actor lleva
+`OwnerPersistentID` **aparte** de `OpeningPawn`: si el premio fuera siempre del que abre, sobraría
+uno de los dos campos.
+
+**Lo que no se pudo cerrar:** traducir `OwnerPersistentID` a un jugador. El campo lo llevan 14
+clases de actor (tirolinas, piezas de refugio, sprites, iconos de mapa), pero no hay en la
+repetición ninguna tabla que ligue un id persistente con un jugador. Y la concesión a la cuenta
+no está ni en el replay ni en `FortniteGame.log`: se buscó en la ventana de la partida y no hay
+una sola línea.
+
+**La alternativa que sigue viva:** el artículo de soporte de Epic dice que los tesoros también
+caen «al saltar del autobús». Tres tesoros de autobús el día 15 que casualmente son los mismos
+tres que encontró el compañero es mucha casualidad, pero no es imposible.
+
+**Cómo cerrarlo de verdad:** preguntar a los compañeros de una partida concreta si alguno recibió
+un tesoro en el minuto exacto del evento. Si uno dice que sí, está cerrado.
+
+### 4. El mapeo de ids, hasta donde llega
+
+Cuatro eventos en 99 repeticiones, y solo **dos ids distintos**:
+
+| Partida | Id | Cofre origen | De quién |
+|---|---|---|---|
+| 16 nov, 19:15 | `dpid_item22` | `Tiered_Chest_Athena` | `ParceNoDispare` (mismo squad) |
+| 16 nov, 20:58 | `dpid_item23` | `AlwaysSpawn_NormalChest` | propio — **era el vehículo** |
+| 16 nov, 23:29 | `dpid_item23` | `BuriedChest_RelicFinder` | de un rival |
+| 18 nov, 00:14 | `dpid_item22` | `Tiered_Chest_Athena` | propio — no dio nada |
+
+Que un id se repita **no lo descarta** como tesoro concreto: lo repiten *jugadores distintos*, y
+la regla de Epic («no puedes sacar el mismo tesoro dos veces») es por jugador, no global.
+
+**Anclado: `dpid_item23` = vehículo semanal** (semana 3, Corvette ZR1 dorado), porque el jugador
+confirma que ese premio del 16 a las 20:58 fue el coche. `dpid_item22` sigue sin identificar; por
+descarte y por lo que sacó el compañero, la apuesta es la mochila semanal, **sin confirmar**.
+
+**Por qué esto sigue sin implementarse en el lector:** con dos ids anclados a medias no se puede
+poner «has ganado X» en el panel. Hacen falta más eventos, y cada uno hay que anclarlo preguntando
+al jugador qué recibió. Cuando haya mapeo suficiente, la parte difícil —encontrar el actor, leer
+sus bits, resolver las referencias— ya está resuelta aquí.
+
+### 5. Lo que esto le hace al denominador de la pestaña Tesoros
+
+Si los tesoros se comparten con el escuadrón, los cofres que cuentan para tus probabilidades son
+los de todo el grupo. `getChestMoments("squad")` ya lo hace: suma los `sharedChests` de las fichas
+que comparten los compañeros. Pero solo puede sumar lo que alguien comparte.
+
+Medido en la semana 3:
+
+| | Cofres |
+|---|---|
+| Propios | 2.455 |
+| De compañeros con ficha (`el_Amego_Segarro` 45 partidas, `ParceNoDispare` 10) | ~2.100 |
+| **Lo que la pestaña suma hoy** | **~4.550** |
+| Lo que falta (137 huecos × 37,5 de media) | ~5.100 |
+| **Denominador real** | **~9.700** |
+
+El reparto de los 192 huecos de compañero de esas 65 partidas:
+
+- **55 cubiertos** por quien comparte.
+- **46 de habituales sin ficha**: `naiaruki29` 34 (juega en PlayStation y no puede usar el
+  programa), `ismailool` 8, `Star_Ghost123` 4.
+- **91 de gente suelta**, repartidos entre **91 personas distintas**, una partida cada una.
+
+O sea: el cuarto hueco del escuadrón lo llena el emparejamiento con un desconocido distinto cada
+partida. **El ámbito «squad» no puede ser exacto por diseño**, no por falta de adopción.
+
+**Decidido el 18/11/2026: se incluye una estimación.** Por cada hueco de compañero sin ficha,
+sumar la media de cofres por partida de los que sí comparten (37,5 en el momento de medirlo,
+**calculada en vivo, no fija en el código**). Deja de ser exacto y pasa a ser una estimación, pero
+una estimación honesta es mejor que un denominador que se sabe que es la mitad. El dato ya tiene
+sitio donde vivir: `objExtraWeek` en `tesoros.json`.
+
+Dos avisos para cuando se implemente:
+
+- El jugador considera que 37,5 **se queda corto** respecto a lo que se suele abrir. Puede ser:
+  la media incluye partidas de muerte temprana. Pero errar por lo bajo es el lado bueno del que
+  equivocarse — subestima tus probabilidades en vez de prometerte de más.
+- Hay que **enseñar de qué está hecho el número**: «cuenta ~4.550 reales + ~5.100 estimados de
+  137 huecos sin ficha». Un número estimado que se presenta como medido es peor que no tenerlo.
+
+### Cómo volver a medir todo esto
+
+Con una herramienta de usar y tirar que:
+
+1. Hereda de `FortniteReplayReader.ReplayReader` con `ParseMode.Full`.
+2. Sobrescribe `ReceiveProperties` para censar **todos** los `group.PathName`: el lector del
+   programa solo modela siete tipos de actor, y ni los cofres ni este actor están entre ellos.
+3. Lee las propiedades a mano con el bucle «handle, bits, payload» de `ReadTappedUpdate` en
+   `ReplayParser.cs`, tratando las referencias de objeto con `ReadIntPacked` + `TryGetPathName`.
+4. Filtra por `DelilahTreasureHunt` para los eventos y por `Containers` para la vida de los cofres.
+
+Un barrido de 99 repeticiones tarda unos minutos. **Si se va a repetir esto más de una vez, vale
+la pena guardar esa herramienta en el repo** en vez de reescribirla cada vez.
 
 ## Pendientes menores y sospechas
 
+- **Estimar los cofres del escuadrón que nadie comparte.** Decidido el 18/11/2026, sin
+  implementar. Por cada hueco de compañero sin ficha, sumar la media de cofres por partida de
+  los que sí comparten, y enseñar el número desglosado en reales y estimados. El porqué, los
+  números y los dos avisos están en «Los tesoros, por dentro», apartado 5.
 - **«Tu ID de Epic» en Ajustes.** Es el respaldo de `Summarizer.GetOwnerId` cuando la repetición
   no dice quién grabó. En 126 partidas no ha hecho falta **ni una vez**. Propuesta: dejarlo
   visible como dato, quitar la caja de edición.
