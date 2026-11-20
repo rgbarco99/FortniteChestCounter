@@ -76,6 +76,9 @@ public static class Summarizer
             File = objMatch.File,
             FileStillExists = File.Exists(Path.Combine(strDemosPath, objMatch.File)),
             Outdated = objMatch.ParserVersion < ReplayParser.PARSER_VERSION,
+            // Whether there is a way to draw, not the way itself: the route of every match at once
+            // would be megabytes down the wire for a drawing that is only ever of one of them
+            HasRoute = objMatch.Route.Count > 1,
             Excluded = objSettings.ExcludedFiles.Contains(objMatch.File),
             StartedAt = objMatch.StartedAt,
             DurationSec = objMatch.DurationSec,

@@ -488,6 +488,70 @@ public sealed class TrackerReplayReader : FortniteReplayReader.ReplayReader
         }
     }
 
+    /// <summary>
+    /// Where the recording player went, thinned down for drawing. The track kept while reading is
+    /// a point every fifth of a second -- some six thousand of them in a long match, which is a
+    /// megabyte of line that draws exactly the same shape as a couple of hundred points.
+    ///
+    /// A point is kept when enough time has passed <em>and</em> they have moved far enough: the
+    /// first condition alone fills the file with somebody standing still in a chest room, and the
+    /// second alone loses the pause itself, which is where the chests are. The first and the last
+    /// are always kept: they are the drop and wherever it ended.
+    ///
+    /// Going down and being brought back puts the player in a new pawn, so every pawn that ever
+    /// pointed at the recorder is taken and the lot sorted by time.
+    /// </summary>
+    public List<RoutePoint> BuildOwnRoute(double dblMinSeconds, double dblMinMetres)
+    {
+        var lstRoute = new List<RoutePoint>();
+        if (RecorderPlayerState is not { } intRecorder)
+        {
+            return lstRoute;
+        }
+
+        var lstTrack = new List<Position>();
+        foreach (var (intPawnGuid, intPlayerState) in PawnToPlayerState)
+        {
+            if (intPlayerState == intRecorder && _dicPawnTracks.TryGetValue(intPawnGuid, out var lstOne))
+            {
+                lstTrack.AddRange(lstOne);
+            }
+        }
+        if (lstTrack.Count == 0)
+        {
+            return lstRoute;
+        }
+        lstTrack.Sort((objLeft, objRight) => objLeft.Time.CompareTo(objRight.Time));
+
+        // The replay counts in centimetres, the map in metres
+        RoutePoint ToPoint(Position objAt) => new()
+        {
+            T = Math.Round(objAt.Time, 1),
+            X = Math.Round(objAt.X / 100.0),
+            Y = Math.Round(objAt.Y / 100.0)
+        };
+
+        var objLast = lstTrack[0];
+        lstRoute.Add(ToPoint(objLast));
+        foreach (var objAt in lstTrack)
+        {
+            var dblMetres = Math.Sqrt(Math.Pow((objAt.X - objLast.X) / 100.0, 2) + Math.Pow((objAt.Y - objLast.Y) / 100.0, 2));
+            if (objAt.Time - objLast.Time < dblMinSeconds || dblMetres < dblMinMetres)
+            {
+                continue;
+            }
+            lstRoute.Add(ToPoint(objAt));
+            objLast = objAt;
+        }
+
+        var objEnd = lstTrack[^1];
+        if (objEnd.Time > objLast.Time)
+        {
+            lstRoute.Add(ToPoint(objEnd));
+        }
+        return lstRoute;
+    }
+
     private void TrackPawn(uint intPawnGuid, FVector objLocation)
     {
         if (!_dicPawnTracks.TryGetValue(intPawnGuid, out var lstTrack))
@@ -925,7 +989,15 @@ public static class ReplayParser
     }
 
     /// <summary>Bump when the extracted data changes, so cached matches are parsed again.</summary>
-    public const int PARSER_VERSION = 7;
+    public const int PARSER_VERSION = 8;
+
+    /// <summary>
+    /// How much has to pass, and how far the player has to have gone, before the route keeps
+    /// another point. Two and a half seconds and twenty metres leave a couple of hundred points
+    /// in a whole match: enough for every corner of the way to show, little enough to send.
+    /// </summary>
+    private const double ROUTE_MIN_SEC = 2.5;
+    private const double ROUTE_MIN_METRES = 20;
 
     public static MatchRecord ParseFile(string strPath)
     {
@@ -1001,6 +1073,10 @@ public static class ReplayParser
             objRecord.DetectedOwnerId = strRecorderId;
         }
         objRecord.DetectedOwnerId ??= objReplay.PlayerData?.FirstOrDefault(objPlayer => objPlayer.IsReplayOwner)?.EpicId?.ToUpperInvariant();
+
+        // The way they went. It hangs off the recording player, so it is worked out here, where
+        // the replay has already said who that was.
+        objRecord.Route = objReader.BuildOwnRoute(ROUTE_MIN_SEC, ROUTE_MIN_METRES);
 
         foreach (var objPlayer in objReplay.PlayerData ?? [])
         {

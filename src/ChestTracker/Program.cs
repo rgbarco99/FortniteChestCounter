@@ -354,6 +354,17 @@ objApp.MapGet("/api/export/matches.json", () =>
 objApp.MapGet("/api/export/matches.csv", () =>
     Results.File(Export.BuildCsv(objStore), "text/csv", $"cofres-{DateTime.Now:yyyy-MM-dd}.csv"));
 
+// The way the player went in one match. It travels on its own and not with the rest of the state:
+// a couple of hundred points are nothing by themselves and megabytes across three hundred matches,
+// and only ever one of them is being looked at. The match still being played has one too, as far
+// as it has got.
+objApp.MapGet("/api/route", (string file) =>
+{
+    var objMatch = objStore.FindMatch(file)
+        ?? (objStore.LiveMatch is { } objLive && objLive.File == file ? objLive : null);
+    return objMatch is null ? Results.NotFound() : Results.Json(new { file = objMatch.File, route = objMatch.Route });
+});
+
 // The season's map: the island and its named places, kept in the data folder
 objApp.MapGet("/api/map", (SeasonMap objMap) => objMap.Describe());
 

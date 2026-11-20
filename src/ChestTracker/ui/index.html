@@ -390,6 +390,28 @@ main.shop { padding: 0 24px 40px; }
 .m-board img, .m-board canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .m-board canvas { mix-blend-mode: hard-light; }
 .m-noimage { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ink-3); }
+/* The way you went, and the chests of that one match, both drawn over the picture itself */
+.m-board .m-route, .m-board .m-dots { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.m-wait { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 0 28px; text-align: center; color: var(--ink-2); font-size: 13.5px; }
+.m-legend { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin: 10px 0 0; font-size: 12px; color: var(--ink-2); }
+.m-legend .grow { flex: 1; }
+.m-legend .quiet { color: var(--ink-3); }
+.m-legend span + span:not(.grow):not(.quiet) { margin-right: 10px; }
+.m-legend .k-start, .m-legend .k-end, .m-legend .k-chest { width: 11px; height: 11px; border-radius: 50%; margin-right: -2px; }
+.m-legend .k-start { border: 2.5px solid hsl(192 90% 70%); }
+.m-legend .k-end { background: hsl(288 90% 62%); }
+.m-legend .k-chest { background: rgba(240, 180, 41, 0.92); }
+/* The route on its own, over whatever tab is being read */
+.route-view { display: none; width: min(840px, calc(100vw - 32px)); max-height: min(92vh, 1000px); padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--ink); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); overflow: hidden; }
+.route-view[open] { display: flex; flex-direction: column; }
+.route-view::backdrop { background: rgba(14, 10, 32, 0.72); }
+.route-view .head { display: flex; align-items: center; gap: 12px; padding: 13px 18px; background: var(--card-raised); border-bottom: 1px solid var(--line); }
+.route-view .head b { font-size: 16px; font-stretch: 75%; }
+.route-view .head .grow { flex: 1; }
+.route-view .head .x { background: none; border: 0; color: var(--ink-3); font-size: 22px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.route-view .head .x:hover { color: var(--ink); }
+.route-view .body { overflow-y: auto; padding: 14px 18px 16px; }
+.route-view .body:focus { outline: none; }
 .m-place { position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 2px; pointer-events: none; }
 .m-place i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, 0.85); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45); }
 .m-place b { font-size: 11.5px; font-stretch: 75%; letter-spacing: 0.03em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 3px #000, 0 0 8px #000; white-space: nowrap; }
@@ -577,6 +599,9 @@ main.live { padding: 0 24px 14px; }
 .l-rush.rush { border-left: 4px solid var(--gold); }
 .l-card h2 { margin: 0 0 10px; font-size: 15px; font-weight: 500; color: var(--ink-2); }
 .l-rush { font-size: 17px; }
+.l-rush.has-route { display: flex; align-items: center; gap: 18px; }
+.l-rush.has-route > span { flex: 1; }
+.l-rush.has-route .btn { white-space: nowrap; }
 .l-rush .bar { height: 10px; border-radius: 5px; background: var(--card-raised); overflow: hidden; margin-top: 10px; }
 .l-rush .bar i { display: block; height: 100%; background: var(--gold); border-radius: 5px; }
 @media (prefers-reduced-motion: reduce) { .l-pill.on i, .l-card.hero .value.bump { animation: none; } }
@@ -806,7 +831,7 @@ details.t-note > p { margin: 8px 0 0; }
     <div class="segmented" id="elRange" role="group" aria-label="Partidas que se cuentan"></div>
     <span class="grow"></span>
     <div class="vbucks" id="elVbucks">
-        <button class="btn" id="elVbucksOpen" aria-expanded="false" title="Las misiones de Salvar el Mundo que dan pavos hoy">Pavos<span class="n" id="elVbucksCount" data-notr=""></span></button>
+        <button class="btn" id="elVbucksOpen" aria-expanded="false" title="Las misiones de Salvar el Mundo que dan pavos hoy">Salvar el mundo<span class="n" id="elVbucksCount" data-notr=""></span></button>
         <div class="vb-pop" id="elVbucksPop" hidden></div>
     </div>
     <button class="btn" id="elNewsOpen">Novedades</button>
@@ -816,6 +841,7 @@ details.t-note > p { margin: 8px 0 0; }
 </header>
 <dialog class="news" id="elNewsDialog" aria-label="Novedades"></dialog>
 <dialog class="shop-view" id="elShopDialog" aria-label="Artículo de la tienda"></dialog>
+<dialog class="route-view" id="elRouteDialog" aria-label="Por dónde fuiste"></dialog>
 <div class="update-bar" id="elUpdateBar" hidden></div>
 <div class="fail-bar" id="elFailBar" role="region" aria-label="Repeticiones con error" hidden></div>
 <div class="status" id="elStatus"></div>
@@ -1511,6 +1537,16 @@ const ARR_I18N = [
     ["Mapa", "Map", "Carte"],
     ["Todas tus partidas", "All your matches", "Toutes tes parties"],
     ["Solo la partida elegida", "Just the chosen match", "Seulement la partie choisie"],
+    // The way you went, in the dialog that drops over whatever tab is being read
+    ["Ver ruta seguida", "See your route", "Voir ton parcours"],
+    ["Por dónde fuiste", "Where you went", "Où tu es allé"],
+    ["Por dónde fuiste · partida de las", "Where you went · match at", "Où tu es allé · partie de"],
+    ["Leyendo por dónde fuiste…", "Reading where you went…", "Lecture de ton parcours…"],
+    ["Esta partida se contó con una versión anterior, que no guardaba el recorrido. Las nuevas sí.", "This match was counted by an earlier version, which did not keep the route. New ones do.", "Cette partie a été comptée par une version antérieure, qui ne gardait pas le parcours. Les nouvelles, si."],
+    ["donde caíste", "where you landed", "où tu as atterri"],
+    ["donde acabó", "where it ended", "où ça s'est terminé"],
+    ["{0} cofres situados", "{0} chests placed", "{0} coffres situés"],
+    ["El color de la línea va del principio al final de la partida.", "The colour of the line runs from the start of the match to the end.", "La couleur de la ligne va du début à la fin de la partie."],
     [" cofre situado en el mapa", " chest placed on the map", " coffre placé sur la carte"],
     [" cofres situados en el mapa", " chests placed on the map", " coffres placés sur la carte"],
     ["Dónde abres los cofres", "Where you open your chests", "Où tu ouvres tes coffres"],
@@ -1786,12 +1822,14 @@ const ARR_I18N = [
     ["Eso no parece un enlace. Pega el que te ha pasado tu squad, que empieza por https://", "That does not look like a link. Paste the one your squad sent you, which starts with https://", "Cela ne ressemble pas à un lien. Colle celui que ton squad t'a envoyé, qui commence par https://"],
 
     ["Fortnite no llegó a cerrar esta repetición (el juego se cerró a mitad de partida) y quedó cifrada sin clave: no se puede leer.", "Fortnite never closed this replay (the game was closed mid-match), so it stayed encrypted without a key and cannot be read.", "Fortnite n'a jamais fermé cette rediffusion (le jeu a été fermé en pleine partie) : elle est restée chiffrée sans clé et ne peut pas être lue."],
-    ["Pavos", "V-Bucks", "V-Bucks"],
+    ["Salvar el mundo", "Save the World", "Sauver le monde"],
     ["{0} pavos", "{0} V-Bucks", "{0} V-Bucks"],
     ["Las misiones de Salvar el Mundo que dan pavos hoy", "Today's Save the World missions that pay V-Bucks", "Les missions de Sauver le monde qui rapportent des V-Bucks aujourd'hui"],
     ["Nivel {0}, {1}", "Level {0}, {1}", "Niveau {0}, {1}"],
     ["caducan en {0}", "{0} left", "il en reste {0}"],
     ["caducan ya", "expiring now", "expirent maintenant"],
+    ["misiones nuevas en {0}", "new missions in {0}", "nouvelles missions dans {0}"],
+    ["misiones nuevas ya", "new missions now", "nouvelles missions maintenant"],
     ["Buscando las alertas\u2026", "Looking up the alerts\u2026", "Recherche des alertes\u2026"],
     ["No se pudieron leer las alertas de Salvar el Mundo.", "The Save the World alerts could not be read.", "Les alertes de Sauver le monde n'ont pas pu \u00eatre lues."],
     ["Hoy no hay ninguna misi\u00f3n que d\u00e9 pavos.", "No mission pays V-Bucks today.", "Aucune mission ne rapporte de V-Bucks aujourd'hui."],
@@ -1974,6 +2012,30 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // so there is nothing to look up in ARR_I18N.
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
+    {
+        strVersion: "1.10.0",
+        strDate: "2026-11-20",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Por dónde fuiste. Al terminar una partida, un botón nuevo en «En vivo» abre el mapa con el recorrido que seguiste: dónde caíste, por dónde pasaste y dónde acabó, con flechas que marcan el sentido de la marcha y el color de la línea corriendo del principio al final de la partida. Tus cofres de esa partida van dibujados encima, así que se ve a la vez por dónde pasaste y dónde cobraste. El mismo recorrido sale en la pestaña Mapa al elegir una sola partida; el mapa de calor de todas se queda igual que estaba. La repetición siempre supo el camino y se tiraba al leerla: ahora se guardan unos ciento cincuenta puntos por partida. Solo las partidas cuya repetición siga en la carpeta tendrán ruta, porque Fortnite guarda las cien últimas y lo anterior ya no se puede recuperar.",
+                en: "Where you went. When a match ends, a new button on “Live” opens the map with the route you took: where you landed, where you went and where it ended, with arrowheads for the direction and the colour of the line running from the start of the match to the end. Your chests of that match are drawn on top, so you see where you walked and where you cashed in at once. The same route is in the Map tab when you pick a single match; the heat map of all of them is left as it was. The replay always knew the way and threw it away on reading: about a hundred and fifty points a match are now kept. Only matches whose replay is still in the folder will have one, because Fortnite keeps the last hundred and anything older cannot be recovered.",
+                fr: "Où tu es allé. À la fin d’une partie, un nouveau bouton dans « En direct » ouvre la carte avec le trajet que tu as suivi : où tu as atterri, par où tu es passé et où ça s’est terminé, avec des flèches pour le sens de la marche et la couleur de la ligne qui va du début à la fin de la partie. Tes coffres de cette partie sont dessinés par-dessus : on voit d’un coup par où tu es passé et où tu as récolté. Le même trajet apparaît dans l’onglet Carte quand tu choisis une seule partie ; la carte de chaleur de toutes reste telle quelle. La rediffusion a toujours connu le chemin et le jetait à la lecture : environ cent cinquante points par partie sont désormais gardés. Seules les parties dont la rediffusion est encore dans le dossier en auront un, car Fortnite ne garde que les cent dernières et le reste est perdu."
+            },
+            {
+                strTag: "arreglado",
+                es: "El panel de Salvar el mundo no decía cuánto quedaba justo el día en que eso es lo único que puede decir. Cuando no hay ninguna misión que pague pavos, ahora sale «misiones nuevas en 3 h 25 min». La hora la da la propia página de la que se leen las alertas y siempre estuvo ahí; el panel la escondía cuando no había nada que cobrar.",
+                en: "The Save the World panel said nothing about the clock on the one day when the clock is all it can say. With no mission paying V-Bucks, it now shows “new missions in 3 h 25 min”. The time comes from the page the alerts are read from and was always there; the panel hid it when there was nothing to collect.",
+                fr: "Le panneau Sauver le monde ne disait rien du temps restant le jour même où c’est la seule chose qu’il peut dire. Quand aucune mission ne rapporte de V-Bucks, il affiche désormais « nouvelles missions dans 3 h 25 min ». L’heure vient de la page d’où sont lues les alertes et elle a toujours été là ; le panneau la cachait quand il n’y avait rien à encaisser."
+            },
+            {
+                strTag: "mejorado",
+                es: "El botón de la cabecera se llamaba «Pavos» y pasa a llamarse «Salvar el mundo», que es de donde salen y lo que de verdad enseña: las misiones del día y lo que pagan.",
+                en: "The header button was called “V-Bucks” and is now called “Save the World”, which is where they come from and what it actually shows: today’s missions and what they pay.",
+                fr: "Le bouton de l’en-tête s’appelait « V-Bucks » et s’appelle désormais « Sauver le monde », d’où ils viennent et ce qu’il montre vraiment : les missions du jour et ce qu’elles rapportent."
+            }
+        ]
+    },
     {
         strVersion: "1.9.0",
         strDate: "2026-11-18",
@@ -5165,6 +5227,168 @@ const ARR_MAP_SCOPES = [
     { strId: "partida", strLabel: "Solo la partida elegida" }
 ];
 
+// ---------------------------------------------------------------------------
+// The way you went
+//
+// The replay knows where the player stood five times a second; the record keeps a couple of
+// hundred of those points, which draw the same shape (see ReplayParser.BuildOwnRoute). It goes
+// over the same picture as the chests and through the same projection, so a corner of the line
+// and the chest opened at that corner land on the same spot.
+//
+// The colour carries the time, from the drop to the last frame, and an arrowhead every so often
+// says which way it was walked. A route with no direction is a scribble: the whole reason to
+// look at one is to see the order things happened in.
+//
+// Asked for one match at a time and kept once it comes. It never travels with the rest of the
+// state: three hundred routes is a megabyte of line for a drawing of one of them.
+// ---------------------------------------------------------------------------
+const dicRoutes = new Map();
+const INT_ROUTE_ARROWS = 14;          // over the whole way, however many points it is made of
+
+const loadRoute = async (strFile) => {
+    if (!dicRoutes.has(strFile)) {
+        // An empty one is worth keeping too: it is the answer, and asking again every redraw
+        // would be a request per second for a match that never had a route
+        try {
+            const objAnswer = await api("GET", `/api/route?file=${encodeURIComponent(strFile)}`);
+            dicRoutes.set(strFile, objAnswer?.route ?? []);
+        } catch (objIgnored) {
+            dicRoutes.set(strFile, []);
+        }
+    }
+    return dicRoutes.get(strFile);
+};
+
+// Pale blue where they landed, through to violet at the end. Never the reds and oranges of the
+// heat, which this is drawn on top of in the Map tab.
+const routeColour = (dblPart) => `hsl(${Math.round(192 + 96 * dblPart)} 90% ${Math.round(70 - 8 * dblPart)}%)`;
+
+const routeOverlay = (arrRoute) => {
+    if (!arrRoute || arrRoute.length < 2) return null;
+
+    const arrSpots = arrRoute.map((objPoint) => {
+        const { dblLeft, dblTop } = mapFraction(objPoint.x, objPoint.y);
+        return { dblX: dblLeft * 1000, dblY: dblTop * 1000 };
+    });
+    const intLast = arrSpots.length - 1;
+    const strPoints = arrSpots.map((objSpot) => `${objSpot.dblX.toFixed(1)},${objSpot.dblY.toFixed(1)}`).join(" ");
+
+    // One line per pair, so the colour can run along the way. A single path with a gradient would
+    // run its colours across the picture instead, which says nothing about when anything happened.
+    const arrLegs = [];
+    for (let intAt = 1; intAt <= intLast; intAt++) {
+        arrLegs.push(svg("line", {
+            x1: arrSpots[intAt - 1].dblX.toFixed(1), y1: arrSpots[intAt - 1].dblY.toFixed(1),
+            x2: arrSpots[intAt].dblX.toFixed(1), y2: arrSpots[intAt].dblY.toFixed(1),
+            stroke: routeColour((intAt - 1) / intLast), "stroke-width": 5, "stroke-linecap": "round"
+        }));
+    }
+
+    // Spread evenly along the way and never one per point: enough to read the direction, few
+    // enough to leave the line visible under them
+    const arrHeads = [];
+    const intStep = Math.max(1, Math.round(intLast / INT_ROUTE_ARROWS));
+    for (let intAt = intStep; intAt <= intLast; intAt += intStep) {
+        const objFrom = arrSpots[intAt - 1];
+        const objTo = arrSpots[intAt];
+        const dblAngle = Math.atan2(objTo.dblY - objFrom.dblY, objTo.dblX - objFrom.dblX) * 180 / Math.PI;
+        if (!Number.isFinite(dblAngle)) continue;
+        arrHeads.push(svg("path", {
+            d: "M 0 0 L -13 -7.5 L -13 7.5 Z",
+            transform: `translate(${objTo.dblX.toFixed(1)} ${objTo.dblY.toFixed(1)}) rotate(${dblAngle.toFixed(1)})`,
+            fill: routeColour(intAt / intLast), stroke: "rgba(8, 6, 20, 0.75)", "stroke-width": 2, "stroke-linejoin": "round"
+        }));
+    }
+
+    const objStart = arrSpots[0];
+    const objEnd = arrSpots[intLast];
+    return svg("svg", { class: "m-route", viewBox: "0 0 1000 1000", "aria-hidden": "true" }, [
+        // A dark line under the coloured one. The island is bright in places, and a thin line
+        // over a beach is a line nobody can follow.
+        svg("polyline", {
+            points: strPoints, fill: "none", stroke: "rgba(8, 6, 20, 0.7)",
+            "stroke-width": 11, "stroke-linejoin": "round", "stroke-linecap": "round"
+        }),
+        ...arrLegs,
+        ...arrHeads,
+        // Where they landed: a ring, because the drop is a place you arrive at, not a thing you leave
+        svg("circle", { cx: objStart.dblX.toFixed(1), cy: objStart.dblY.toFixed(1), r: 13, fill: "none", stroke: "rgba(8, 6, 20, 0.8)", "stroke-width": 6.5 }),
+        svg("circle", { cx: objStart.dblX.toFixed(1), cy: objStart.dblY.toFixed(1), r: 13, fill: "none", stroke: routeColour(0), "stroke-width": 3.5 }),
+        // And where it ended
+        svg("circle", { cx: objEnd.dblX.toFixed(1), cy: objEnd.dblY.toFixed(1), r: 8, fill: routeColour(1), stroke: "rgba(8, 6, 20, 0.8)", "stroke-width": 4 })
+    ]);
+};
+
+// The chests of one match, as dots. The Map tab blurs them into heat, which is what a hundred
+// matches need; a single one has forty chests and every one of them is worth seeing where it was.
+const chestDots = (arrPoints) => {
+    if (!arrPoints.length) return null;
+    return svg("svg", { class: "m-dots", viewBox: "0 0 1000 1000", "aria-hidden": "true" }, arrPoints.map((objPoint) => {
+        const { dblLeft, dblTop } = mapFraction(objPoint.x, objPoint.y);
+        return svg("circle", {
+            cx: (dblLeft * 1000).toFixed(1), cy: (dblTop * 1000).toFixed(1), r: 5.5,
+            fill: "rgba(240, 180, 41, 0.92)", stroke: "rgba(8, 6, 20, 0.7)", "stroke-width": 2
+        });
+    }));
+};
+
+// The picture, the chests of this match, the way it was walked, and the names on top
+const routeBoardParts = (objMatch, arrRoute) => {
+    const objMap = objApp.objMap;
+    return [
+        objMap?.hasImage ? el("img", { src: "/api/map/image", alt: "", draggable: "false" }) : el("div", { class: "m-noimage" }),
+        routeOverlay(arrRoute),
+        // On top of the line and not under it: a chest is something that happened on the way, and
+        // the line is as wide as a dot, so underneath it they are simply not there
+        chestDots(getMapOpenings([objMatch])),
+        ...(objMap?.places ?? []).map((objPlace) => {
+            const { dblLeft, dblTop } = mapFraction(objPlace.x, objPlace.y);
+            return el("span", { class: "m-place", style: { left: `${dblLeft * 100}%`, top: `${dblTop * 100}%` } }, [
+                el("i"), el("b", { "data-notr": true, text: objPlace.name })
+            ]);
+        })
+    ].filter(Boolean);
+};
+
+// The route on its own, over the map, without leaving the tab being read. The Map tab draws the
+// same thing beside its own figures; this is for the minute right after a match ends, which is
+// when somebody wants to see where they went.
+const openRouteDialog = async (objMatch) => {
+    const elDialog = document.getElementById("elRouteDialog");
+    const elBoard = el("div", { class: "m-board" }, el("p", { class: "m-wait", text: "Leyendo por dónde fuiste…" }));
+    const elFoot = el("p", { class: "m-legend" });
+    elDialog.replaceChildren(
+        el("div", { class: "head" }, [
+            el("b", {}, ["Por dónde fuiste · partida de las ", el("span", { "data-notr": true, text: fmtTimeOfDay(new Date(objMatch.startedAt)) })]),
+            el("span", { class: "grow" }),
+            el("button", { class: "x", text: "×", title: "Cerrar", "aria-label": "Cerrar", onclick: () => elDialog.close() })
+        ]),
+        el("div", { class: "body", tabindex: "-1", autofocus: true }, [elBoard, elFoot])
+    );
+    if (!elDialog.open) elDialog.showModal();
+
+    if (!objApp.objMap) await loadMap();
+    const arrRoute = await loadRoute(objMatch.file);
+    // Reading it takes a moment, and the dialog may be gone by the time it lands
+    if (!elDialog.open) return;
+
+    if (arrRoute.length < 2) {
+        elBoard.replaceChildren(el("p", { class: "m-wait", text: "Esta partida se contó con una versión anterior, que no guardaba el recorrido. Las nuevas sí." }));
+        return;
+    }
+    elBoard.replaceChildren(...routeBoardParts(objMatch, arrRoute));
+    elFoot.replaceChildren(
+        el("span", { class: "k-start" }),
+        el("span", { text: "donde caíste" }),
+        el("span", { class: "k-end" }),
+        el("span", { text: "donde acabó" }),
+        el("span", { class: "k-chest" }),
+        el("span", { text: `${getMapOpenings([objMatch]).length} cofres situados` }),
+        el("span", { class: "grow" }),
+        el("span", { class: "quiet", text: "El color de la línea va del principio al final de la partida." })
+    );
+};
+
 // The heat: every chest a soft blob, the blobs piling up, then the pile coloured
 const drawHeat = (elCanvas, arrPoints, intSide) => {
     const objPaint = elCanvas.getContext("2d");
@@ -5238,6 +5462,21 @@ const renderMap = () => {
             ]);
         })
     ]);
+
+    // One match on screen: the way it was walked goes over its own chests. Never with all of
+    // them at once -- three hundred routes over one island draw nothing anybody can read, which
+    // is why this hangs off the chosen match and not off the heat.
+    if (strScope === "partida" && objSelected?.hasRoute) {
+        const strFile = objSelected.file;
+        loadRoute(strFile).then((arrRoute) => {
+            const elOverlay = routeOverlay(arrRoute);
+            // The tab may have been left, the scope changed or another match picked while it was read
+            if (!elOverlay || !elBoardMap.isConnected
+                || objApp.objLayout?.strMapScope !== "partida"
+                || getSelectedMatch(getNumberedMatches())?.file !== strFile) return;
+            elBoardMap.insertBefore(elOverlay, elBoardMap.querySelector(".m-place"));
+        });
+    }
 
     // Chests per place, which is the question somebody farming actually asks
     const dicByPlace = new Map(arrPlaces.map((objPlace) => [objPlace.name, { strName: objPlace.name, intChests: 0 }]));
@@ -5848,11 +6087,19 @@ const renderLive = () => {
         elRush = el("div", { class: "l-card full l-rush rush" }, el("span", { text: `Partida terminada a los ${fmtClock(dblNow)}. El recuento aparece en cuanto Fortnite cierre la repetición.` }));
     } else {
         const strFinalTone = getTone(intChests, objHabits.dblMeanTotal);
-        elRush = el("div", { class: `l-card full l-rush${strFinalTone ? ` ${strFinalTone}` : ""}` }, el("span", {}, [
-            objMatch.position ? `Partida terminada con ${intChests} ${intChests === 1 ? "cofre" : "cofres"}, puesto ${fmtPosition(objMatch.position)}.` : `Partida terminada con ${intChests} ${intChests === 1 ? "cofre" : "cofres"}.`,
-            objHabits.dblMeanTotal != null ? ` ${intChests >= objHabits.dblMeanTotal ? "Por encima" : "Por debajo"} de tu media de ${fmtNumber(objHabits.dblMeanTotal)}.` : null,
-            " Los datos se quedan aquí hasta que empiece la siguiente."
-        ]));
+        // The map is a tab away and this is the moment the match is still fresh, so the way you
+        // went is offered right here, over whatever is on screen, and left alone otherwise
+        const elSeeRoute = objMatch.hasRoute
+            ? el("button", { class: "btn small", text: "Ver ruta seguida", onclick: () => openRouteDialog(objMatch) })
+            : null;
+        elRush = el("div", { class: `l-card full l-rush${strFinalTone ? ` ${strFinalTone}` : ""}${elSeeRoute ? " has-route" : ""}` }, [
+            el("span", {}, [
+                objMatch.position ? `Partida terminada con ${intChests} ${intChests === 1 ? "cofre" : "cofres"}, puesto ${fmtPosition(objMatch.position)}.` : `Partida terminada con ${intChests} ${intChests === 1 ? "cofre" : "cofres"}.`,
+                objHabits.dblMeanTotal != null ? ` ${intChests >= objHabits.dblMeanTotal ? "Por encima" : "Por debajo"} de tu media de ${fmtNumber(objHabits.dblMeanTotal)}.` : null,
+                " Los datos se quedan aquí hasta que empiece la siguiente."
+            ]),
+            elSeeRoute
+        ]);
     }
 
     if (objContext.bLocked) {
@@ -6466,6 +6713,11 @@ const shopCard = (objItem) => el("article", {
 // Esc already closes a modal dialog; this is the click outside it
 document.getElementById("elShopDialog").addEventListener("click", (objEvent) => {
     if (objEvent.target.id === "elShopDialog") objEvent.target.close();
+});
+
+// The same way out as the shop's: the backdrop closes it, and Esc already does
+document.getElementById("elRouteDialog").addEventListener("click", (objEvent) => {
+    if (objEvent.target.id === "elRouteDialog") objEvent.target.close();
 });
 
 const shopBlock = (strTitle, strWhy, arrItems) => arrItems.length ? el("section", { class: "sh-block" }, [
@@ -7537,10 +7789,17 @@ const elVbucksPop = () => document.getElementById("elVbucksPop");
 
 // The label under the total. The page the alerts come from carries their real expiry, so this is
 // their own clock and not a guess about midnight.
+// The clock the page itself counts down, which is the same instant either way: when today's
+// alerts run out, the next ones are up. So it is worth saying on a day that pays nothing too --
+// there it is the only thing the panel can answer, and waiting for the change is the whole
+// question. The wording follows which of the two it is.
 const sayVbucksLeft = (objView) => {
-    if (!objView.expiresUtc || !objView.missions.length) return null;
+    if (!objView.expiresUtc) return null;
     const dblSeconds = (new Date(objView.expiresUtc).getTime() - Date.now()) / 1000;
     if (dblSeconds > 48 * 3600) return null;              // not a date about today's alerts
+    if (!objView.missions.length) {
+        return dblSeconds > 60 ? `misiones nuevas en ${fmtPlayed(dblSeconds)}` : "misiones nuevas ya";
+    }
     return dblSeconds > 60 ? `caducan en ${fmtPlayed(dblSeconds)}` : "caducan ya";
 };
 
@@ -7556,8 +7815,10 @@ const renderVbucks = () => {
 
     const strLeft = sayVbucksLeft(objView);
     elPop.replaceChildren(...[
-        objView.missions.length ? el("div", { class: "vb-head" }, [
-            el("b", { class: "figure", text: `${objView.total} pavos` }),
+        // The figure only when there is one to give; the countdown on its own is reason enough
+        // for the row, because on a day with no alerts it is all there is to say
+        objView.missions.length || strLeft ? el("div", { class: "vb-head" }, [
+            objView.missions.length ? el("b", { class: "figure", text: `${objView.total} pavos` }) : null,
             strLeft && el("span", { class: "tag", text: strLeft })
         ]) : null,
         objView.missions.length

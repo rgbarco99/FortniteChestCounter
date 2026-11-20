@@ -37,6 +37,14 @@ public sealed class MatchRecord
     public List<PlayerInfo> Players { get; set; } = new();
     public List<Opening> Openings { get; set; } = new();
     public List<Elimination> Eliminations { get; set; } = new();
+
+    /// <summary>
+    /// Where the recording player went, from the bus to the last frame they were in. Thinned down
+    /// to what a line on a map can show: the replay itself knows the position five times a second.
+    /// Empty for a match read by a version that did not keep it, and for one that never placed
+    /// the player at all.
+    /// </summary>
+    public List<RoutePoint> Route { get; set; } = new();
 }
 
 public sealed class MatchStats
@@ -67,6 +75,18 @@ public sealed class PlayerInfo
 }
 
 /// <summary>One container (chest, ammo box, ...) opened by a known player.</summary>
+/// <summary>
+/// One point of the player's own track: how far into the match it was, and where they stood, in
+/// the same metres as <see cref="Opening.X"/>, so a chest and the step that opened it land on the
+/// same spot of the map.
+/// </summary>
+public sealed class RoutePoint
+{
+    public double T { get; set; }
+    public double X { get; set; }
+    public double Y { get; set; }
+}
+
 public sealed class Opening
 {
     public double Time { get; set; }
@@ -399,6 +419,12 @@ public sealed class MatchSummary
     /// <summary>Counted with an older version of the reader and the replay is gone, so it cannot be recounted.</summary>
     public bool Outdated { get; set; }
     public bool Excluded { get; set; }
+
+    /// <summary>
+    /// This match kept the player's own track, so there is a route to draw. Asked for one match
+    /// at a time from <c>/api/route</c>; see <see cref="MatchRecord.Route"/>.
+    /// </summary>
+    public bool HasRoute { get; set; }
     public DateTime StartedAt { get; set; }
     public double DurationSec { get; set; }
     public double AliveSec { get; set; }
