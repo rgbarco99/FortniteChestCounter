@@ -2013,6 +2013,18 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
     {
+        strVersion: "1.10.1",
+        strDate: "2026-11-21",
+        arrItems: [
+            {
+                strTag: "nuevo",
+                es: "Las dos Horas del tesoro de este fin de semana ya están puestas: la del sábado por la tarde y la de la madrugada del domingo. La de la madrugada recupera el doble en el acceso a la Tienda pirata —uno de cada 68.750 cofres en vez de uno de cada 137.500—, que la semana pasada no tuvo, y con él el atuendo dorado a ×10. Los cofres que abras dentro de cualquiera de las dos franjas cuentan ya con su multiplicador. Del 28 de noviembre no hay nada apuntado porque Epic aún no lo ha anunciado: la prensa lo da por hecho, pero aquí solo entran horas prometidas.",
+                en: "This weekend’s two Treasure Hours are in: Saturday afternoon’s and the one in the small hours of Sunday. The night one brings back the double on the Pirate Shop access — one chest in 68,750 instead of one in 137,500 — which last week did not have, and with it the gold outfit at ×10. Chests you open inside either window already count with its multiplier. Nothing is written down for 28 November because Epic has not announced it yet: the press takes it for granted, but only promised hours go in here.",
+                fr: "Les deux Heures du trésor de ce week-end sont en place : celle du samedi après-midi et celle de la nuit de dimanche. Celle de la nuit retrouve le double sur l’accès à la Boutique pirate — un coffre sur 68 750 au lieu d’un sur 137 500 —, que la semaine dernière n’avait pas, et avec lui la tenue dorée à ×10. Les coffres que tu ouvres dans l’un des deux créneaux comptent déjà avec son multiplicateur. Rien n’est noté pour le 28 novembre car Epic ne l’a pas encore annoncé : la presse le tient pour acquis, mais ici n’entrent que les heures promises."
+            }
+        ]
+    },
+    {
         strVersion: "1.10.0",
         strDate: "2026-11-20",
         arrItems: [
@@ -3901,7 +3913,7 @@ const renderTable = (elBody, { arrMatches, objSelected }) => {
 // Everything here can be edited from the tab, so a new season only needs new numbers.
 // Bumped when this file brings data an older copy cannot have: on loading, normalizeTreasure
 // folds in what is new (today's Treasure Hours) without touching what the player edited.
-const INT_TREASURE_VERSION = 7;
+const INT_TREASURE_VERSION = 8;
 
 const defaultTreasure = () => ({
     intVersion: INT_TREASURE_VERSION,
@@ -3942,7 +3954,14 @@ const defaultTreasure = () => ({
         // The night session ran with the same multipliers as the afternoon one. It first went in
         // here with the double token of the week before, which was a guess and a wrong one: Epic
         // announced no bigger boost for that night, and what followed it live gives 1.5x.
-        { strStart: "2026-11-15T02:00:00Z", strEnd: "2026-11-15T04:00:00Z", objMultipliers: { token: 1.5, gold: 7.5, vehicle: 10 } }
+        { strStart: "2026-11-15T02:00:00Z", strEnd: "2026-11-15T04:00:00Z", objMultipliers: { token: 1.5, gold: 7.5, vehicle: 10 } },
+        // 21 Nov, the third weekend. Epic confirmed both start times and the afternoon's 1.5x on
+        // the token; the night one brings the double back, which the week before did not have:
+        // "1 in 68,750" per chest, twice the ordinary 1 in 137,500 (Vice, 18 and 21 Nov 2026).
+        // The gold outfit goes with it, 1 in 156,250 against the 1 in 1,562,500 of any other
+        // day, so x10 — the same pair of figures the night of 8 Nov ran with.
+        { strStart: "2026-11-21T19:00:00Z", strEnd: "2026-11-21T21:00:00Z", objMultipliers: { token: 1.5, gold: 7.5, vehicle: 10 } },
+        { strStart: "2026-11-22T02:00:00Z", strEnd: "2026-11-22T04:00:00Z", objMultipliers: { token: 2, gold: 10 } }
     ]
 });
 
@@ -4065,6 +4084,14 @@ const normalizeTreasure = (objSaved) => {
                 objWindow.objMultipliers = { token: 1.5, gold: 7.5, vehicle: 10 };
             }
         }
+    }
+    // Las dos Horas del tesoro del 21 y el 22 de noviembre. Se añaden por hora de comienzo y solo
+    // una vez, como las del principio: una franja borrada a propósito no vuelve en cada arranque,
+    // y lo que ya estuviera apuntado para esas horas se queda tal cual.
+    if (intSaved < 8) {
+        const setStarts = new Set(objOut.arrWindows.map((objWindow) => objWindow.strStart));
+        for (const objWindow of objDefault.arrWindows) if (!setStarts.has(objWindow.strStart)) objOut.arrWindows.push(objWindow);
+        objOut.arrWindows.sort((objLeft, objRight) => String(objLeft.strStart).localeCompare(String(objRight.strStart)));
     }
     if (intSaved < INT_TREASURE_VERSION) objOut.intVersion = INT_TREASURE_VERSION;
     return objOut;
