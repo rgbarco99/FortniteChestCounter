@@ -2120,6 +2120,24 @@ document.getElementById("elLang").replaceChildren(...Object.entries(OBJ_LANGS).m
 // ---------------------------------------------------------------------------
 const ARR_NEWS = [
     {
+        strVersion: "1.11.1",
+        strDate: "2026-11-22",
+        arrItems: [
+            {
+                strTag: "arreglado",
+                es: "De la semana de Kasane Teto no se veían ni el atuendo dorado ni la mochila: sus casillas salían con el nombre que Epic había anunciado en inglés y sin foto. Los cinco tesoros ya están con el nombre y el icono que les da el juego, y de paso resulta que tres no se llamaban como se había anunciado: la mochila entra como «Ola letal y rompemareas de oro macizo», la pantalla de carga como «Vendaje de Óscar», y de la pista lo apuntado —«Sea Shanty»— era el artista y no el título, que es «Wellerman».",
+                en: "Kasane Teto's week was showing neither the gold outfit nor the back bling: their squares came out with the name Epic had announced, in English and with no picture. All five treasures are in now with the name and the icon the game gives them, and it turns out three were not called what had been announced: the back bling goes in as “Ola letal y rompemareas de oro macizo”, the loading screen as “Vendaje de Óscar”, and what was written down for the jam track — “Sea Shanty” — was the artist and not the title, which is “Wellerman”.",
+                fr: "De la semaine de Kasane Teto, on ne voyait ni la tenue dorée ni le sac à dos : leurs cases sortaient avec le nom qu'Epic avait annoncé, en anglais et sans image. Les cinq trésors sont là avec le nom et l'icône que leur donne le jeu, et il se trouve que trois ne s'appelaient pas comme annoncé : le sac à dos entre sous « Ola letal y rompemareas de oro macizo », l'écran de chargement sous « Vendaje de Óscar », et ce qui était noté pour la piste — « Sea Shanty » — était l'artiste et non le titre, qui est « Wellerman »."
+            },
+            {
+                strTag: "mejorado",
+                es: "Y la razón por la que no se veían. El programa reconoce los tesoros de cada semana por una marca que Epic deja dentro del nombre interno de cada objeto, y esta semana la cambió: «Gold» donde las tres anteriores ponía «Reward». Además dejó de llamar al atuendo dorado como a la mochila, que era justo de donde se sacaba. Ahora ya no depende de eso: los cinco tesoros entran en el catálogo del juego en el mismo instante, así que con encontrar uno —la pantalla de carga, la única que se puede pedir por su nombre cualquier semana— aparecen los otros cuatro. La marca sigue sirviendo, pero ya no es lo único que sujeta esto.",
+                en: "And the reason they were not showing. The program recognises each week's treasures by a mark Epic leaves inside every item's internal name, and this week it changed: “Gold” where the three weeks before had “Reward”. It also stopped naming the gold outfit after the back bling, which was exactly where the outfit was being read from. That is no longer what holds this up: the five treasures go into the game's catalogue in the same instant, so finding one of them — the loading screen, the only one that can be asked for by name any week — brings the other four. The mark still counts, but it is no longer the only thing holding this together.",
+                fr: "Et la raison pour laquelle ils ne s'affichaient pas. Le programme reconnaît les trésors de chaque semaine grâce à une marque qu'Epic laisse dans le nom interne de chaque objet, et cette semaine elle a changé : « Gold » là où les trois semaines précédentes avaient « Reward ». Epic a aussi cessé de nommer la tenue dorée d'après le sac à dos, qui était précisément d'où on la tirait. Ce n'est plus ce qui tient tout : les cinq trésors entrent dans le catalogue du jeu au même instant, donc en trouver un — l'écran de chargement, le seul qu'on puisse demander par son nom n'importe quelle semaine — fait venir les quatre autres. La marque sert encore, mais elle n'est plus la seule chose sur laquelle cela repose."
+            }
+        ]
+    },
+    {
         strVersion: "1.11.0",
         strDate: "2026-11-22",
         arrItems: [
@@ -2431,9 +2449,9 @@ const ARR_NEWS = [
             },
             {
                 strTag: "nuevo",
-                es: "Los tesoros de la semana de Hatsune Miku y los de la de Kasane Teto, con su nombre y su foto. Junto al título de la semana se ve ahora si es la actual, si está por llegar o si ya terminó, y las semanas que vienen se pueden mirar: antes la flecha de avanzar se quedaba bloqueada en la de hoy.",
-                en: "The treasures for Hatsune Miku's week and for Kasane Teto's, with their names and pictures. Beside the week's title you can now see whether it is the current one, still to come or already over, and the weeks ahead can be looked at: the forward arrow used to stop at today's.",
-                fr: "Les trésors de la semaine de Hatsune Miku et de celle de Kasane Teto, avec leur nom et leur image. À côté du titre de la semaine, on voit désormais s'il s'agit de la semaine en cours, à venir ou déjà terminée, et les semaines suivantes peuvent être consultées : la flèche vers l'avant s'arrêtait à celle d'aujourd'hui."
+                es: "Los tesoros de la semana de Hatsune Miku, con su nombre y su foto, y los de la de Kasane Teto con el nombre que Epic había anunciado, que era lo único que había de ella todavía. Junto al título de la semana se ve ahora si es la actual, si está por llegar o si ya terminó, y las semanas que vienen se pueden mirar: antes la flecha de avanzar se quedaba bloqueada en la de hoy.",
+                en: "The treasures for Hatsune Miku's week, with their names and pictures, and Kasane Teto's with the name Epic had announced, which was all there was of it yet. Beside the week's title you can now see whether it is the current one, still to come or already over, and the weeks ahead can be looked at: the forward arrow used to stop at today's.",
+                fr: "Les trésors de la semaine de Hatsune Miku, avec leur nom et leur image, et ceux de celle de Kasane Teto avec le nom annoncé par Epic, qui était tout ce qu'on en avait encore. À côté du titre de la semaine, on voit désormais s'il s'agit de la semaine en cours, à venir ou déjà terminée, et les semaines suivantes peuvent être consultées : la flèche vers l'avant s'arrêtait à celle d'aujourd'hui."
             },
             {
                 strTag: "arreglado",
@@ -4040,7 +4058,7 @@ const renderTable = (elBody, { arrMatches, objSelected }) => {
 // Everything here can be edited from the tab, so a new season only needs new numbers.
 // Bumped when this file brings data an older copy cannot have: on loading, normalizeTreasure
 // folds in what is new (today's Treasure Hours) without touching what the player edited.
-const INT_TREASURE_VERSION = 8;
+const INT_TREASURE_VERSION = 9;
 
 const defaultTreasure = () => ({
     intVersion: INT_TREASURE_VERSION,
@@ -4098,9 +4116,16 @@ const defaultTreasure = () => ({
 // the reward week in UTC. Anything typed in the tab wins over this, field by field.
 //
 // The pictures are the official icons. Most were matched by Epic's own internal id —
-// Pickaxe_SpillStrikeReward and Backpack_RumbaShowyReward carry the "Reward" suffix, and
-// loadingscreen_delilahthw / thw2 carry "thw" for treasure-hunt week — and then checked by eye
-// against the rewards as the game shows them.
+// Pickaxe_SpillStrikeReward and Backpack_RumbaShowyReward carry the "Reward" suffix, week four's
+// Backpack_JuniperBurlapGold carries "Gold" instead, and loadingscreen_delilahthw / thw2 carry
+// "thw" for treasure-hunt week — and then checked by eye against the rewards as the game shows
+// them.
+//
+// Una semana que Epic ya ha anunciado pero cuyos objetos no están todavía en el juego se escribe
+// con bAnnounced: true y sin imagen. Es un marcador de sitio: sujeta la casilla hasta que el
+// objeto llegue al catálogo y entonces se aparta, porque un anuncio en inglés y sin foto es peor
+// que lo que dice el juego mismo. En cuanto llega, su nombre oficial y su icono se escriben aquí
+// y «Volver al oficial» los recupera.
 const STR_ICON = "https://fortnite-api.com/images/cosmetics";
 const OBJ_WEEK_ITEMS = {
     // Semana 1 — A$AP Rocky
@@ -4124,18 +4149,19 @@ const OBJ_WEEK_ITEMS = {
     "2026-11-15T14|pickaxe": { strName: "Cofre del tesoro de Miku", strImage: `${STR_ICON}/br/backpack_fledgravelreward/icon.png` },
     "2026-11-15T14|jam": { strName: "PPPP", strImage: "https://cdn.fortnite-api.com/tracks/88488b1f3e0d6975.jpg" },
     "2026-11-15T14|loading": { strName: "Que la fortuna te acompañe", strImage: `${STR_ICON}/br/loadingscreen_delilahthw3/icon.png` },
-    // Semana 4 — Kasane Teto. Anunciada, pero todavía sin salir: de sus cinco tesoros el juego
-    // solo tiene ya el coche, así que los otros cuatro van con el nombre que anunció Epic, en
-    // inglés y sin foto. En cuanto salgan, su nombre oficial en español y su icono entran aquí
-    // y «Volver al oficial» los recupera.
-    // bAnnounced: a name Epic gave before the item was in the game. It holds the square until
-    // the real one reaches the catalogue, and then it steps aside: an announcement in English
-    // with no picture is worse than what the game itself says.
-    "2026-11-22T14|gold": { strName: "Kasane Teto de oro macizo", bAnnounced: true },
-    "2026-11-22T14|vehicle": { strName: "Lamborghini Urus SE dorado", strImage: `${STR_ICON}/cars/carbody_wurst/large.png`, bAnnounced: true },
-    "2026-11-22T14|pickaxe": { strName: "Rogue Wave y Tidewalker", bAnnounced: true },
-    "2026-11-22T14|jam": { strName: "Sea Shanty", bAnnounced: true },
-    "2026-11-22T14|loading": { strName: "Oscar's Wraps", bAnnounced: true },
+    // Semana 4 — Kasane Teto. Ya en el juego: los cinco entraron en el catálogo el 22 de
+    // noviembre a las 13:30 UTC, media hora antes de que la semana abriera, así que los nombres
+    // anunciados en inglés se van y entran los oficiales con su icono. Tres de los cinco no se
+    // llamaban como Epic había anunciado: «Rogue Wave y Tidewalker» es «Ola letal y rompemareas
+    // de oro macizo», «Oscar's Wraps» es «Vendaje de Óscar», y de la pista lo que se había
+    // anunciado («Sea Shanty») era el artista y no el título, que es «Wellerman». El coche
+    // dorado, como en las semanas 2 y 3, lleva la foto del coche de debajo: la calcomanía
+    // CarSkin_WurstTreasureHunt01 devuelve una imagen de relleno.
+    "2026-11-22T14|gold": { strName: "Kasane Teto de oro macizo", strImage: `${STR_ICON}/br/character_yarnpuzzling/icon.png` },
+    "2026-11-22T14|vehicle": { strName: "Lamborghini Urus SE dorado", strImage: `${STR_ICON}/cars/carbody_wurst/large.png` },
+    "2026-11-22T14|pickaxe": { strName: "Ola letal y rompemareas de oro macizo", strImage: `${STR_ICON}/br/backpack_juniperburlapgold/icon.png` },
+    "2026-11-22T14|jam": { strName: "Wellerman", strImage: "https://cdn.fortnite-api.com/tracks/c572cf547b41f621.jpg" },
+    "2026-11-22T14|loading": { strName: "Vendaje de Óscar", strImage: `${STR_ICON}/br/loadingscreen_delilahthw4/icon.png` },
     // El token no cambia de semana: la temporada entera reparte los dos
     "season|token": { strName: "Acceso a la Tienda pirata (2026 y 2027)" }
 };
@@ -4219,6 +4245,16 @@ const normalizeTreasure = (objSaved) => {
         const setStarts = new Set(objOut.arrWindows.map((objWindow) => objWindow.strStart));
         for (const objWindow of objDefault.arrWindows) if (!setStarts.has(objWindow.strStart)) objOut.arrWindows.push(objWindow);
         objOut.arrWindows.sort((objLeft, objRight) => String(objLeft.strStart).localeCompare(String(objRight.strStart)));
+    }
+    // Semana 4: los cuatro tesoros que iban con el nombre anunciado por Epic y sin foto ya están
+    // en el juego, así que ahora traen su imagen oficial. Lo que se hubiera escrito o pegado en
+    // esas casillas era un apaño mientras no la había, y el tesoro oficial toma el relevo una
+    // vez, como en las semanas anteriores: solo donde el oficial trae su propia foto, y «Volver
+    // al oficial» lo deja reversible de aquí en adelante.
+    if (intSaved < 9) {
+        for (const [strKey, objOfficial] of Object.entries(OBJ_WEEK_ITEMS)) {
+            if (objOfficial.strImage && strKey.startsWith("2026-11-22T14|")) delete objOut.objItems[strKey];
+        }
     }
     if (intSaved < INT_TREASURE_VERSION) objOut.intVersion = INT_TREASURE_VERSION;
     return objOut;
@@ -4617,12 +4653,21 @@ const loadCatalogues = () => {
 //   Backpack_FledGravelReward      the pickaxe or backbling square: the suffix "Reward"
 //   loadingscreen_delilahthw3      the loading screen: "thw", for treasure-hunt week
 //   CarSkin_EagleTreasureHunt01    the vehicle square
-//   Character_FledGravel           the gold outfit: the same code name as the backpack, bare
 //
-// and the jam track, which carries no mark at all: it is found by the day it was added, because
-// the week's treasures go in on the first day of the week and the rest of the patch's music does
-// not. Asked in the reader's own language, the API answers with the name already translated,
-// which is the whole difference between this and a list of code names.
+// Week four showed that the marks move: the backpack came in as Backpack_JuniperBurlapGold, with
+// "Gold" where the three weeks before it had "Reward", and the gold outfit stopped sharing the
+// backpack's code name — Character_YarnPuzzling went with it, two different names. So the marks
+// are no longer the only thing holding this up. What has held every week is the moment: the
+// week's five treasures go into the catalogue in the same instant, the loading screen among
+// them, and the loading screen is the one that can always be asked for by id. It is the anchor,
+// and the rest of the lot is read off its clock:
+//
+//   Character_YarnPuzzling         the gold outfit: the only outfit of that instant
+//   Backpack_JuniperBurlapGold     by its mark, or the only backbling or pickaxe of that instant
+//   sid_placeholder_971            the jam track, which carries no mark at all
+//
+// Asked in the reader's own language, the API answers with the name already translated, which is
+// the whole difference between this and a list of code names.
 //
 // Everything in here is a guess that knows it is one. It fills a square that has nothing in it,
 // it never touches what you typed, and when it cannot tell which item it is it leaves the square
@@ -4649,9 +4694,16 @@ const STR_SCREEN_STEM = "loadingscreen_delilahthw";
 // filled with the wrong thing does not.
 const INT_FOUND_WINDOW_HOURS = 48;
 
-const RE_FOUND_REWARD = /^(?:Backpack|Pickaxe)_(.+?)Reward$/i;
+// Las dos marcas vistas en el id del accesorio: «Reward» las tres primeras semanas y «Gold» la
+// cuarta. Se guarda cuál de las dos ha casado, porque solo «Reward» nombraba también al atuendo.
+const RE_FOUND_REWARD = /^(?:Backpack|Pickaxe)_(.+?)(Reward|Gold)$/i;
 const RE_FOUND_SCREEN = /loadingscreen_.*thw\d*$/i;
 const RE_FOUND_CAR = /^CarSkin_(.+?)TreasureHunt\d*$/i;
+
+// Cuánto se aparta del instante de la pantalla de carga el resto del lote de la semana. Medido:
+// lo del catálogo de battle royale y el coche entran en el mismo segundo que ella, y la pista de
+// improvisación un minuto después (semana 3: 13:30:42 y 13:31:05; semana 4: 13:30:46 y 13:31:49).
+const INT_DROP_MINUTES = 5;
 
 const fetchCosmetics = async (strUrl) => {
     const objUrl = new URL(strUrl);
@@ -4713,35 +4765,46 @@ const findWeekTreasures = async (objWeek) => {
     const arrCars = (objNew?.items?.cars ?? []).filter(bInWeek);
     const arrTracks = (objNew?.items?.tracks ?? []).filter(bInWeek);
 
-    // The backpack or pickaxe, and with it the code name the whole week is built on
-    let strCodeName = null;
-    for (const objItem of arrBr) {
-        const arrMatch = RE_FOUND_REWARD.exec(String(objItem.id ?? ""));
-        if (!arrMatch) continue;
-        strCodeName = arrMatch[1];
-        const objFound = asFoundItem(objItem, "br");
-        if (objFound) objOut.pickaxe = objFound;
-        break;
-    }
-
-    // The gold outfit: the same code name without the suffix. Usually it is in the new items
-    // too, and when it is not it can be asked for by id, which is cheap and exact.
-    if (strCodeName) {
-        const strOutfitId = `Character_${strCodeName}`;
-        const objOutfit = arrBr.find((objItem) => String(objItem.id ?? "").toLowerCase() === strOutfitId.toLowerCase())
-            ?? await fetchCosmeticById(strOutfitId);
-        const objFound = objOutfit ? asFoundItem(objOutfit, "br") : null;
-        if (objFound) objOut.gold = objFound;
-    }
-
-    // The loading screen, by its mark among the new items and, failing that, by the id this
-    // season builds them with
+    // The loading screen goes first because it is the anchor: by its mark among the new items
+    // and, failing that, by the id this season builds them with
     let objScreen = arrBr.find((objItem) => RE_FOUND_SCREEN.test(String(objItem.id ?? "")));
     if (!objScreen) {
         objScreen = await fetchCosmeticById(objWeek.intIndex === 0 ? STR_SCREEN_STEM : `${STR_SCREEN_STEM}${objWeek.intIndex + 1}`);
     }
     const objScreenFound = objScreen ? asFoundItem(objScreen, "br") : null;
     if (objScreenFound) objOut.loading = objScreenFound;
+
+    // The rest of the lot: what Epic put into the catalogue at that same moment. When the screen
+    // could not be found there is no clock to read, and every route below falls back to its mark.
+    const dblDrop = Date.parse(objScreen?.added ?? "");
+    const bSameDrop = (objItem) => Number.isFinite(dblDrop)
+        && Math.abs(Date.parse(objItem?.added ?? "") - dblDrop) <= INT_DROP_MINUTES * 60000;
+    const objOnlyOne = (arrItems) => (arrItems.length === 1 ? arrItems[0] : null);
+    const strKind = (objItem) => String(objItem?.type?.value ?? "").toLowerCase();
+
+    // The backpack or pickaxe: by its mark, and failing that the only one of its kind in the
+    // lot. Neither route covers the other: the mark has already changed once, and week three's
+    // backpack went into the catalogue a day before its week opened, on its own.
+    const objReward = arrBr.find((objItem) => RE_FOUND_REWARD.test(String(objItem.id ?? "")))
+        ?? objOnlyOne(arrBr.filter((objItem) => bSameDrop(objItem) && ["backpack", "pickaxe"].includes(strKind(objItem))));
+    if (objReward) {
+        const objFound = asFoundItem(objReward, "br");
+        if (objFound) objOut.pickaxe = objFound;
+    }
+
+    // The gold outfit: the only outfit of the lot. The old route, the backpack's code name
+    // without its suffix, stays behind it for a week whose outfit the new-items list no longer
+    // carries — but only from a "Reward" mark, which named the outfit for three weeks running.
+    // Not from a "Gold" one: JuniperBurlap is Captain X's set and Character_JuniperBurlap does
+    // exist, so that guess would quietly put somebody else's outfit in the square.
+    const arrMark = RE_FOUND_REWARD.exec(String(objReward?.id ?? ""));
+    const strCodeName = arrMark && /^reward$/i.test(arrMark[2]) ? arrMark[1] : null;
+    const objOutfit = objOnlyOne(arrBr.filter((objItem) => bSameDrop(objItem) && strKind(objItem) === "outfit"))
+        ?? (strCodeName ? await fetchCosmeticById(`Character_${strCodeName}`) : null);
+    if (objOutfit) {
+        const objFound = asFoundItem(objOutfit, "br");
+        if (objFound) objOut.gold = objFound;
+    }
 
     // The vehicle: the golden paint names the treasure, the car underneath gives the picture
     const objSkin = arrCars.find((objItem) => RE_FOUND_CAR.test(String(objItem.id ?? "")));
@@ -4757,14 +4820,16 @@ const findWeekTreasures = async (objWeek) => {
         if (objFound) objOut.vehicle = objFound;
     }
 
-    // The jam track carries no mark, so the only thing that tells it apart is the day: the
-    // week's treasures go in when the week opens and the patch's other music does not. Two on
-    // the same day is a tie this cannot break, and a wrong name in the square is worse than an
-    // empty one, so it leaves it.
+    // The jam track carries no mark at all, so what tells it apart is when it went in: with the
+    // rest of the lot, a minute after the loading screen. Failing that, the day the week opened,
+    // because the week's treasures go in when the week opens and the patch's other music does
+    // not. Two in the same day is a tie that one cannot break, and a wrong name in the square is
+    // worse than an empty one, so it leaves it.
     const strWeekDay = objWeek.dtStart.toISOString().slice(0, 10);
-    const arrSameDay = arrTracks.filter((objItem) => String(objItem.added ?? "").slice(0, 10) === strWeekDay);
-    if (arrSameDay.length === 1) {
-        const objFound = asFoundItem(arrSameDay[0], "tracks");
+    const objTrack = objOnlyOne(arrTracks.filter(bSameDrop))
+        ?? objOnlyOne(arrTracks.filter((objItem) => String(objItem.added ?? "").slice(0, 10) === strWeekDay));
+    if (objTrack) {
+        const objFound = asFoundItem(objTrack, "tracks");
         if (objFound) objOut.jam = objFound;
     }
 
